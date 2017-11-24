@@ -1,0 +1,6 @@
+<?php
+
+$dbHost = "localhost";
+$dbName = "arbitrage";
+$dbUser = "arbitrage";
+$dbPass = "YOUR_PASSWORD";

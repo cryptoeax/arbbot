@@ -1,0 +1,161 @@
+
+[general]
+; GENERAL SETTINGS
+
+; The bot automatically evens out the exchange wallets. This sets the required
+; BTC amount for a transfer .
+min-btc-xfer = 0.025
+
+; It could happen that the bot leaves orders at the exchange (if an order was
+; only partially filled). Enable this setting to cancel those orders in regular
+; intervals to free up the coins bound to these orders.
+cancel-stray-orders = true
+
+; Some coins are blocked and aren't traded
+; because they cannot be automatically withdrawn by the bot.
+blockedCoins = BTS,NXT,XMR,ETH,ETC,BURST,SWIFT,XRP,STEEM,ARDR,SBD,NAUT
+
+[db]
+; DATABASE SETTINGS
+
+; Your MySQL database user
+user = arbitrage
+
+; Your MySQL database password
+pass = YOUR_PASSWORD
+
+; Your MySQL database host
+host = localhost
+
+; Your MySQL database name
+name = arbitrage
+
+[modules]
+; MODULE ENABLING / DISABLING
+
+; The coin autobuy module will automatically buy the most profitable altcoins, if you assign it 'autobuy_funds' in the database
+coin-autobuy = true
+
+; The coin liquidation module will automatically sell coins that aren't profitable any more
+coin-liquidation = false
+
+; The take profit module will transfer trading profits to an external wallet
+take-profit = false
+
+; The trade module will do the arbitrage-trading stuff. Just in case you want to disable it for some reason...
+trade = true
+
+; Detect coins that have balances at the exchange but the bot won't automatically liquidate
+unused-coins-detection = true
+
+[autobuy]
+; AUTOBUY MODULE CONFIGURATION
+; Settings for the autobuy module
+
+; To allow the buying of a broader range of altcoins, this setting allows you to
+; set limit how many altcoins are bought at once (in BTC). If you have a larger
+; amount of BTC you want to spend for increasing your altcoin portfolio, you may
+; want to increase this value.
+max-buy = 0.005
+
+[takeprofit]
+; TAKE PROFIT MODULE CONFIGURATION
+; Settings for the take profit module
+
+; The profit-limit is the limit at which BTC balances are considered 'profit'.
+; If you initially fund your exchange accounts with 1.0 BTC, you should set this
+; value to 1.0 BTC.
+profit-limit = 1.0
+
+; All funds above 'profit-limit' are sent to this address
+profit-address = 1XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+[trade]
+; TRADE MODULE CONFIGURATION
+; Settings for the trade module
+
+; The maximum trade size (in BTC). Every trade is a risk and this setting allows
+; to limit your risk.
+; This setting is also used by the bot to determine the optimal altcoin amount.
+; By setting this too high you will effectively disable the 'liquidation'-module.
+; It is recommended to never set this value above 0.05
+max-trade-size = 0.01
+
+; The minimum profit that is is required to enter a trade. As the profit is
+; calculated in a simulation, it is not guaranteed that every trade will this
+; much profit.
+min-profit = 0.00000050
+
+; There is a time-gap between downloading the orderbook and placing the order.
+; In the meanwhile the orderbook entry could have disappeared (cancelled, filled, ...)
+; to 'force' the order to match against the next orderbook entry, these factors
+; are applied before posting the order.
+; This increases the chance to get the order filled, but could result in a loss.
+;
+; Set both values to 1 to disable
+buy-factor = 1.1
+sell-factor = 0.9
+
+[mail]
+; MAIL CONFIGURATION
+; Configure your email settings here:
+
+; The address to which you want your notification mails.
+address =
+
+; If you don't own a SMTP-server, you can create a Mandrill account and provide its API key here for mail delivery.
+mandrill-key =
+
+
+; EXCHANGE CONFIGURATION
+; Configure your exchange settings here
+
+[bittrex]
+
+;Remember to enable READ INFO, TRADE LIMIT, TRADE MARKET and WITHDRAW permissions for Bittrex!
+
+; API key for Bittrex
+key =
+
+; API secret for Bittrex
+secret =
+
+[poloniex]
+
+; Remember to enable withdrawals for POLONIEX!
+
+; API key for Poloniex
+key =
+
+; API secret for Poloniex
+secret =
+
+; PLEASE CHANGE THESE ONLY IF YOU ARE SURE WHAT YOU ARE DOING :)
+
+; Delay between queries [s]
+query-delay = 5
+
+; Max age of database records to include them in profitability calculations
+opportunity-count-age = 240
+
+; How many pairs to check per exchange pair
+max-pairs-per-run = 15
+
+; Max log age [h]
+max-log-age = 60
+
+; Delay before checking trade results
+order-check-delay = 60
+
+; Smoothing altcoin exchange rates to calculate desired coin balances
+rate-ema-period = 5
+
+; Notify of suspicious price differences if rates differ more than [%] between exchanges
+suspicious-price-difference = 33
+
+; Intervals for internal management tasks [h]
+interval-management = 1
+interval-take-profit = 12
+interval-stuck-detection = 12
+interval-unused-coin-detection = 4
+interval-db-cleanup = 24

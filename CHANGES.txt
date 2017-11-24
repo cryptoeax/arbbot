@@ -1,0 +1,45 @@
+V1.0 BETA 1
+
+  - Complete rewrite
+  - Support for multiple exchanges, more automation and more configuration options
+
+V0.6: ALPHA 6
+
+  - fixed possible incorrect calculation of order rates
+
+V0.5: ALPHA 5
+
+  - removed default API key for mandrill and added configuration option
+  - using sendmail if mail address is set but mandrill is disabled
+  - added a description on how the bot works to the readme
+  - made stray orders cancellation optional
+
+V0.4: ALPHA 4
+
+ - added cancellation of stray orders
+ - fixed a critical bug which caused the bot to sometimes load the wrong stats for a coin
+
+v0.3: ALPHA 3
+
+ - increased timeouts for public API calls
+ - added new config option 'min-profit'
+ - added new config option 'altcoin-balance-factor'
+ - improved some error messages to prevent confusion
+ - using default settings when some config options are missing
+ - some fixes to treat USDE and USDe as the same coin
+ - corrected trading fees for Bittrex
+ - decreased required use-amount before considering a coin for buying
+ - changed timezone setting to UTC
+ - some changes for compatibility with older PHP versions
+
+v0.2: ALPHA 2
+
+- moved exchange fees to new file 'fees.json'
+- added Mandrill to simplify sending of emails
+- bugfix to prevent endless loop if 'stats' table is empty
+- tweaked timeouts and exchange query rates
+- added comments to improve code readability
+- removed unused code
+
+v0.1: ALPHA 1
+- Initial ALPHA release
