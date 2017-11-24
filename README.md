@@ -13,23 +13,27 @@ DEBIAN 9.0+ / UBUNTU 16.04+:
 
 Install required packages:
 
-```apt-get update && apt-get install php-cli php-curl php-mysqlnd mysql-server nginx-full php-fpm unzip nano screen
+```
+apt-get update && apt-get install php-cli php-curl php-mysqlnd mysql-server nginx-full php-fpm unzip nano screen
 ```
 
 Download the archive to the server and extract it:
 
-```cd /var/www
+```
+cd /var/www
 wget https://github.com/opencryptotrader/arbbot/archive/master.zip && unzip arbitrage-bot.zip
 ```
 
 cd into the directory:
 
-```cd arbitrage-bot
+```
+cd arbitrage-bot
 ```
 
 Prepare the MySQL database:
 
-```mysql -u root -p
+```
+  mysql -u root -p
   mysql> CREATE DATABASE arbitrage;
   mysql> GRANT ALL ON arbitrage.* TO arbitrage@localhost IDENTIFIED BY 'YOUR_PASSWORD';
   mysql> use arbitrage;
@@ -39,14 +43,16 @@ Prepare the MySQL database:
 
 Configure the database connection:
 
-```cp web/config.inc.php.example web/config.inc.php
+```
+cp web/config.inc.php.example web/config.inc.php
 nano web/config.inc.php
 ```
 
 
 Configure the bot:
 
-```cp config.ini.example config.ini
+```
+cp config.ini.example config.ini
 nano config.ini
 ```
 
@@ -57,13 +63,12 @@ Edit all options to fit your needs and enter your API keys!
 You can change settings even while the bot is running. The changes will be automatically applied.
 
 Configure the webinterface:
-```rm /etc/nginx/sites-enabled/default
+```
+rm /etc/nginx/sites-enabled/default
 nano /etc/nginx/sites-enabled/default
 ```
 
 The configuration file should look like this:
-
----------------------------------------
 
 ```
 server {
@@ -89,8 +94,6 @@ server {
 }
 ```
 
----------------------------------------
-
 restart the webserver:
 
 ```
@@ -99,7 +102,7 @@ restart the webserver:
 
 You should now be able to access the webinterface with your browser.
 
-##Running the bot
+## Running the bot
 
 Now you are ready to give the bot a test by running it:
 
