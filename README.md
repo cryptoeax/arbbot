@@ -1,20 +1,14 @@
 # Bitcoin/Altcoin Arbitrage Trading Bot
-> The bot checks for altcoins, which are traded on both Poloniex and Bittrex and compares their prices. If the difference is big enough to earn at least some satoshis (after deducting transfer fees), it enters the trade. 
-
-The bot records its activities and exchange rates in a database and uses this information to reinvest a portion of its profits into the most profitable (in terms of arbitragable) altcoin. Additionally, the amount of held altcoins is calculated based on their exchange rate. This allows the bot to profit from hyped (PnD) coins. You can see the bot running on a $5 Digital Ocean VPS here: http://178.17.174.178/
+The bot checks for altcoins, which are traded on both Poloniex and Bittrex and compares their prices. If the difference is big enough to earn at least some satoshis (after deducting transfer fees), it enters the trade. The bot records its activities and exchange rates in a database and uses this information to reinvest a portion of its profits into the most profitable (in terms of arbitragable) altcoin. Additionally, the amount of held altcoins is calculated based on their exchange rate. This allows the bot to profit from hyped (PnD) coins. You can see the bot running on a $5 Digital Ocean VPS here: http://178.17.174.178/
 
 ![](https://i.imgur.com/XcmnfGt.png)
 
-## Installation
-------------------
-The bot requires a PHP interpreter, a MySQL database and a webserver.
-
-DEBIAN 9.0+ / UBUNTU 16.04+:
+## Installation (DEBIAN 9.0+ / UBUNTU 16.04+)
 
 Install required packages:
 
 ```
-apt-get update && apt-get install php-cli php-curl php-mysqlnd mysql-server nginx-full php-fpm unzip nano screen
+apt-get install php-cli php-curl php-mysqlnd mysql-server nginx-full php-fpm unzip
 ```
 
 Download the archive to the server and extract it:
@@ -56,19 +50,16 @@ cp config.ini.example config.ini
 nano config.ini
 ```
 
-Edit all options to fit your needs and enter your API keys!
+Edit all options to fit your needs and enter your API keys! You can change settings even while the bot is running. The changes will be automatically applied.
 
----------------------------------------
+## Configuring the Webinterface
 
-You can change settings even while the bot is running. The changes will be automatically applied.
-
-Configure the webinterface:
 ```
 rm /etc/nginx/sites-enabled/default
 nano /etc/nginx/sites-enabled/default
 ```
 
-The configuration file should look like this:
+The NGINX configuration file should look like this:
 
 ```
 server {
@@ -129,8 +120,6 @@ This example assigns 0.2 BTC to the "autobuy_funds". The higher the amount, the 
 the more arbitrage-opportunities can be taken. Be careful to keep at least 0.1 - 0.2 BTC at the exchange to give
 the bot enough room to trade.
 
-ATTENTION: This initial phase can take around 48h, depending on market conditions!
-
 ## How does the make profit?
 
 Arbitrage trading means that differences in exchange rates between two exchanges are used to gain a profit.
@@ -164,6 +153,8 @@ The bot will monitor the orderbooks of both exchanges and will decide which coin
 You will notice some messages like `TRADE IS NOT PROFITABLE WITH AVAILABLE FUNDS` in the log. This means
 that the bot has noted in its database that this coin can be traded with. During the next buying cycle, it
 will consider buying this coin.
+
+ATTENTION: This initial phase can take around 48h, depending on market conditions!
 
 ## Release History
 * 1.0
