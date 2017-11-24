@@ -3,7 +3,7 @@ The bot checks for altcoins, which are traded on both Poloniex and Bittrex and c
 
 ![](https://i.imgur.com/XcmnfGt.png)
 
-## Installation (DEBIAN 9.0+ / UBUNTU 16.04+)
+## Installation on Debian 9.0+ / Ubuntu 16.04+
 
 Install required packages:
 
@@ -120,7 +120,7 @@ This example assigns 0.2 BTC to the "autobuy_funds". The higher the amount, the 
 the more arbitrage-opportunities can be taken. Be careful to keep at least 0.1 - 0.2 BTC at the exchange to give
 the bot enough room to trade.
 
-## How does the make profit?
+## How does the bot make profit?
 
 Arbitrage trading means that differences in exchange rates between two exchanges are used to gain a profit.
 These opportunities usually exist only for a few seconds. It is important to act fast when such an opportunity
@@ -153,8 +153,6 @@ The bot will monitor the orderbooks of both exchanges and will decide which coin
 You will notice some messages like `TRADE IS NOT PROFITABLE WITH AVAILABLE FUNDS` in the log. This means
 that the bot has noted in its database that this coin can be traded with. During the next buying cycle, it
 will consider buying this coin.
-
-ATTENTION: This initial phase can take around 48h, depending on market conditions!
 
 ## Release History
 * 1.0
