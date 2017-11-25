@@ -433,7 +433,8 @@
                                 var balance = formatBalance(total);
                                 var balws = genWhitespace(balance, 8);
 
-                                htmlData += "T = ";
+                                htmlData += "<a href=\"#\" coin=\"" + coin + "\" exchange=\"0\" mode=\"1\" class=\"showGraph\" title=\"Comparative rate\">";
+                                htmlData += "T</a> = ";
                                 htmlData += balws;
                                 htmlData += "<a href=\"#\" coin=\"" + coin + "\" exchange=\"0\" mode=\"0\" class=\"showGraph\">";
                                 htmlData += balance;
