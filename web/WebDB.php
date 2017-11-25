@@ -55,19 +55,19 @@ class WebDB {
 
     $query = null;
     if ( $mode == 0 ) {
-      $query = sprintf( "SELECT SUM(balance) AS data, created FROM snapshot WHERE coin = '%s' %s GROUP BY created;", //
+      $query = sprintf( "SELECT SUM(balance) AS data, created, ID_exchange FROM snapshot WHERE coin = '%s' %s GROUP BY created, ID_exchange;", //
               mysql_escape_string( $coin ), //
               $exchange === "0" ? "" : sprintf( " AND ID_exchange = %d", mysql_escape_string( $exchange ) )
       );
     }
     else if ( $mode == 1 ) {
-      $query = sprintf( "SELECT rate AS data, created FROM snapshot WHERE coin = '%s' %s;", //
+      $query = sprintf( "SELECT rate AS data, created, ID_exchange FROM snapshot WHERE coin = '%s' %s;", //
               mysql_escape_string( $coin ), //
               $exchange === "0" ? "" : sprintf( " AND ID_exchange = %d", mysql_escape_string( $exchange ) )
       );
     }
     else if ( $mode == 2 ) {
-      $query = sprintf( "SELECT SUM(desired_balance) AS data, created FROM snapshot WHERE coin = '%s' %s GROUP BY created;", //
+      $query = sprintf( "SELECT SUM(desired_balance) AS data, created, ID_exchange FROM snapshot WHERE coin = '%s' %s GROUP BY created, ID_exchange;", //
               mysql_escape_string( $coin ), //
               $exchange === "0" ? "" : sprintf( " AND ID_exchange = %d", mysql_escape_string( $exchange ) )
       );
@@ -87,6 +87,7 @@ class WebDB {
     while ( $row = mysql_fetch_assoc( $result ) ) {
 
       $value = $row[ 'data' ];
+      $exchange = $row[ 'ID_exchange' ];
 
       $ma[] = $value;
       while ( count( $ma ) > 4 ) {
@@ -94,7 +95,8 @@ class WebDB {
       }
 
       $sma = array_sum( $ma ) / count( $ma );
-      $data[] = ['time' => $row[ 'created' ], 'value' => $sma , 'raw' => $value ];
+      $data[] = ['time' => $row[ 'created' ], 'value' => $sma , 'raw' => $value,
+                 'exchange' => $exchange ];
     }
 
     mysql_close( $link );

@@ -98,14 +98,26 @@
                         cache: false,
                         success: function(data) {
 
-                            var arrs = [];
+                            var obj = {};
 
                             for (var i = 0; i < data.length; i++) {
-                                var d1 = [];
                                 for (var x = 0; x < data[i].length; x++) {
-                                    d1.push([data[i][x].time * 1000, data[i][x].value]);
+                                    var d1 = [data[i][x].time * 1000, data[i][x].value];
+                                    var exchange = data[i][x].exchange;
+                                    if (exchange === undefined) {
+                                        continue;
+                                    }
+				    if (!obj[exchange]) {
+					obj[exchange] = [];
+				    }
+				    obj[exchange].push(d1);
                                 }
-                                arrs.push(d1);
+                            }
+
+                            var exchanges = Object.keys(obj);
+                            var arrs = [];
+                            for (i = 0; i < exchanges.length; i++) {
+                                arrs.push({ data: obj[exchanges[i]], label: no2el(exchanges[i]) });;
                             }
 
 
@@ -114,6 +126,12 @@
                             startDate.setHours(endDate.getHours() - 48);
 
                             var plot = $.plot("#placeholder", arrs, {
+                                label: no2el(graphExchange),
+                                legend: {
+                                    show: true,
+                                    position: "nw",
+                                    noColumns: 1
+                                },
                                 zoom: {
                                     interactive: true
                                 },
