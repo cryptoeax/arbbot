@@ -183,7 +183,8 @@ class Poloniex extends Exchange {
       $tradeable = $split[ 1 ];
       $currency = $split[ 0 ];
 
-      if ( !Config::isCurrency( $currency ) ) {
+      if ( !Config::isCurrency( $currency ) ||
+           Config::isBlocked( $tradeable ) ) {
         continue;
       }
 

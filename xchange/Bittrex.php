@@ -151,7 +151,8 @@ class Bittrex extends Exchange {
       $tradeable = $market[ 'MarketCurrency' ];
       $currency = $market[ 'BaseCurrency' ];
 
-      if ( !Config::isCurrency( $currency ) ) {
+      if ( !Config::isCurrency( $currency ) ||
+           Config::isBlocked( $tradeable ) ) {
         continue;
       }
 
