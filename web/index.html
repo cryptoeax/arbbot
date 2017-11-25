@@ -333,7 +333,7 @@
                             var tradeCounts = data['trades'];
                             var useCounts = data['uses'];
 
-                            var htmlData = "---------- BTC -----------\n";
+                            var htmlData = "---------- <span title=\"Currency\">BTC</span> -----------\n";
 
                             var btcData = wallets['BTC'];
                             var total = 0;
@@ -348,26 +348,28 @@
 
                                 htmlData += exname;
                                 htmlData += ": ";
-                                htmlData += "<a href=\"#\" coin=\"BTC\" exchange=\"" + xid + "\" mode=\"0\" class=\"showGraph\">";
+                                htmlData += "<a href=\"#\" coin=\"BTC\" exchange=\"" + xid + "\" mode=\"0\" class=\"showGraph\" title=\"Total balance (BTC)\">";
                                 htmlData += rnd4(btcData[xid]['balance']);
                                 htmlData += "</a>";
                                 htmlData += " T:";
+                                htmlData += "<span title=\"Trade counts\">";
                                 htmlData += fmt2(tradeCounts[xid]);
-                                htmlData += "|O:";
+                                htmlData += "</span>|O:";
+                                htmlData += "<span title=\"Opportunity counts\">";
                                 htmlData += fmt2(useCounts[xid]);
-                                htmlData += "\n";
+                                htmlData += "</span>\n";
                                 total += parseFloat(btcData[xid]['balance']);
                                 totalChange += parseFloat(btcData[xid]['change']);
                             });
 
                             htmlData += "   TOTAL: ";
-                            htmlData += "<a href=\"#\" coin=\"BTC\" exchange=\"0\" mode=\"0\" class=\"showGraph\">";
+                            htmlData += "<a href=\"#\" coin=\"BTC\" exchange=\"0\" mode=\"0\" class=\"showGraph\" title=\"Total balance (BTC)\">";
                             htmlData += rnd4(total);
                             htmlData += "</a>";
-                            htmlData += " ";
+                            htmlData += " <span title=\"Total balance change (BTC)\">";
                             htmlData += totalChange > 0 ? "+" : "";
                             htmlData += rnd4(totalChange);
-                            htmlData += "\n";
+                            htmlData += "</span>\n";
                             htmlData += "--------------------------\n";
                             htmlData += "\n";
 
@@ -387,11 +389,13 @@
                                     return;
                                 }
 
+                                var dashes = "";
                                 var strCoin = coin + " ";
-                                while (strCoin.length < 26) {
-                                    strCoin += "-";
+                                while ((strCoin + dashes).length < 25) {
+                                    dashes += "-";
                                 }
-                                htmlData += strCoin + "\n";
+                                htmlData += "<span title=\"Currency\">" + strCoin + "</span> ";
+                                htmlData += dashes + "\n";
 
 
                                 total = 0;
@@ -404,23 +408,23 @@
                                     var balance = formatBalance(dat.balance);
                                     var balws = genWhitespace(balance, 8);
 
-                                    htmlData += "<a href=\"#\" coin=\"" + coin + "\" exchange=\"" + xid + "\" mode=\"1\" class=\"showGraph\">";
+                                    htmlData += "<a href=\"#\" coin=\"" + coin + "\" exchange=\"" + xid + "\" mode=\"1\" class=\"showGraph\" title=\"Exchange\">";
                                     htmlData += no2e(xid);
                                     htmlData += "</a>";
                                     htmlData += " = ";
 
                                     htmlData += balws;
-                                    htmlData += "<a href=\"#\" coin=\"" + coin + "\" exchange=\"" + xid + "\" mode=\"0\" class=\"showGraph\">";
+                                    htmlData += "<a href=\"#\" coin=\"" + coin + "\" exchange=\"" + xid + "\" mode=\"0\" class=\"showGraph\" title=\"Total balance\">";
                                     htmlData += balance;
                                     htmlData += "</a>";
 
-                                    htmlData += " (";
+                                    htmlData += " (<span title=\"Total opportunities\">";
                                     htmlData += fmt2(dat.opportunities);
-                                    htmlData += "|";
+                                    htmlData += "</span>|<span title=\"Total trades\">";
                                     htmlData += fmt2(dat.trades);
-                                    htmlData += "|";
+                                    htmlData += "</span>|";
 
-                                    htmlData += "<a href=\"#\" coin=\"" + coin + "\" exchange=\"" + xid + "\" mode=\"2\" class=\"showGraph\">";
+                                    htmlData += "<a href=\"#\" coin=\"" + coin + "\" exchange=\"" + xid + "\" mode=\"2\" class=\"showGraph\" title=\"Balance change\">";
                                     htmlData += (dat.balance_diff >= 0 ? "+" : "") + diff;
                                     htmlData += "</a>";
 
@@ -433,9 +437,9 @@
                                 var balance = formatBalance(total);
                                 var balws = genWhitespace(balance, 8);
 
-                                htmlData += "T = ";
+                                htmlData += "<span title=\"Total balance\">T</span> = ";
                                 htmlData += balws;
-                                htmlData += "<a href=\"#\" coin=\"" + coin + "\" exchange=\"0\" mode=\"0\" class=\"showGraph\">";
+                                htmlData += "<a href=\"#\" coin=\"" + coin + "\" exchange=\"0\" mode=\"0\" class=\"showGraph\" title=\"Total balance\">";
                                 htmlData += balance;
                                 htmlData += "</a>";
                                 htmlData += "\n";
