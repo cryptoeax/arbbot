@@ -354,7 +354,7 @@ class Poloniex extends Exchange {
 
     $req[ 'command' ] = $command;
     //$req[ 'nonce' ] = $mt[1].substr($mt[0], 2, 6);
-    $req['nonce'] = $nonce;
+    $req['nonce'] = sprintf( "%ld", $nonce );
     // generate the POST data string
     $post_data = http_build_query( $req, '', '&' );
     $sign = hash_hmac( 'sha512', $post_data, $secret );

@@ -359,7 +359,7 @@ class Bittrex extends Exchange {
     $nonce = $this->nonce();
 
     $req[ 'apikey' ] = $key;
-    $req[ 'nonce' ] = $nonce;
+    $req[ 'nonce' ] = sprintf( "%ld", $nonce );
 
     $uri = 'https://bittrex.com/api/v1.1/' . $method . '?' . http_build_query( $req );
     $sign = hash_hmac( 'sha512', $uri, $secret );
