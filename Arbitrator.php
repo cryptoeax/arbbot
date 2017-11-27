@@ -10,6 +10,7 @@ class Arbitrator {
   private $coinManager;
   //
   private $nextCoinUpdate = 0;
+  private $walletsRefreshed = false;
 
   function __construct( $exchanges ) {
     $this->exchanges = $exchanges;
@@ -30,6 +31,9 @@ class Arbitrator {
     Config::refresh();
 
     if ( time() > $this->nextCoinUpdate ) {
+      if (!$this->walletsRefreshed) {
+        $this->refreshWallets();
+      }
       $this->refreshCoinPairs();
       $this->nextCoinUpdate = time() + 3600;
     }
@@ -410,6 +414,8 @@ class Arbitrator {
     foreach ( $this->exchanges as $exchange ) {
       $exchange->refreshWallets();
     }
+
+    $this->walletsRefreshed = true;
 
   }
 

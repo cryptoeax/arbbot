@@ -709,7 +709,7 @@ class CoinManager {
     logg( "Transfering $amount $coin " . $source->getName() . " => " . $target->getName() );
     $address = $target->getDepositAddress( $coin );
     if ( is_null( $address ) || strlen( trim( $address ) ) == 0 ) {
-      logg( "Invalid deposit address for " . $target->getName() );
+      logg( "Invalid deposit address for " . $target->getName() . ", received: ". $address );
 
       return;
     }
