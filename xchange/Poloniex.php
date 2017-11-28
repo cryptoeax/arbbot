@@ -73,7 +73,12 @@ class Poloniex extends Exchange {
 
   public function getDepositAddress( $coin ) {
     if ( !key_exists( $coin, $this->depositAddresses ) ) {
-      return null;
+      $result = $this->queryAPI( 'generateNewAddress',
+                                 [ 'currency' => $coin ] );
+      if ($result[ 'success' ] !== 1) {
+        return null;
+      }
+      $this->depositAddresses[ $coin ] = $result[ 'response' ];
     }
 
     $address = $this->depositAddresses[ $coin ];
