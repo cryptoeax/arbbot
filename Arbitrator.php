@@ -331,6 +331,7 @@ class Arbitrator {
 
       logg( $message );
 
+/*
       if ( $i < 8 && ( $currencyDifference < 0 || $tradeableDifference < 0 ) ) {
         logg( "Negative result: Retesting in a few seconds..." );
 
@@ -344,6 +345,7 @@ class Arbitrator {
 
         continue;
       }
+*/
 
       Database::saveTrade( $tradeable, $currency, $sellAmount, $source->getID(), $target->getID() );
 
