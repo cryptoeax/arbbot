@@ -11,6 +11,7 @@ class Arbitrator {
   //
   private $nextCoinUpdate = 0;
   private $walletsRefreshed = false;
+  private $tradeHappened = false;
 
   function __construct( $exchanges ) {
     $this->exchanges = $exchanges;
@@ -61,6 +62,7 @@ class Arbitrator {
 
       if ( $this->checkOpportunitiesAt( $exchangePair[ 0 ], $exchangePair[ 1 ] ) ) {
         // Trade happened, restart...
+        $this->tradeHappened = true;
         return;
       }
     }
@@ -388,7 +390,8 @@ class Arbitrator {
 
   private function cancelStrayOrders() {
 
-    if ( !Config::get( Config::CANCEL_STRAY_ORDERS, Config::DEFAULT_CANCEL_STRAY_ORDERS ) ) {
+    if ( !$this->tradeHappened ||
+         !Config::get( Config::CANCEL_STRAY_ORDERS, Config::DEFAULT_CANCEL_STRAY_ORDERS ) ) {
       return;
     }
 
@@ -396,6 +399,8 @@ class Arbitrator {
     foreach ( $this->exchanges as $exchange ) {
       $exchange->cancelAllOrders();
     }
+
+    $this->tradeHappened = false;
 
   }
 
