@@ -15,6 +15,7 @@
             var graphCoin = "BTC";
 
             var stats = null;
+            var profitableTrades = null;
 
             $(function() {
 
@@ -77,8 +78,20 @@
                     return Math.round(x * 10) / 10;
                 }
 
+                function rnd2(x) {
+                    return Math.round(x * 100) / 100;
+                }
+
                 function rnd4(x) {
                     return (Math.round(x * 10000) / 10000).toFixed(4);
+                }
+
+                function rnd8(x) {
+                    return (Math.round(x * 100000000) / 100000000).toFixed(8);
+                }
+
+                function fmtpl(x) {
+                    return "<span class=\"" + (x < 0 ? "neg" : "pos") + "\">" + rnd8(Math.abs(x)) + "</span>";
                 }
 
                 function updateGraph() {
@@ -173,6 +186,68 @@
                             }
 
                             $("#logfile").html("<pre>" + htmlData + "</pre>");
+                        }
+                    });
+                }
+
+                function updatePL() {
+                    setTimeout(updatePL, 10000);
+                    $.ajax({
+                        url: "pl.php",
+                        type: "GET",
+                        cache: false,
+                        success: function(data) {
+
+                            var totalPL = rnd4(data.pl) + " " + data.pl_currency;
+                            $("#total-pl").text("(" + totalPL + ")");
+                            profitableTrades = data.efficiency;
+
+                            var arr = data.data;
+
+                            var htmlData = "";
+                            htmlData += "<tr><th>Date</th><th>Coin</th>";
+                            htmlData += "<th>Source</th><th>Target</th>";
+                            htmlData += "<th title=\"Amount sold in the tradeable asset\">Amount</th>";
+                            htmlData += "<th title=\"Amount bought in " + data.pl_currency + "\">Bought</th>";
+                            htmlData += "<th title=\"Amount sold in " + data.pl_currency + "\">Sold</th>";
+                            htmlData += "<th title=\"Gross revenue in " + data.pl_currency + "\">Revenue</th>";
+                            htmlData += "<th title=\"Transfer fee\">Tx Fee</th>";
+                            htmlData += "<th title=\"Profit/Loss in " + data.pl_currency + "\">Profit/Loss</th></tr>";
+
+                            for (var i = 0; i < arr.length; i++) {
+                                htmlData += "<tr>";
+
+                                var date = new Date(arr[i].time * 1000);
+                                var year = date.getFullYear();
+                                var month = date.getMonth();
+                                var day = date.getDate();
+                                var hours = date.getHours();
+                                var minutes = date.getMinutes();
+                                var seconds = date.getSeconds();
+                                if (month < 10)
+                                    month = "0" + month;
+                                if (day < 10)
+                                    day = "0" + day;
+                                if (hours < 10)
+                                    hours = "0" + hours;
+                                if (minutes < 10)
+                                    minutes = "0" + minutes;
+                                if (seconds < 10)
+                                    seconds = "0" + seconds;
+                                var formattedTime = year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds;
+
+                                htmlData += "<td>" + formattedTime + "</td><td>" + arr[i].coin + "</td><td>" + no2el(arr[i].source_exchange) + "</td><td>" +
+                                            no2el(arr[i].target_exchange) + "</td>";
+                                htmlData += "<td>" + rnd8(arr[i].amount_sold) + "</td>";
+                                htmlData += "<td>" + Math.abs(rnd8(arr[i].currency_bought)) + "</td>";
+                                htmlData += "<td>" + rnd8(arr[i].currency_sold) + "</td>";
+                                htmlData += "<td>" + fmtpl(arr[i].currency_revenue) + "</td>";
+                                htmlData += "<td>" + rnd8(arr[i].tx_fee) + "</td>";
+                                htmlData += "<td>" + fmtpl(arr[i].currency_pl) + "</td>";
+                                htmlData += "</tr>";
+                            }
+
+                            $("#pl").html("<table>" + htmlData + "</table>");
                         }
                     });
                 }
@@ -483,6 +558,9 @@
 
                     var htmlData = "";
                     htmlData += "     Total trades: " + stats.trades + "\n";
+                    if (profitableTrades != null) {
+                        htmlData += "Profitable trades: " + rnd2(profitableTrades) + "%\n";
+                    }
                     htmlData += "    Autobuy funds: " + autobuy + "\n\n";
                     htmlData += "  Next manage-run: " + timeLeft(stats.next_management) + "\n";
                     htmlData += " Next take profit: " + timeLeft(stats.next_take_profit) + "\n";
@@ -516,6 +594,7 @@
 
                 updateXfers();
                 updateLog();
+                updatePL();
             });
 
         </script>
@@ -574,6 +653,15 @@
                 <center><h3>Logfile</h3></center>
                 <div class="log-container">
                     <div id="logfile" class="demo-placeholder"></div>
+                </div>
+            </div>
+
+            <div class="clear"></div>
+
+            <div>
+                <center><h3 title="Profit & Loss">P&L <span id="total-pl"></span></h3></center>
+                <div class="pl-container">
+                    <div id="pl" class="demo-placeholder"></div>
                 </div>
             </div>
 
