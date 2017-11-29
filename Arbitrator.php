@@ -82,13 +82,12 @@ class Arbitrator {
 
     foreach ( $slicedPairs as $pair ) {
 
-      // A bit of sleep to stay within the exchanges rate limits
-      sleep( Config::get( Config::QUERY_DELAY, Config::DEFAULT_QUERY_DELAY ) );
-
       if ( $this->checkPairAt( $pair, $x1, $x2 ) ) {
         return true;
       }
-      //
+
+      // A bit of sleep to stay within the exchanges rate limits
+      //sleep( Config::get( Config::QUERY_DELAY, Config::DEFAULT_QUERY_DELAY ) );
     }
 
     return false;
@@ -290,7 +289,7 @@ class Arbitrator {
 
     for ( $i = 1; $i <= 8; $i *= 2 ) {
 
-      sleep( (Config::get( Config::ORDER_CHECK_DELAY, Config::DEFAULT_ORDER_CHECK_DELAY ) / 2) * $i );
+      //sleep( (Config::get( Config::ORDER_CHECK_DELAY, Config::DEFAULT_ORDER_CHECK_DELAY ) / 2) * $i );
       logg( "Checking trade results ($i)..." );
 
       $target->refreshWallets();
@@ -442,7 +441,7 @@ class Arbitrator {
         sleep( 10 );
       }
 
-      sleep( Config::get( Config::QUERY_DELAY, Config::DEFAULT_QUERY_DELAY ) * 3 );
+      //sleep( Config::get( Config::QUERY_DELAY, Config::DEFAULT_QUERY_DELAY ) * 3 );
     }
 
   }
