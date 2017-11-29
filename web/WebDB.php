@@ -89,12 +89,15 @@ class WebDB {
       $value = $row[ 'data' ];
       $exchange = $row[ 'ID_exchange' ];
 
-      $ma[] = $value;
-      while ( count( $ma ) > 4 ) {
-        array_shift( $ma );
+      if (!in_array( $exchange, $ma )) {
+        $ma[$exchange] = [ ];
+      }
+      $ma[$exchange][] = $value;
+      while ( count( $ma[$exchange] ) > 4 ) {
+        array_shift( $ma[$exchange] );
       }
 
-      $sma = array_sum( $ma ) / count( $ma );
+      $sma = array_sum( $ma[$exchange] ) / count( $ma[$exchange] );
       $data[] = ['time' => $row[ 'created' ], 'value' => $sma , 'raw' => $value,
                  'exchange' => $exchange ];
     }
@@ -102,14 +105,14 @@ class WebDB {
     mysql_close( $link );
 
     if ( $mode == 0 ) {
-      return [ '0' => $data, '1' => self::getTotalValue() ];
+      return [ '0' => $data, '1' => self::getTotalValue( $exchange, $coin, $mode ) ];
     }
 
     return [ '0' => $data ];
 
   }
 
-  public static function getTotalValue() {
+  public static function getTotalValue( $exchange, $coin, $mode ) {
 
     $link = self::connect();
 
@@ -151,9 +154,12 @@ class WebDB {
     $data = [ ];
     foreach ( $values as $value ) {
 
-      $ma[] = $value[ 'sum' ];
-      while ( count( $ma ) > 4 ) {
-        array_shift( $ma );
+      if (!in_array( $exchange, $ma )) {
+        $ma[$exchange] = [ ];
+      }
+      $ma[$exchange][] = $value[ 'sum' ];
+      while ( count( $ma[$exchange] ) > 4 ) {
+        array_shift( $ma[$exchange] );
       }
 
       $sma = array_sum( $ma ) / count( $ma );
