@@ -113,17 +113,23 @@
 
                             var obj = {};
 
-                            for (var i = 0; i < data.length; i++) {
-                                for (var x = 0; x < data[i].length; x++) {
-                                    var d1 = [data[i][x].time * 1000, data[i][x].value];
-                                    var exchange = data[i][x].exchange;
-                                    if (exchange === undefined) {
-                                        continue;
+                            for (var x = 0; x < data[0].length; x++) {
+                                var d1 = [data[0][x].time * 1000, data[0][x].value];
+                                var exchange = data[0][x].exchange;
+                                if (exchange === undefined) {
+                                    continue;
+                                }
+                                if (!obj[exchange]) {
+                                    obj[exchange] = [];
+                                }
+                                obj[exchange].push(d1);
+                            }
+                            if (data[1]) {
+                                for (var x = 0; x < data[1].length; x++) {
+                                    if (!obj[0]) {
+                                        obj[0] = [];
                                     }
-				    if (!obj[exchange]) {
-					obj[exchange] = [];
-				    }
-				    obj[exchange].push(d1);
+                                    obj[0].push([data[1][x].time * 1000, data[1][x].value]);
                                 }
                             }
 

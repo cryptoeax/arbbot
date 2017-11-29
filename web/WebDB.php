@@ -104,7 +104,7 @@ class WebDB {
 
     mysql_close( $link );
 
-    if ( $mode == 0 ) {
+    if ( $mode != 1 ) {
       return [ '0' => $data, '1' => self::getTotalValue( $exchange, $coin, $mode ) ];
     }
 
@@ -117,9 +117,13 @@ class WebDB {
     $link = self::connect();
 
     // SELECT SUM(balance) * AVG(rate) AS value, coin, created FROM `snapshot` GROUP BY coin, created, ID_exchange ORDER BY `created` ASC
-    $query = "SELECT SUM(balance) * AVG(rate) AS value, balance, coin, created FROM `snapshot` GROUP BY coin, created, ID_exchange ORDER BY `created` ASC";
+    $query = sprintf( "SELECT SUM(balance) * AVG(rate) AS value, balance, " .
+                      "       coin, created FROM `snapshot` " .
+                      "WHERE coin = '%s' GROUP BY coin, created, ID_exchange " .
+                      "ORDER BY `created` ASC", mysql_escape_string( $coin ) );
 
     $result = mysql_query( $query, $link );
+
     if ( !$result ) {
       throw new Exception( "database selection error: " . mysql_error( $link ) );
     }
@@ -129,7 +133,7 @@ class WebDB {
     $prevCreated = 0;
     while ( $row = mysql_fetch_assoc( $result ) ) {
 
-      $value = $row[ 'coin' ] == 'BTC' ? $row[ 'balance' ] : $row[ 'value' ];
+      $value = $mode == '1' ? $row[ 'value' ] : $row[ 'balance' ];
       $created = $row[ 'created' ];
 
       if ( $prevCreated == 0 ) {
@@ -162,7 +166,7 @@ class WebDB {
         array_shift( $ma[$exchange] );
       }
 
-      $sma = array_sum( $ma ) / count( $ma );
+      $sma = array_sum( $ma[$exchange] ) / count( $ma[$exchange] );
       $data[] = ['time' => $value[ 'time' ], 'value' => $sma, 'raw' => $value[ 'sum' ] ];
     }
 
