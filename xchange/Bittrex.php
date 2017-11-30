@@ -202,6 +202,22 @@ class Bittrex extends Exchange {
 
   }
 
+  public function getWalletsConsideringPendingDeposits() {
+
+    $result = [ ];
+    foreach ( $this->wallets as $coin => $balance ) {
+      $result[ $coin ] = $balance;
+    }
+
+    $balances = $this->queryBalances();
+    foreach ( $balances as $balance ) {
+      $result[ strtoupper( $balance[ 'Currency' ] ) ] = $balance[ 'Balance' ] + $balance[ 'Pending' ];
+    }
+
+    return $result;
+
+  }
+
   public function dumpWallets() {
 
     logg( $this->prefix() . print_r( $this->queryBalances(), true ) );
@@ -219,7 +235,7 @@ class Bittrex extends Exchange {
 
     $balances = $this->queryBalances();
     foreach ( $balances as $balance ) {
-      $wallets[ strtoupper( $balance[ 'Currency' ] ) ] = $balance[ 'Available' ];
+      $wallets[ strtoupper( $balance[ 'Currency' ] ) ] = $balance[ 'Balance' ];
     }
 
     $this->wallets = $wallets;

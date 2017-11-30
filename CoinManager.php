@@ -208,8 +208,11 @@ class CoinManager {
     }
 
     $exchanges = [ ];
+    $exchangeWallets = [ ];
     foreach ( $this->exchanges as $exchange ) {
-      if ( key_exists( $coin, $exchange->getWallets() ) ) {
+      $wallets = $exchangeWallets[ $exchange->getName() ] =
+        $exchange->getWalletsConsideringPendingDeposits();
+      if ( key_exists( $coin, $wallets ) ) {
         $exchanges[] = $exchange;
       }
     }
@@ -223,8 +226,8 @@ class CoinManager {
     $totalCoins = 0;
     foreach ( $exchanges as $exchange ) {
 
-      $wallets = $exchange->getWallets();
-      $balance = $exchange->getWallets()[ $coin ];
+      $wallets = $exchangeWallets[ $exchange->getName() ];
+      $balance = $wallets[ $coin ];
       $opportunityCount = Database::getOpportunityCount( $coin, $exchange->getID() );
 
       logg( str_pad( $exchange->getName(), 10, ' ', STR_PAD_LEFT ) . ": $balance $coin ($opportunityCount usages)" );
@@ -359,8 +362,9 @@ class CoinManager {
 
       $xid = $exchange->getID();
       $ticker = $exchange->getTickers( 'BTC' );
+      $wallets = $exchange->getWalletsConsideringPendingDeposits();
 
-      foreach ( $exchange->getWallets() as $coin => $balance ) {
+      foreach ( $wallets as $coin => $balance ) {
 
         if ( !key_exists( $xid, $this->unusedCoins ) || !key_exists( $coin, $this->unusedCoins[ $xid ] ) ) {
           logg( "[DEBUG] $xid $coin => init, set 0" );
@@ -575,7 +579,7 @@ class CoinManager {
 
     $allcoins = [ ];
     foreach ( $this->exchanges as $exchange ) {
-      $wallets = $exchange->getWallets();
+      $wallets = $exchange->getWalletsConsideringPendingDeposits();
       foreach ( $wallets as $coin => $balance ) {
         if ( $balance > 0 ) {
           $allcoins[] = $coin;

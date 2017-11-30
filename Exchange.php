@@ -127,6 +127,8 @@ abstract class Exchange {
 
   public abstract function testAccess();
 
+  public abstract function getWalletsConsideringPendingDeposits();
+
   protected abstract function fetchOrderbook( $tradeable, $currency );
 
   protected function prefix() {
