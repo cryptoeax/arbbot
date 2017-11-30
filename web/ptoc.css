@@ -125,7 +125,7 @@ p {
     -webkit-box-shadow: 0 3px 10px rgba(0,0,0,0.1);
 }
 
-.log-container, .pl-container {
+.log-container, .pl-container, .alert-container {
     box-sizing: border-box;
     overflow: scroll;
     width: 1110px;
