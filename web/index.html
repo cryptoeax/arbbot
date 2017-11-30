@@ -6,7 +6,9 @@
         <script language="javascript" type="text/javascript" src="flot/jquery.min.js"></script>
         <script language="javascript" type="text/javascript" src="flot/jquery.flot.min.js"></script>
         <script language="javascript" type="text/javascript" src="flot/jquery.flot.navigate.min.js"></script>
+        <script language="javascript" type="text/javascript" src="flot/jquery.flot.orderBars.js"></script>
         <script language="javascript" type="text/javascript" src="flot/jquery.flot.time.js"></script>
+        <script language="javascript" type="text/javascript" src="flot/jquery.flot.tooltip.js"></script>
 
         <script type="text/javascript">
 
@@ -17,6 +19,7 @@
             var stats = null;
             var totalPL = null;
             var profitableTrades = null;
+            var plMode = "details";
 
             $(function() {
 
@@ -31,6 +34,18 @@
                     graphCoin = coin;
 
                     updateGraph();
+                });
+
+                $(".showPLDetails").click(function() {
+                    plMode = "details";
+                    updatePL();
+                    return false;
+                });
+
+                $(".showPLGraph").click(function() {
+                    plMode = "graph";
+                    updatePL();
+                    return false;
                 });
 
                 var walletAge = 0;
@@ -234,7 +249,7 @@
                 }
 
                 function updatePL() {
-                    setTimeout(updatePL, 10000);
+                    var timeout = setTimeout(updatePL, 10000);
                     $.ajax({
                         url: "pl.php",
                         type: "GET",
@@ -246,50 +261,208 @@
 
                             var arr = data.data;
 
-                            var htmlData = "";
-                            htmlData += "<tr><th>Date</th><th>Coin</th>";
-                            htmlData += "<th>Source</th><th>Target</th>";
-                            htmlData += "<th title=\"Amount sold in the tradeable asset\">Amount</th>";
-                            htmlData += "<th title=\"Amount bought in " + data.pl_currency + "\">Bought</th>";
-                            htmlData += "<th title=\"Amount sold in " + data.pl_currency + "\">Sold</th>";
-                            htmlData += "<th title=\"Gross revenue in " + data.pl_currency + "\">Revenue</th>";
-                            htmlData += "<th title=\"Transfer fee\">Tx Fee</th>";
-                            htmlData += "<th title=\"Profit/Loss in " + data.pl_currency + "\">Profit/Loss</th></tr>";
+                            if (plMode == "details") {
+                                var htmlData = "";
+                                htmlData += "<tr><th>Date</th><th>Coin</th>";
+                                htmlData += "<th>Source</th><th>Target</th>";
+                                htmlData += "<th title=\"Amount sold in the tradeable asset\">Amount</th>";
+                                htmlData += "<th title=\"Amount bought in " + data.pl_currency + "\">Bought</th>";
+                                htmlData += "<th title=\"Amount sold in " + data.pl_currency + "\">Sold</th>";
+                                htmlData += "<th title=\"Gross revenue in " + data.pl_currency + "\">Revenue</th>";
+                                htmlData += "<th title=\"Transfer fee\">Tx Fee</th>";
+                                htmlData += "<th title=\"Profit/Loss in " + data.pl_currency + "\">Profit/Loss</th></tr>";
 
-                            for (var i = 0; i < arr.length; i++) {
-                                htmlData += "<tr>";
+                                for (var i = 0; i < arr.length; i++) {
+                                    htmlData += "<tr>";
 
-                                var date = new Date(arr[i].time * 1000);
-                                var year = date.getFullYear();
-                                var month = date.getMonth() + 1;
-                                var day = date.getDate();
-                                var hours = date.getHours();
-                                var minutes = date.getMinutes();
-                                var seconds = date.getSeconds();
-                                if (month < 10)
-                                    month = "0" + month;
-                                if (day < 10)
-                                    day = "0" + day;
-                                if (hours < 10)
-                                    hours = "0" + hours;
-                                if (minutes < 10)
-                                    minutes = "0" + minutes;
-                                if (seconds < 10)
-                                    seconds = "0" + seconds;
-                                var formattedTime = year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds;
+                                    var date = new Date(arr[i].time * 1000);
+                                    var year = date.getFullYear();
+                                    var month = date.getMonth() + 1;
+                                    var day = date.getDate();
+                                    var hours = date.getHours();
+                                    var minutes = date.getMinutes();
+                                    var seconds = date.getSeconds();
+                                    if (month < 10)
+                                        month = "0" + month;
+                                    if (day < 10)
+                                        day = "0" + day;
+                                    if (hours < 10)
+                                        hours = "0" + hours;
+                                    if (minutes < 10)
+                                        minutes = "0" + minutes;
+                                    if (seconds < 10)
+                                        seconds = "0" + seconds;
+                                    var formattedTime = year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds;
 
-                                htmlData += "<td>" + formattedTime + "</td><td>" + arr[i].coin + "</td><td>" + no2el(arr[i].source_exchange) + "</td><td>" +
-                                            no2el(arr[i].target_exchange) + "</td>";
-                                htmlData += "<td>" + rnd8(arr[i].amount_sold) + "</td>";
-                                htmlData += "<td>" + Math.abs(rnd8(arr[i].currency_bought)) + "</td>";
-                                htmlData += "<td>" + rnd8(arr[i].currency_sold) + "</td>";
-                                htmlData += "<td>" + fmtpl(arr[i].currency_revenue) + "</td>";
-                                htmlData += "<td>" + rnd8(arr[i].tx_fee) + "</td>";
-                                htmlData += "<td>" + fmtpl(arr[i].currency_pl) + "</td>";
-                                htmlData += "</tr>";
+                                    htmlData += "<td>" + formattedTime + "</td><td>" + arr[i].coin + "</td><td>" + no2el(arr[i].source_exchange) + "</td><td>" +
+                                                no2el(arr[i].target_exchange) + "</td>";
+                                    htmlData += "<td>" + rnd8(arr[i].amount_sold) + "</td>";
+                                    htmlData += "<td>" + Math.abs(rnd8(arr[i].currency_bought)) + "</td>";
+                                    htmlData += "<td>" + rnd8(arr[i].currency_sold) + "</td>";
+                                    htmlData += "<td>" + fmtpl(arr[i].currency_revenue) + "</td>";
+                                    htmlData += "<td>" + rnd8(arr[i].tx_fee) + "</td>";
+                                    htmlData += "<td>" + fmtpl(arr[i].currency_pl) + "</td>";
+                                    htmlData += "</tr>";
+                                }
+
+                                $("#pl").html("<table>" + htmlData + "</table>");
+                            } else if (plMode == "graph") {
+                                // Reset the graph every two minutes to allow the user to have time to interact with it!
+                                clearTimeout(timeout);
+                                setTimeout(updatePL, 120000);
+
+                                var obj = {};
+                                for (var i = 0; i < arr.length; i++) {
+                                    htmlData += "<tr>";
+
+                                    var date = new Date(arr[i].time * 1000);
+                                    var year = date.getFullYear();
+                                    var month = date.getMonth() + 1;
+                                    var day = date.getDate();
+                                    if (month < 10)
+                                        month = "0" + month;
+                                    if (day < 10)
+                                        day = "0" + day;
+                                    var formattedTime = year + '-' + month + '-' + day;
+                                    if (!(formattedTime in obj)) {
+                                        obj[formattedTime] = {
+                                          value: 0,
+                                          count: 0,
+                                          success: 0
+                                        };
+                                    }
+                                    obj[formattedTime].value += arr[i].currency_pl;
+                                    obj[formattedTime].count++;
+                                    if (arr[i].currency_pl >= 0) {
+                                        obj[formattedTime].success++;
+                                    }
+                                }
+                                var ticks = [];
+                                var data = [];
+                                var success = [];
+                                var count = [];
+                                var keys = Object.keys(obj);
+                                var min = 0, max = 0;
+                                var minS = 0, maxS = 0;
+                                var minC = 0, maxC = 0;
+                                var N = keys.length - 1;
+                                for (var i = N; i >= 0; i--) {
+                                    ticks.push([N - i, keys[i]]);
+                                    data.push([N - i, obj[keys[i]].value]);
+                                    success.push([N - i, 100 * obj[keys[i]].success /
+                                                               obj[keys[i]].count]);
+                                    count.push([N - i, obj[keys[i]].count]);
+                                    if (obj[keys[i]].value > max) {
+                                        max = obj[keys[i]].value;
+                                    }
+                                    if (obj[keys[i]].value < min) {
+                                        min = obj[keys[i]].value;
+                                    }
+                                    if (obj[keys[i]].success > maxS) {
+                                        maxS = obj[keys[i]].success;
+                                    }
+                                    if (obj[keys[i]].success < minS) {
+                                        minS = obj[keys[i]].success;
+                                    }
+                                    if (obj[keys[i]].count > maxC) {
+                                        maxC = obj[keys[i]].count;
+                                    }
+                                    if (obj[keys[i]].count < minC) {
+                                        minC = obj[keys[i]].count;
+                                    }
+                                }
+                                arr = [
+                                    {
+                                        label: "Unrealized daily P&L (BTC)",
+                                        data: data,
+                                        bars: {
+                                            order: 1,
+                                        },
+                                        yaxis: 1
+                                    },
+                                    {
+                                        label: "Profitable trades (%)",
+                                        data: success,
+                                        bars: {
+                                            order: 2,
+                                        },
+                                        yaxis: 2
+                                    },
+                                    {
+                                        label: "Number of trades",
+                                        data: count,
+                                        bars: {
+                                            order: 3,
+                                        },
+                                        yaxis: 3
+                                    },
+                                ];
+
+                                var ratioS = (maxS - minS) / (max - min);
+                                var ratioC = (maxC - minC) / (max - min);
+                                $.plot("#pl", arr, {
+                                    legend: {
+                                        show: true,
+                                        position: "nw",
+                                        backgroundOpacity: 0
+                                    },
+                                    zoom: {
+                                        interactive: true
+                                    },
+                                    pan: {
+                                        interactive: true
+                                    },
+                                    xaxis: {
+                                        ticks: ticks,
+                                    },
+                                    yaxes: [{
+                                        position: "left",
+                                        min: min,
+                                        max: max
+                                    }, {
+                                        position: "right",
+                                        min: ratioS * min,
+                                        max: ratioS * max
+                                    }, {
+                                        position: "right",
+                                        min: ratioC * min,
+                                        max: ratioC * max
+                                    }],
+                                    grid: {
+                                        hoverable: true,
+                                        borderWidth: 2,
+                                    },
+                                    tooltip: {
+                                        show: true,
+                                        content: "%y.8",
+                                        onHover: function(item, element) {
+                                          // The tooltip plugin does not provide an API to customize the
+                                          // formatting string per data series, so we have to fix up the
+                                          // formatting after the fact like this.
+                                          switch (item.seriesIndex) {
+                                          case 1:
+                                            // These are percentages, two decimal points of precision is enough.
+                                            $(element[0]).text(parseFloat(element[0].innerText).toFixed(2));
+                                            break;
+                                          case 2:
+                                            // These are just integers, no need for decimal zeros.
+                                            $(element[0]).text(parseInt(element[0].innerText));
+                                            break;
+                                          }
+                                        }
+                                    },
+                                    series: {
+                                        bars: {
+                                            zero: false,
+                                            show: true
+                                        }
+                                    },
+                                    bars: {
+                                        align: "center",
+                                        barWidth: 0.1
+                                    },
+                                }).zoom({ amount: 0.5 });
                             }
-
-                            $("#pl").html("<table>" + htmlData + "</table>");
                         }
                     });
                 }
@@ -705,7 +878,8 @@
             <div class="clear"></div>
 
             <div>
-                <center><h3 title="Profit & Loss">P&L</h3></center>
+                <center><h3 id="pl-title" title="Profit & Loss">P&L
+                   <span class="links"><a href="#" class="showPLDetails">Details</a>/<a href="#" class="showPLGraph">Daily Graph</a></span></h3></center>
                 <div class="pl-container">
                     <div id="pl" class="demo-placeholder"></div>
                 </div>

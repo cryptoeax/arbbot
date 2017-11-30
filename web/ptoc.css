@@ -163,6 +163,11 @@ p {
     color: green;
 }
 
+#pl-title .links {
+    font-size: 12pt;
+    line-height: 1.7em;
+}
+
 .wallet-container {
     box-sizing: border-box;
     width: 250px;
