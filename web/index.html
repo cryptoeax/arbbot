@@ -15,6 +15,7 @@
             var graphCoin = "BTC";
 
             var stats = null;
+            var totalPL = null;
             var profitableTrades = null;
 
             $(function() {
@@ -240,8 +241,7 @@
                         cache: false,
                         success: function(data) {
 
-                            var totalPL = rnd4(data.pl) + " " + data.pl_currency;
-                            $("#total-pl").text("(" + totalPL + ")");
+                            totalPL = rnd4(data.pl) + data.pl_currency;
                             profitableTrades = data.efficiency;
 
                             var arr = data.data;
@@ -600,6 +600,9 @@
 
                     var htmlData = "";
                     htmlData += "     Total trades: " + stats.trades + "\n";
+                    if (totalPL != null) {
+                        htmlData += "   Unrealized P&L: " + totalPL + "\n";
+                    }
                     if (profitableTrades != null) {
                         htmlData += "Profitable trades: " + rnd2(profitableTrades) + "%\n";
                     }
@@ -702,7 +705,7 @@
             <div class="clear"></div>
 
             <div>
-                <center><h3 title="Profit & Loss">P&L <span id="total-pl"></span></h3></center>
+                <center><h3 title="Profit & Loss">P&L</h3></center>
                 <div class="pl-container">
                     <div id="pl" class="demo-placeholder"></div>
                 </div>
