@@ -49,6 +49,12 @@
                     return false;
                 });
 
+                $(".showPLCoinGraph").click(function() {
+                    plMode = "graphCoin";
+                    updatePL();
+                    return false;
+                });
+
                 var walletAge = 0;
 
                 function no2e(x) {
@@ -307,7 +313,7 @@
                                 }
 
                                 $("#pl").html("<table>" + htmlData + "</table>");
-                            } else if (plMode == "graph") {
+                            } else if (plMode == "graph" || plMode == "graphCoin") {
                                 // Reset the graph every two minutes to allow the user to have time to interact with it!
                                 clearTimeout(timeout);
                                 setTimeout(updatePL, 120000);
@@ -316,26 +322,31 @@
                                 for (var i = 0; i < arr.length; i++) {
                                     htmlData += "<tr>";
 
-                                    var date = new Date(arr[i].time * 1000);
-                                    var year = date.getFullYear();
-                                    var month = date.getMonth() + 1;
-                                    var day = date.getDate();
-                                    if (month < 10)
-                                        month = "0" + month;
-                                    if (day < 10)
-                                        day = "0" + day;
-                                    var formattedTime = year + '-' + month + '-' + day;
-                                    if (!(formattedTime in obj)) {
-                                        obj[formattedTime] = {
+                                    var key;
+                                    if (plMode == "graph") {
+                                      var date = new Date(arr[i].time * 1000);
+                                      var year = date.getFullYear();
+                                      var month = date.getMonth() + 1;
+                                      var day = date.getDate();
+                                      if (month < 10)
+                                          month = "0" + month;
+                                      if (day < 10)
+                                          day = "0" + day;
+                                      key = year + '-' + month + '-' + day;
+                                    } else {
+                                      key = arr[i].coin;
+                                    }
+                                    if (!(key in obj)) {
+                                        obj[key] = {
                                           value: 0,
                                           count: 0,
                                           success: 0
                                         };
                                     }
-                                    obj[formattedTime].value += arr[i].currency_pl;
-                                    obj[formattedTime].count++;
+                                    obj[key].value += arr[i].currency_pl;
+                                    obj[key].count++;
                                     if (arr[i].currency_pl >= 0) {
-                                        obj[formattedTime].success++;
+                                        obj[key].success++;
                                     }
                                 }
                                 var ticks = [];
@@ -880,7 +891,7 @@
 
             <div>
                 <center><h3 id="pl-title" title="Profit & Loss">P&L
-                   <span class="links"><a href="#" class="showPLDetails">Details</a>/<a href="#" class="showPLGraph">Daily Graph</a></span></h3></center>
+                   <span class="links"><a href="#" class="showPLDetails">Details</a>/<a href="#" class="showPLGraph">Daily Graph</a>/<a href="#" class="showPLCoinGraph">Per-Coin Graph</a></span></h3></center>
                 <div class="pl-container">
                     <div id="pl" class="demo-placeholder"></div>
                 </div>
