@@ -80,6 +80,22 @@ class Bittrex extends Exchange {
 
   }
 
+  public function getFilledOrderPrice( $type, $tradeable, $currency, $id ) {
+    $market = $currency . '-' . $tradeable;
+    $result = $this->queryAPI( 'account/getorderhistory', [ 'market' => $market ] );
+    $id = trim( $id, '{}' );
+
+    foreach ($result as $order) {
+      if ($order[ 'OrderUuid' ] == $id) {
+        if ($order[ 'QuantityRemaining' ] != 0) {
+          logg( $this->prefix() . "Order " . $id . " assumed to be filled but " . $order[ 'QuantityRemaining' ] . " still remaining" );
+        }
+        return $order[ 'Price' ];
+      }
+    }
+    return null;
+  }
+
   protected function fetchOrderbook( $tradeable, $currency ) {
 
     $orderbook = $this->queryOrderbook( $tradeable, $currency );

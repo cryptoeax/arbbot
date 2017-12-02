@@ -295,11 +295,14 @@ class Arbitrator {
       $target->refreshWallets();
       $source->refreshWallets();
 
+      $totalCost = $source->getFilledOrderPrice( 'buy', $tradeable, $currency, $buyOrderID );
+      $totalRevenue = $target->getFilledOrderPrice( 'sell', $tradeable, $currency, $sellOrderID );
+
       $sourceTradeableAfter = $source->getWallets()[ $tradeable ];
       $targetTradeableAfter = $target->getWallets()[ $tradeable ];
 
-      $sourceCurrencyAfter = $source->getWallets()[ $currency ];
-      $targetCurrencyAfter = $target->getWallets()[ $currency ];
+      $sourceCurrencyAfter = $sourceCurrencyBefore - $totalCost;
+      $targetCurrencyAfter = $targetCurrencyBefore + $totalRevenue;
 
       $message = "TRADE SUMMARY:\n";
       $message .= "PAIR: $tradeable vs $currency\n";

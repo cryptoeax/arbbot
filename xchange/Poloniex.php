@@ -101,6 +101,22 @@ class Poloniex extends Exchange {
 
   }
 
+  public function getFilledOrderPrice( $type, $tradeable, $currency, $id ) {
+    if (!preg_match( '/^[A-Z0-9_]+:(.*)$/', $id, $matches )) {
+      throw new Exception( $this->prefix() . "Invalid order id: " . $id);
+    }
+    $orderNumber = $matches[ 1 ];
+    $market = $currency . "_" . $tradeable;
+    $result = $this->queryAPI( 'returnTradeHistory', [ 'currencyPair' => $market ] );
+
+    foreach ($result as $entry) {
+      if ($entry[ 'orderNumber' ] == $orderNumber) {
+        return $entry[ 'total' ];
+      }
+    }
+    return null;
+  }
+
   protected function fetchOrderbook( $tradeable, $currency ) {
 
     $orderbook = $this->queryOrderbook( $tradeable, $currency );

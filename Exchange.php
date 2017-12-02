@@ -109,6 +109,8 @@ abstract class Exchange {
 
   public abstract function cancelOrder( $orderID );
 
+  public abstract function getFilledOrderPrice( $type, $tradeable, $currency, $orderID );
+
   public abstract function cancelAllOrders();
 
   public abstract function refreshExchangeData();
