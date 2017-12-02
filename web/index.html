@@ -55,6 +55,11 @@
                     return false;
                 });
 
+                $("#filterbox select").live("change", function() {
+                    updatePL();
+                    return false;
+                });
+
                 var walletAge = 0;
 
                 function no2e(x) {
@@ -276,6 +281,8 @@
                             var arr = data.data;
 
                             if (plMode == "details") {
+			        $("#filterbox").remove();
+
                                 var htmlData = "";
                                 htmlData += "<tr><th>Date</th><th>Coin</th>";
                                 htmlData += "<th>Source</th><th>Target</th>";
@@ -325,23 +332,46 @@
                                 clearTimeout(timeout);
                                 setTimeout(updatePL, 120000);
 
+                                var filter = (plMode == "graph") ?
+                                  "Filter on altcoin" : "Filter on date";
+                                var activeFilter;
+                                if ($("#filterbox select").length) {
+                                  activeFilter = $("#filterbox select")[0].value;
+                                  // Clear the active filter when switching between chart types.
+                                  if (/^\d{4}-\d{2}-\d{2}$/.test(activeFilter) !=
+                                      (plMode == "graphCoin")) {
+                                    activeFilter = undefined;
+                                  }
+                                }
+
                                 var obj = {};
+                                var filterData = [];
                                 for (var i = 0; i < arr.length; i++) {
                                     htmlData += "<tr>";
 
-                                    var key;
+                                    var date = new Date(arr[i].time * 1000);
+                                    var year = date.getFullYear();
+                                    var month = date.getMonth() + 1;
+                                    var day = date.getDate();
+                                    if (month < 10)
+                                        month = "0" + month;
+                                    if (day < 10)
+                                        day = "0" + day;
+                                    var formattedTime = year + '-' + month + '-' + day;
+
+                                    var key, ignore;
                                     if (plMode == "graph") {
-                                      var date = new Date(arr[i].time * 1000);
-                                      var year = date.getFullYear();
-                                      var month = date.getMonth() + 1;
-                                      var day = date.getDate();
-                                      if (month < 10)
-                                          month = "0" + month;
-                                      if (day < 10)
-                                          day = "0" + day;
-                                      key = year + '-' + month + '-' + day;
+                                      key = formattedTime;
+                                      filterData[arr[i].coin] = 1;
+                                      if (activeFilter && arr[i].coin != activeFilter) {
+                                        continue;
+                                      }
                                     } else {
                                       key = arr[i].coin;
+                                      filterData[formattedTime] = 1;
+                                      if (activeFilter && formattedTime != activeFilter) {
+                                        continue;
+                                      }
                                     }
                                     if (!(key in obj)) {
                                         obj[key] = {
@@ -356,6 +386,10 @@
                                         obj[key].success++;
                                     }
                                 }
+                                filterData = Object.keys(filterData);
+                                var collator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
+                                filterData.sort(collator.compare);
+
                                 var ticks = [];
                                 var data = [];
                                 var success = [];
@@ -481,6 +515,20 @@
                                         barWidth: 0.1
                                     },
                                 }).zoom({ amount: 0.5 });
+
+                                var htmlData = "<div id=\"filterbox\">" + filter + " ";
+                                htmlData += "<select><option value=\"\">All</option>";
+                                for (var i = 0; i < filterData.length; ++i) {
+                                  htmlData += "<option";
+                                  if (activeFilter == filterData[i]) {
+                                    htmlData += " selected";
+                                  }
+                                  htmlData += ">" + filterData[i] + "</option>";
+                                }
+                                htmlData += "</select>";
+                                htmlData += "</div>";
+                                $("#filterbox").remove();
+                                $(".pl-container").append(htmlData);
                             }
                         }
                     });

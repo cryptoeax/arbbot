@@ -146,6 +146,14 @@ p {
     -webkit-box-shadow: 0 3px 10px rgba(0,0,0,0.1);
 }
 
+.pl-container {
+    height: 370px;
+}
+
+.pl-container #pl {
+    height: 300px;
+}
+
 .pl-container table {
     margin: 0 auto;
     font-family: monospace;
@@ -161,6 +169,14 @@ p {
 
 .pl-container .pos {
     color: green;
+}
+
+.pl-container #filterbox {
+    width: 500px;
+    margin: 0 auto;
+    text-align: center;
+    line-height: 24px;
+    font: normal 16px "omnes-pro", Helvetica, Arial, sans-serif;
 }
 
 #pl-title .links {
