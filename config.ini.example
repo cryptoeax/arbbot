@@ -138,6 +138,9 @@ query-delay = 5
 ; Max age of database records to include them in profitability calculations
 opportunity-count-age = 240
 
+; Max transfer fee that is desirable for coins that we want to hold in our trading portfolio.
+max-tx-fee-allowed = 0.00001
+
 ; How many pairs to check per exchange pair
 max-pairs-per-run = 15
 

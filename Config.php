@@ -19,6 +19,9 @@ class Config {
   const REQUIRED_OPPORTUNITIES = 'expert.required-opportunities';
   const DEFAULT_REQUIRED_OPPORTUNITIES = 3;
   //
+  const MAX_TX_FEE_ALLOWED = 'expert.max-tx-fee-allowed';
+  const DEFAULT_MAX_TX_FEE_ALLOWED = 0.00001;
+  //
   const RATE_EMA_PERIOD = 'expert.rate-ema-period';
   const DEFAULT_RATE_EMA_PERIOD = 12;
   //

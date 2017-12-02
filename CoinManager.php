@@ -175,14 +175,26 @@ class CoinManager {
           // Retrieve average exchange rates for this coin:
           $averageRate = Database::getAverageRate( $coin );
 
-          $maxTradeSize = Config::get( Config::MAX_TRADE_SIZE, Config::DEFAULT_MAX_TRADE_SIZE );
-          $balanceFactor = Config::get( Config::BALANCE_FACTOR, Config::DEFAULT_BALANCE_FACTOR );
+          // Calculate the maximum transaction fee across exchanges.
+          $maxTxFee = 0;
+          foreach ( $this->exchanges as $exchange ) {
+            $fee = abs( $exchange->getTransferFee( $coin, 1 ) );
+            if ($maxTxFee < $fee) {
+              $maxTxFee = $fee;
+            }
+          }
+          $maxTxFee *= $averageRate;
 
-          $desiredBalance = formatBTC( $maxTradeSize / $averageRate * $balanceFactor );
-          $diff = abs( $desiredBalance - $balance );
-          // Only allow a diff if the need is fulfillable:
-          if ( $diff * $averageRate < $exchange->getSmallestOrderSize() ) {
-            $desiredBalance = $balance;
+          if ($maxTxFee < Config::get( Config::MAX_TX_FEE_ALLOWED, Config::DEFAULT_MAX_TX_FEE_ALLOWED ) ) {
+            $maxTradeSize = Config::get( Config::MAX_TRADE_SIZE, Config::DEFAULT_MAX_TRADE_SIZE );
+            $balanceFactor = Config::get( Config::BALANCE_FACTOR, Config::DEFAULT_BALANCE_FACTOR );
+  
+            $desiredBalance = formatBTC( $maxTradeSize / $averageRate * $balanceFactor );
+            $diff = abs( $desiredBalance - $balance );
+            // Only allow a diff if the need is fulfillable:
+            if ( $diff * $averageRate < $exchange->getSmallestOrderSize() ) {
+              $desiredBalance = $balance;
+            }
           }
         }
 
