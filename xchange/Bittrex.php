@@ -196,18 +196,9 @@ class Bittrex extends Exchange {
       $type = strtoupper( $data[ 'CoinType' ] );
 
       if ( array_search( $coin, $tradeables ) !== false ) {
-        $conf[ $coin ] = $data[ 'MinConfirmation' ];
-      }
-
-      if ( $type != 'BITCOIN' && $type != 'BITCOIN_PERCENTAGE_FEE' ) {
-        //logg( $this->prefix() . "Autoblocking coin $coin as it has wrong type: $type" );
-        //Config::blockCoin( $coin );
-        continue;
-      }
-
-      if ( array_search( $coin, $tradeables ) !== false ) {
         $names[ $coin ] = strtoupper( $data[ 'CurrencyLong' ] );
         $txFees[ $coin ] = $data[ 'TxFee' ] + ($type == 'BITCOIN_PERCENTAGE_FEE' ? '%' : '');
+        $conf[ $coin ] = $data[ 'MinConfirmation' ];
       }
     }
 
