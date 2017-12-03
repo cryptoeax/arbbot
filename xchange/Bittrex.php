@@ -188,11 +188,16 @@ class Bittrex extends Exchange {
 
     $names = [ ];
     $txFees = [ ];
+    $conf = [ ];
 
     foreach ( $currencies as $data ) {
 
       $coin = strtoupper( $data[ 'Currency' ] );
       $type = strtoupper( $data[ 'CoinType' ] );
+
+      if ( array_search( $coin, $tradeables ) !== false ) {
+        $conf[ $coin ] = $data[ 'MinConfirmation' ];
+      }
 
       if ( $type != 'BITCOIN' && $type != 'BITCOIN_PERCENTAGE_FEE' ) {
         //logg( $this->prefix() . "Autoblocking coin $coin as it has wrong type: $type" );
@@ -209,6 +214,7 @@ class Bittrex extends Exchange {
     $this->pairs = $pairs;
     $this->names = $names;
     $this->transferFees = $txFees;
+    $this->confirmationTimes = $conf;
 
   }
 

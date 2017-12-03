@@ -224,14 +224,17 @@ class Poloniex extends Exchange {
     }
 
     $fees = [ ];
+    $conf = [ ];
     foreach ( $currencies as $coin => $data ) {
       $fees[ $coin ] = $data[ 'txFee' ];
+      $conf[ $coin ] = $data[ 'minConf' ];
     }
 
     $depositAddresses = $this->queryDepositAddresses();
 
     $this->pairs = $pairs;
     $this->transferFees = $fees;
+    $this->confirmationTimes = $conf;
     $this->depositAddresses = $depositAddresses;
 
   }

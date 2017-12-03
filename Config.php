@@ -22,6 +22,9 @@ class Config {
   const MAX_TX_FEE_ALLOWED = 'expert.max-tx-fee-allowed';
   const DEFAULT_MAX_TX_FEE_ALLOWED = 0.00001;
   //
+  const MAX_MIN_CONFIRMATIONS_ALLOWED = 'expert.max-min-confirmations-allowed';
+  const DEFAULT_MAX_MIN_CONFIRMATIONS_ALLOWED = 50;
+  //
   const RATE_EMA_PERIOD = 'expert.rate-ema-period';
   const DEFAULT_RATE_EMA_PERIOD = 12;
   //

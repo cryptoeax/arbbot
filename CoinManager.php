@@ -175,17 +175,23 @@ class CoinManager {
           // Retrieve average exchange rates for this coin:
           $averageRate = Database::getAverageRate( $coin );
 
-          // Calculate the maximum transaction fee across exchanges.
+          // Calculate the maximum transaction fee and confirmation time across exchanges.
           $maxTxFee = 0;
+          $maxConfTime = 0;
           foreach ( $this->exchanges as $exchange ) {
             $fee = abs( $exchange->getTransferFee( $coin, 1 ) );
+            $conf = $exchange->getConfirmationTime( $coin );
             if ($maxTxFee < $fee) {
               $maxTxFee = $fee;
+            }
+            if ($maxConfTime < $conf) {
+              $maxConfTime = $conf;
             }
           }
           $maxTxFee *= $averageRate;
 
-          if ($maxTxFee < Config::get( Config::MAX_TX_FEE_ALLOWED, Config::DEFAULT_MAX_TX_FEE_ALLOWED ) ) {
+          if ($maxTxFee < Config::get( Config::MAX_TX_FEE_ALLOWED, Config::DEFAULT_MAX_TX_FEE_ALLOWED ) &&
+              $maxConfTime < Config::get( Config::MAX_MIN_CONFIRMATIONS_ALLOWED, Config::DEFAULT_MAX_MIN_CONFIRMATIONS_ALLOWED ) ) {
             $maxTradeSize = Config::get( Config::MAX_TRADE_SIZE, Config::DEFAULT_MAX_TRADE_SIZE );
             $balanceFactor = Config::get( Config::BALANCE_FACTOR, Config::DEFAULT_BALANCE_FACTOR );
   

@@ -141,6 +141,12 @@ opportunity-count-age = 240
 ; Max transfer fee that is desirable for coins that we want to hold in our trading portfolio.
 max-tx-fee-allowed = 0.00001
 
+; Max number of confirmation allowed for tradeable assets.  Increasing this number allows holding
+; assets that have longer transfer times, which means once a trade happens and we issue a
+; transfer, we won't be in the ownership of our coins in a long time and therefore will miss out
+; on any arbitrage opportunities in the interim.
+max-min-confirmations-allowed = 50
+
 ; How many pairs to check per exchange pair
 max-pairs-per-run = 15
 

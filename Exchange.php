@@ -14,6 +14,7 @@ abstract class Exchange {
   //
   protected $wallets = [ ];
   protected $transferFees = [ ];
+  protected $confirmationTimes = [ ];
   protected $names = [ ];
   protected $pairs = [ ];
   //
@@ -81,6 +82,17 @@ abstract class Exchange {
       return $amount * substr( $fee, 0, -1 );
     }
     return $fee;
+
+  }
+
+  public function getConfirmationTime( $tradeable ) {
+
+    if ( !key_exists( $tradeable, $this->confirmationTimes ) ) {
+      logg( $this->prefix(). "WARNING: Unknown confirmation time for $tradeable. Calculations may be inaccurate!" );
+      return null;
+    }
+
+    return $this->confirmationTimes[ $tradeable ];
 
   }
 
