@@ -17,7 +17,7 @@ catch ( Exception $ex ) {
   return;
 }
 
-logg( "ARBITRATOR V1.0 launching..." );
+logg( "ARBITRATOR V2.0 launching..." );
 sendmail( "Startup mail service test", "This is a test message to confirm that the mail service is working properly!" );
 logg( "Loading config..." );
 

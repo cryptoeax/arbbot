@@ -1,5 +1,12 @@
 # Bitcoin/Altcoin Arbitrage Trading Bot
-The bot checks for altcoins, which are traded on both Poloniex and Bittrex and compares their prices. If the difference is big enough to earn at least some satoshis (after deducting transfer fees), it enters the trade. The bot records its activities and exchange rates in a database and uses this information to reinvest a portion of its profits into the most profitable (in terms of arbitragable) altcoin. Additionally, the amount of held altcoins is calculated based on their exchange rate. This allows the bot to profit from hyped (PnD) coins. You can see the bot running on a $5 Digital Ocean VPS here: http://178.17.174.178/
+The bot checks for altcoins, which are traded on both Poloniex and Bittrex and compares their prices. If the difference is big enough to earn at least some satoshis (after deducting transfer fees), it enters the trade. The bot records its activities and exchange rates in a database and uses this information to reinvest a portion of its profits into the most profitable (in terms of arbitragable) altcoin. Additionally, the amount of held altcoins is calculated based on their exchange rate, transfer fees and times. This allows the bot to profit from hyped (PnD) coins.
+
+This bot is a fork of the original 1.0 version of the [upstream bot](https://github.com/opencryptotrader/arbbot) but has been improved significantly both in the backend and in the UI since the original release.
+
+You can see the bot running on a cheap [linode](https://www.linode.com) here:
+![](https://screenshots.firefoxusercontent.com/images/88be040a-9a52-46c2-904e-23b63bf57e1e.png)
+
+You can see the upstream bot for comparison running on a $5 Digital Ocean VPS here: http://178.17.174.178/
 
 ![](https://i.imgur.com/XcmnfGt.png)
 
@@ -15,7 +22,7 @@ Download the archive to the server and extract it:
 
 ```
 cd /var/www
-wget https://github.com/opencryptotrader/arbbot/archive/master.zip && unzip arbitrage-bot.zip
+wget https://github.com/cryptoeax/arbbot/archive/production.zip && unzip arbitrage-bot.zip
 ```
 
 cd into the directory:
@@ -101,10 +108,12 @@ Now you are ready to give the bot a test by running it:
 php main.php
 ```
 
+(Note: It is recommended to run `main.php` with `[hhvm](https://docs.hhvm.com/hhvm/installation/linux)` instead of `php` in order to speed up the bot a bit.)
+
 You should see output like this:
 
 ```
-19:13:34: ARBITRATOR V1.0 launching
+19:13:34: ARBITRATOR V2.0 launching
 
 ```
 To actually allow the bot to buy coins automatically, you need to update the database. Use the commands below OR
@@ -155,6 +164,13 @@ that the bot has noted in its database that this coin can be traded with. During
 will consider buying this coin.
 
 ## Release History
+* 2.0
+    * Improved the web-based UI, charts, tooltips to help new users, legends
+    * Added a P&L section in the UI to display detailed information about the incurred profits and losses as a result of trades, including daily and per-coin charts with filtering options.
+    * Added an Alerts section in the UI to display the stuck withdrawal alerts in the UI.
+    * Optimized the bot to enable it to make up to 4 times more trades.
+    * Optimized the accuracy of the bot to enable it to run at a profitable trade percentage of above 90%.
+    * Several bug fixes and improvements to the stability of the bot.
 * 1.0
     * Complete rewrite
     * Support for multiple exchanges, more automation and more configuration options
