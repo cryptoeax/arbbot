@@ -4,7 +4,7 @@ The bot checks for altcoins, which are traded on both Poloniex and Bittrex and c
 This bot is a fork of the original 1.0 version of the [upstream bot](https://github.com/opencryptotrader/arbbot) but has been improved significantly both in the backend and in the UI since the original release.
 
 You can see the bot running on a cheap [linode](https://www.linode.com) here:
-![](https://screenshots.firefoxusercontent.com/images/88be040a-9a52-46c2-904e-23b63bf57e1e.png)
+![](https://screenshots.firefoxusercontent.com/images/64c6a25c-d733-46fa-acb9-25f3e002b124.png)
 
 You can see the upstream bot for comparison running on a $5 Digital Ocean VPS here: http://178.17.174.178/
 
