@@ -215,7 +215,10 @@ class Poloniex extends Exchange {
         continue;
       }
 
-      if ( !key_exists( $tradeable, $currencies ) || $currencies[ $tradeable ][ 'disabled' ] == 1 ) {
+      if ( !key_exists( $tradeable, $currencies ) ||
+           $currencies[ $tradeable ][ 'disabled' ] == 1 ||
+           $currencies[ $tradeable ][ 'delisted' ] == 1 ||
+           $currencies[ $tradeable ][ 'frozen' ] == 1 ) {
         continue;
       }
 
