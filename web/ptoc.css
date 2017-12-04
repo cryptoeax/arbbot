@@ -125,7 +125,7 @@ p {
     -webkit-box-shadow: 0 3px 10px rgba(0,0,0,0.1);
 }
 
-.log-container, .pl-container, .alert-container {
+.log-container, .pl-container, .alert-container, .admin-ui-container {
     box-sizing: border-box;
     overflow: scroll;
     width: 1110px;
@@ -224,3 +224,18 @@ p {
 .clear {
     clear: both;
 }
+
+#admin-ui {
+    display: none;
+}
+
+#admin-ui.enabled {
+    display: block;
+}
+
+#admin-ui .demo-placeholder {
+    display: grid;
+    grid-row: 1;
+    grid-column: 1;
+}
+

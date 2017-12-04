@@ -25,6 +25,11 @@ class WebDB {
 
   }
 
+  public static function isAdminUIEnabled() {
+    require_once __DIR__ . '/../Config.php';
+    return Config::get( Config::ADMIN_UI, Config::DEFAULT_ADMIN_UI );
+  }
+
   public static function getLog( $last = null ) {
     if ( is_null( $last ) ) {
       $last = time() - 300;
@@ -407,6 +412,8 @@ class WebDB {
       $results[ $row[ "keyy" ] ] = $row[ "value" ];
     }
 
+    $results[ 'admin_ui' ] = self::isAdminUIEnabled();
+
     mysql_close( $link );
 
     return $results;
@@ -484,6 +491,29 @@ class WebDB {
     ];
 
     return $results;
+
+  }
+
+  public static function doAdminAction( $post ) {
+
+    $query = '';
+    switch ($post[ 'action' ]) {
+    case 'set_autobuy_funds':
+      $query = sprintf( "UPDATE stats SET value = '%.9f' WHERE keyy = 'autobuy_funds';",
+                        $post[ 'value' ] );
+      break;
+    }
+
+    $link = self::connect();
+
+    $result = mysql_query( $query, $link );
+    if ( !$result ) {
+      throw new Exception( "database selection error: " . mysql_error( $link ) );
+    }
+
+    mysql_close( $link );
+
+    return array( );
 
   }
 

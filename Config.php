@@ -72,6 +72,9 @@ class Config {
   const MIN_BTC_XFER = 'general.min-btc-xfer';
   const DEFAULT_MIN_BTC_XFER = 0.02;
   //
+  const ADMIN_UI = 'general.admin-ui';
+  const DEFAULT_ADMIN_UI = false;
+  //
   // TRADE MODULE
   const MAX_TRADE_SIZE = 'trade.max-trade-size';
   const DEFAULT_MAX_TRADE_SIZE = 0.01;

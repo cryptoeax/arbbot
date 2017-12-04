@@ -15,6 +15,11 @@ cancel-stray-orders = true
 ; because they cannot be automatically withdrawn by the bot.
 blockedCoins = BTS,NXT,XMR,ETH,ETC,BURST,SWIFT,XRP,STEEM,ARDR,SBD,NAUT
 
+; Enable the admin UI (enables making modifications to the config of the bot)
+; NOTE: It is not recommended to enable this unless if the bot's UI is served using
+; a password protected HTTPS server.
+admin-ui = false
+
 [db]
 ; DATABASE SETTINGS
 

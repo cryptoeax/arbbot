@@ -168,6 +168,7 @@ will consider buying this coin.
     * Improved the web-based UI, charts, tooltips to help new users, legends
     * Added a P&L section in the UI to display detailed information about the incurred profits and losses as a result of trades, including daily and per-coin charts with filtering options.
     * Added an Alerts section in the UI to display the stuck withdrawal alerts in the UI.
+    * Added an admin UI for controlling the bot's settings from the web UI.
     * Optimized the bot to enable it to make up to 4 times more trades.
     * Optimized the accuracy of the bot to enable it to run at a profitable trade percentage of above 90%.
     * Several bug fixes and improvements to the stability of the bot.

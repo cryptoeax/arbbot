@@ -863,7 +863,46 @@
                         cache: false,
                         success: function(data) {
                             stats = data;
+                            if (stats.admin_ui) {
+                                $("#admin-ui").addClass("enabled");
+                                initAdminUI();
+                            } else {
+                                $("#admin-ui").removeClass("enabled");
+                            }
                         }
+                    });
+                }
+
+                function initAdminUI() {
+                    initAutoBuyFundSetter();
+                }
+
+                function initAutoBuyFundSetter() {
+                    var ctrl = $("#autobuy")[0];
+                    ctrl.value = stats.autobuy_funds;
+
+                    $("#autobuy-update").click(function() {
+                        $.ajax({
+                            url: "admin-ui.php",
+                            type: "POST",
+                            cache: false,
+                            data: {
+                              action: "set_autobuy_funds",
+                              value: ctrl.value
+                            },
+                            success: function() {
+                                $("#autobuy-status").css({color:"green"}).text("Succeeded").show();
+                                setTimeout(function() {
+                                  $("#autobuy-status").fadeOut();
+                                }, 3000);
+                            },
+                            error: function() {
+                                $("#autobuy-status").css({color: "red"}).text("Error while updating the autobuy funds").show();
+                                setTimeout(function() {
+                                  $("#autobuy-status").fadeOut();
+                                }, 3000);
+                            }
+                        });
                     });
                 }
 
@@ -958,6 +997,17 @@
                 <center><h3>Alerts</h3></center>
                 <div class="alert-container">
                     <div id="alerts" class="demo-placeholder"></div>
+                </div>
+            </div>
+
+            <div class="clear"></div>
+
+            <div id="admin-ui">
+                <center><h3>Admin UI</h3></center>
+                <div class="admin-ui-container">
+                    <div class="demo-placeholder">
+                      <div>Autobuy funds: <input type="number" min="0" step="0.00000001" id="autobuy"> <input type="button" value="Update" id="autobuy-update"> <span id="autobuy-status"></span></div>
+                    </div>
                 </div>
             </div>
 
