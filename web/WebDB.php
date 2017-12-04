@@ -499,7 +499,7 @@ class WebDB {
     $query = '';
     switch ($post[ 'action' ]) {
     case 'set_autobuy_funds':
-      $query = sprintf( "UPDATE stats SET value = '%.9f' WHERE keyy = 'autobuy_funds';",
+      $query = sprintf( "UPDATE stats SET value = '%.8f' WHERE keyy = 'autobuy_funds';",
                         $post[ 'value' ] );
       break;
     case 'get_config_fields':
