@@ -72,6 +72,9 @@ class Config {
   const MIN_BTC_XFER = 'general.min-btc-xfer';
   const DEFAULT_MIN_BTC_XFER = 0.02;
   //
+  const BLOCKED_COINS = 'general.blockedCoins';
+  const DEFAULT_BLOCKED_COINS = 'BTS,NXT,XMR,ETH,ETC,BURST,SWIFT,XRP,STEEM,ARDR,SBD,NAUT';
+  //
   const ADMIN_UI = 'general.admin-ui';
   const DEFAULT_ADMIN_UI = false;
   //
@@ -139,7 +142,7 @@ class Config {
 
   public static function isBlocked( $coin ) {
 
-    $blockedCoins = self::get( "general.blockedCoins" );
+    $blockedCoins = self::get( self::BLOCKED_COINS );
     if ( !is_null( $blockedCoins ) ) {
       $coins = explode( ',', $blockedCoins );
       foreach ( $coins as $block ) {
@@ -210,6 +213,86 @@ class Config {
       throw new Exception( "Configuration not found or invalid!" );
     }
     self::$config = $config;
+
+  }
+
+  public static function getEditableKeys() {
+
+    $editableConfigs = [
+      self::MIN_BTC_XFER,
+      self::CANCEL_STRAY_ORDERS,
+      self::BLOCKED_COINS,
+      self::MODULE_TRADE,
+      self::MODULE_AUTOBUY,
+      self::MODULE_LIQUIDATE,
+      self::MODULE_TAKE_PROFIT,
+      self::MODULE_STUCK_DETECTION,
+      self::MODULE_UNUSED_COINS_DETECTION,
+      self::MAX_BUY,
+      self::TAKE_PROFIT_ADDRESS,
+      self::TAKE_PROFIT_AMOUNT,
+      self::MAX_TRADE_SIZE,
+      self::MIN_PROFIT,
+      self::BUY_RATE_FACTOR,
+      self::SELL_RATE_FACTOR
+    ];
+
+    $results = array( );
+    foreach ($editableConfigs as $config) {
+      $arr = explode( ".", $config );
+      $section = $arr[ 0 ];
+      $name = $arr[ 1 ];
+
+      $results[ $section ][] = array(
+        'name' => $name,
+      );
+    }
+
+    $file = file_get_contents( __DIR__ . '/config.ini' );
+    $lines = array( );
+    if (strstr( $file, "\r\n" )) {
+      $lines = explode( "\r\n", $file );
+    } else {
+      $lines = explode( "\n", $file );
+    }
+
+    $currentSection = '';
+    $currentComment = '';
+    for ($i = 0; $i < count( $lines ); $i++) {
+      $line = $lines[ $i ];
+      if (preg_match( '/\[.*\]/', $line )) {
+	$currentSection = '';
+        foreach (array_keys( $results ) as $section) {
+          if (strstr( $line, "[$section]" )) {
+            $currentSection = $section;
+            break;
+          }
+        }
+        continue;
+      }
+      if ($line == '') {
+        $currentComment = '';
+        continue;
+      }
+      if (preg_match( '/^\s*;\s*.*$/', $line )) {
+        $comment = preg_replace( '/^\s*;\s*(.*)$/', '$1', $line );
+        $currentComment .= "$comment ";
+        continue;
+      }
+      if (strchr( $line, '=' ) && $currentSection != '') {
+        $arr = array_map( 'trim', explode( "=", $line ) );
+        foreach ($results[ $currentSection ] as $key => $var) {
+          if ($var[ 'name' ] == $arr[ 0 ]) {
+            $results[ $currentSection ][ $key ][ 'value' ] = $arr[ 1 ];
+            $results[ $currentSection ][ $key ][ 'description' ] = $currentComment;
+            break;
+          }
+        }
+        continue;
+      }
+    }
+
+    return $results;
 
   }
 

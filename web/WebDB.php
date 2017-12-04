@@ -4,6 +4,7 @@ require_once __DIR__ . '/../lib/mysql.php';
 require_once __DIR__ . '/config.inc.php';
 require_once __DIR__ . '/utils.php';
 require_once __DIR__ . '/../init.php';
+require_once __DIR__ . '/../Config.php';
 
 
 class WebDB {
@@ -26,7 +27,6 @@ class WebDB {
   }
 
   public static function isAdminUIEnabled() {
-    require_once __DIR__ . '/../Config.php';
     return Config::get( Config::ADMIN_UI, Config::DEFAULT_ADMIN_UI );
   }
 
@@ -502,6 +502,8 @@ class WebDB {
       $query = sprintf( "UPDATE stats SET value = '%.9f' WHERE keyy = 'autobuy_funds';",
                         $post[ 'value' ] );
       break;
+    case 'get_config_fields':
+      return Config::getEditableKeys();
     }
 
     $link = self::connect();
