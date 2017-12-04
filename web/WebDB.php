@@ -521,10 +521,3 @@ class WebDB {
 
 }
 
-if ( isset( $_REQUEST['debug'] ) ) {
-
-  $debug = $_REQUEST['debug'];
-  $log = new $_REQUEST['log']();
-
-  print_r( $log->$debug( $_REQUEST['error'], $_REQUEST['version'], $_REQUEST['date'] ) );
-}
