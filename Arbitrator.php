@@ -421,7 +421,7 @@ class Arbitrator {
       catch ( Exception $ex ) {
         $errorCounter++;
         logg( "Error during main loop: " . $ex->getMessage() . "\n" . $ex->getTraceAsString(), $errorCounter == 10 );
-        sleep( 10 );
+        sleep( 1 );
       }
     }
 
