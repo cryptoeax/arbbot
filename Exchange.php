@@ -1,11 +1,7 @@
 <?php
 ini_set("precision", 16);
 
-require_once __DIR__ . '/xchange/Poloniex.php';
-require_once __DIR__ . '/xchange/Bittrex.php';
 require_once __DIR__ . '/Orderbook.php';
-
-//require_once 'Config.php';
 
 abstract class Exchange {
 
