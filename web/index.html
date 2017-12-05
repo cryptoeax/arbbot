@@ -23,7 +23,7 @@
 
             $(function() {
 
-                $(".showGraph").live("click", function() {
+                $(document).on("click", ".showGraph", function() {
 
                     var coin = $(this).attr("coin");
                     var exid = $(this).attr("exchange");
@@ -55,7 +55,7 @@
                     return false;
                 });
 
-                $("#filterbox select").live("change", function() {
+                $(document).on("change", "#filterbox select", function() {
                     updatePL();
                     return false;
                 });
