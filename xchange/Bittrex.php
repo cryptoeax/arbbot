@@ -283,22 +283,22 @@ class Bittrex extends Exchange {
 
   private function queryDepositAddress( $coin ) {
 
-    $error = null;
-    for ( $i = 0; $i < 3; $i++ ) {
+    for ( $i = 0; $i < 100; $i++ ) {
       try {
-        //
         $data = $this->queryAPI( 'account/getdepositaddress', ['currency' => $coin ] );
         return $data[ 'Address' ];
-        //
       }
       catch ( Exception $ex ) {
-        // Ignore error messages here...
-        // (API call fails if address is still generating...)
-        $error = $ex;
-        sleep( 30 );
+        $info = json_decode($ex->getTrace()[ 0 ][ 'args' ][ 0 ]);
+        if ($info->success === false &&
+            $info->message === 'ADDRESS_GENERATING') {
+          // Wait while the address is being generated.
+          sleep( 30 );
+          continue;
+        }
+        throw $ex;
       }
     }
-    throw $error;
 
   }
 
