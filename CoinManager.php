@@ -344,7 +344,6 @@ class CoinManager {
       $target = $negativeExchanges[ $to ][ 'e' ];
 
       $this->withdraw( $source, $target, $coin, $amount );
-      sleep( Config::get( Config::ORDER_CHECK_DELAY, Config::DEFAULT_ORDER_CHECK_DELAY ) );
 
       $positiveExchanges[ $from ][ 'd' ] -= $amount;
       $negativeExchanges[ $to ][ 'd' ] -= $amount;
