@@ -85,9 +85,6 @@ class Arbitrator {
       if ( $this->checkPairAt( $pair, $x1, $x2 ) ) {
         return true;
       }
-
-      // A bit of sleep to stay within the exchanges rate limits
-      //sleep( Config::get( Config::QUERY_DELAY, Config::DEFAULT_QUERY_DELAY ) );
     }
 
     return false;
@@ -289,7 +286,6 @@ class Arbitrator {
 
     for ( $i = 1; $i <= 8; $i *= 2 ) {
 
-      //sleep( (Config::get( Config::ORDER_CHECK_DELAY, Config::DEFAULT_ORDER_CHECK_DELAY ) / 2) * $i );
       logg( "Checking trade results ($i)..." );
 
       $target->refreshWallets();
@@ -334,22 +330,6 @@ class Arbitrator {
       $message .= "(Transfer fee is " . formatBTC( $txFee ) . ")\n\n";
 
       logg( $message );
-
-/*
-      if ( $i < 8 && ( $currencyDifference < 0 || $tradeableDifference < 0 ) ) {
-        logg( "Negative result: Retesting in a few seconds..." );
-
-        $source->dumpWallets();
-        $target->dumpWallets();
-
-        if ( $i == 8 ) {
-          logg( "Negative trade. Investigate!!!", true );
-          die( "HARD\n" );
-        }
-
-        continue;
-      }
-*/
 
       Database::saveTrade( $tradeable, $currency, $sellAmount, $source->getID(), $target->getID() );
 
@@ -443,8 +423,6 @@ class Arbitrator {
         logg( "Error during main loop: " . $ex->getMessage() . "\n" . $ex->getTraceAsString(), $errorCounter == 10 );
         sleep( 10 );
       }
-
-      //sleep( Config::get( Config::QUERY_DELAY, Config::DEFAULT_QUERY_DELAY ) * 3 );
     }
 
   }

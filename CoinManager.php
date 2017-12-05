@@ -533,8 +533,6 @@ class CoinManager {
     // Try up to ten times to fill a need
     for ( $i = 0; $i < 10; $i++ ) {
 
-      //sleep( Config::get( Config::QUERY_DELAY, Config::DEFAULT_QUERY_DELAY ) );
-
       logg( "Rolling the dice..." );
       shuffle( $needs );
       $need = $needs[ 0 ];
@@ -679,8 +677,6 @@ class CoinManager {
     }
 
     foreach ( $overbalances as $overbalance ) {
-
-      //sleep( Config::get( Config::QUERY_DELAY, Config::DEFAULT_QUERY_DELAY ) );
 
       $exchange = $this->exchangesID[ $overbalance[ 'exchange' ] ];
       $coin = $overbalance[ 'coin' ];
