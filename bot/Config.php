@@ -210,7 +210,12 @@ class Config {
 
     $config = parse_ini_file( "config.ini", true );
     if ( !$config ) {
-      throw new Exception( "Configuration not found or invalid!" );
+      // The web UI accesses the Config object from ../bot, so config.ini will
+      // be placed in the parent directory.
+      $config = parse_ini_file( "../config.ini", true );
+      if ( !$config ) {
+        throw new Exception( "Configuration not found or invalid!" );
+      }
     }
     self::$config = $config;
 

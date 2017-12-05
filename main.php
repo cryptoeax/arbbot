@@ -1,10 +1,10 @@
 <?php
 
-require_once 'utils.php';
-require_once 'Config.php';
-require_once 'Database.php';
-require_once 'Exchange.php';
-require_once 'Arbitrator.php';
+require_once 'bot/utils.php';
+require_once 'bot/Config.php';
+require_once 'bot/Database.php';
+require_once 'bot/Exchange.php';
+require_once 'bot/Arbitrator.php';
 
 date_default_timezone_set( "UTC" );
 
@@ -24,7 +24,7 @@ logg( "Loading config..." );
 $exchanges = [ ];
 $msg = '';
 
-foreach ( glob( 'xchange/*.php' ) as $filename ) {
+foreach ( glob( 'bot/xchange/*.php' ) as $filename ) {
   $name = basename( $filename, '.php' );
   logg( "Enabling $name..." );
   require_once $filename;
