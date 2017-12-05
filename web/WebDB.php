@@ -3,9 +3,16 @@
 require_once __DIR__ . '/../lib/mysql.php';
 require_once __DIR__ . '/config.inc.php';
 require_once __DIR__ . '/../utils.php';
-require_once __DIR__ . '/../init.php';
 require_once __DIR__ . '/../Config.php';
 
+date_default_timezone_set( "UTC" );
+
+try {
+  Config::refresh();
+}
+catch ( Exception $ex ) {
+  return;
+}
 
 class WebDB {
 
@@ -451,6 +458,7 @@ class WebDB {
         '1' => 'Poloniex',
         '3' => 'Bittrex',
       ];
+      require_once '../Exchange.php';
       require_once '../xchange/' . $exchange_map[ $row[ 'target' ] ] . '.php';
       $exchange = new $exchange_map[ $row[ 'target' ] ];
       $price_sold = $matches[ 2 ] / $exchange->deductFeeFromAmountSell( $row[ 'amount' ] );
