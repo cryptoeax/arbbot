@@ -388,7 +388,7 @@ class WebDB {
     $link = self::connect();
 
     $query = sprintf( "SELECT COUNT(*) AS CNT FROM track %s;", //
-            $xid == 0 ? "" : sprintf( "WHERE ID_exchange = %d", $xid, $xid )
+            $xid == 0 ? "" : sprintf( "WHERE ID_exchange = %d", $xid )
     );
 
     $result = mysql_query( $query, $link );
