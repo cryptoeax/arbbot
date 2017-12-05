@@ -1,7 +1,6 @@
 <?php
 
 require_once 'utils.php';
-require_once 'Mandrill.php';
 require_once 'Config.php';
 require_once 'Database.php';
 require_once 'Exchange.php';
@@ -64,34 +63,11 @@ $arbitrator->run();
 function sendmail( $title, $message ) {
   //
   $mailRecipient = Config::get( Config::MAIL_RECIPIENT, null );
-  $mandrillApiKey = Config::get( Config::MANDRILL_API_KEY, null );
-  $msg = $message;
 
   if ( is_null( $mailRecipient ) ) {
     $mailRecipient = 'mail@example.com';
   }
-//
-    try {
-      $mandrill = new Mandrill( 'mandrillApiKey' );
-      $message = array(
-          'text' => $message,
-          'subject' => '[ARB] ' . $title,
-          'from_email' => $mailRecipient,
-          'from_name' => 'Arbitrator Bot',
-          'to' => array(
-              array(
-                  'email' => $mailRecipient,
-                  'name' => 'Arbitrator Administrator',
-                  'type' => 'to'
-              )
-          ),
-      );
-      $result = $mandrill->messages->send( $message );
-      mail( $mailRecipient, "[ARB] " . $title, $msg );
-    }
-    catch ( Mandrill_Error $e ) {
-      logg("Mandrill ERROR" . $e);
-    }
+  mail( $mailRecipient, "[ARB] " . $title, $message );
 
 
 }
