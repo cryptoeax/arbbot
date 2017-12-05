@@ -2,7 +2,7 @@
 
 require_once __DIR__ . '/../lib/mysql.php';
 require_once __DIR__ . '/config.inc.php';
-require_once __DIR__ . '/utils.php';
+require_once __DIR__ . '/../utils.php';
 require_once __DIR__ . '/../init.php';
 require_once __DIR__ . '/../Config.php';
 
