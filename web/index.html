@@ -134,7 +134,7 @@
                     }
 
                     $.ajax({
-                        url: "graph.php?coin=" + graphCoin + "&exchange=" + graphExchange + "&mode=" + graphMode,
+                        url: "ajax.php?func=graph&coin=" + graphCoin + "&exchange=" + graphExchange + "&mode=" + graphMode,
                         type: "GET",
                         cache: false,
                         success: function(data) {
@@ -205,7 +205,7 @@
                 function updateAlerts() {
                     setTimeout(updateAlerts, 60 * 60 * 1000);
                     $.ajax({
-                        url: "alerts.php",
+                        url: "ajax.php?func=alerts",
                         type: "GET",
                         cache: false,
                         success: function(data) {
@@ -241,7 +241,7 @@
                 function updateLog() {
                     setTimeout(updateLog, 10000);
                     $.ajax({
-                        url: "log.php",
+                        url: "ajax.php?func=log",
                         type: "GET",
                         cache: false,
                         success: function(data) {
@@ -270,7 +270,7 @@
                 function updatePL() {
                     var timeout = setTimeout(updatePL, 10000);
                     $.ajax({
-                        url: "pl.php",
+                        url: "ajax.php?func=pl",
                         type: "GET",
                         cache: false,
                         success: function(data) {
@@ -574,7 +574,7 @@
                 function updateManagement() {
                     setTimeout(updateManagement, 60000);
                     $.ajax({
-                        url: "management.php",
+                        url: "ajax.php?func=management",
                         type: "GET",
                         cache: false,
                         success: function(data) {
@@ -607,7 +607,7 @@
                 function updateXfers() {
                     setTimeout(updateXfers, 60000);
                     $.ajax({
-                        url: "xfer.php",
+                        url: "ajax.php?func=xfer",
                         type: "GET",
                         cache: false,
                         success: function(data) {
@@ -647,7 +647,7 @@
                 function updateTrades() {
                     setTimeout(updateTrades, 60000);
                     $.ajax({
-                        url: "trades.php",
+                        url: "ajax.php?func=trades",
                         type: "GET",
                         cache: false,
                         success: function(data) {
@@ -698,7 +698,7 @@
                 function updateWallets() {
                     setTimeout(updateWallets, 60000);
                     $.ajax({
-                        url: "wallets.php",
+                        url: "ajax.php?func=wallets",
                         type: "GET",
                         cache: false,
                         success: function(data) {
@@ -858,7 +858,7 @@
                     setTimeout(refreshStats, 60000);
 
                     $.ajax({
-                        url: "stats.php",
+                        url: "ajax.php?func=stats",
                         type: "GET",
                         cache: false,
                         success: function(data) {
