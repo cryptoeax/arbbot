@@ -245,7 +245,8 @@ class Config {
       self::MAX_TRADE_SIZE,
       self::MIN_PROFIT,
       self::BUY_RATE_FACTOR,
-      self::SELL_RATE_FACTOR
+      self::SELL_RATE_FACTOR,
+      self::MAX_PAIRS_PER_RUN
     ];
 
     $results = array( );
@@ -271,7 +272,7 @@ class Config {
     $currentComment = '';
     for ($i = 0; $i < count( $lines ); $i++) {
       $line = $lines[ $i ];
-      if (preg_match( '/\[.*\]/', $line )) {
+      if (preg_match( '/^\s*\[.*\]/', $line )) {
 	$currentSection = '';
         foreach (array_keys( $results ) as $section) {
           if (strstr( $line, "[$section]" )) {
@@ -325,7 +326,8 @@ class Config {
       self::MAX_TRADE_SIZE,
       self::MIN_PROFIT,
       self::BUY_RATE_FACTOR,
-      self::SELL_RATE_FACTOR
+      self::SELL_RATE_FACTOR,
+      self::MAX_PAIRS_PER_RUN
     ];
 
     $results = array( );
@@ -361,7 +363,7 @@ class Config {
     $currentComment = '';
     for ($i = 0; $i < count( $lines ); $i++) {
       $line = $lines[ $i ];
-      if (preg_match( '/\[.*\]/', $line )) {
+      if (preg_match( '/^\s*\[.*\]/', $line )) {
         $output .= $line . $sep;
 	$currentSection = '';
         foreach (array_keys( $results ) as $section) {
