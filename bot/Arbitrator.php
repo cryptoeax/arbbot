@@ -49,6 +49,14 @@ class Arbitrator {
 
     $this->checkOpportunities();
 
+    $this->updateRunTimestamp();
+
+  }
+
+  private function updateRunTimestamp() {
+    $stats = Database::getStats();
+    $stats[ "last_run" ] = time();
+    Database::saveStats( $stats );
   }
 
   private function checkOpportunities() {

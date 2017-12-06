@@ -510,6 +510,9 @@ class WebDB {
       $query = sprintf( "UPDATE stats SET value = '%.8f' WHERE keyy = 'autobuy_funds';",
                         $post[ 'value' ] );
       break;
+    case 'get_bot_status':
+      $query = "SELECT keyy, value FROM stats WHERE keyy IN ('last_run', 'paused');";
+      break;
     case 'get_config_fields':
       return Config::getEditableKeys();
     case 'set_config_fields':
@@ -524,9 +527,33 @@ class WebDB {
       throw new Exception( "database selection error: " . mysql_error( $link ) );
     }
 
+    $results = array();
+
+    switch ($post[ 'action' ]) {
+    case 'get_bot_status':
+      $paused = false;
+      $healthy = true;
+      $lastRun = 0;
+      while ( $row = mysql_fetch_assoc( $result ) ) {
+        if ($row[ "keyy" ] == "paused" &&
+            $row[ "value" ] == true) {
+          $paused = true;
+        } else if ($row[ "keyy" ] == "last_run") {
+          $lastRun = $row[ "value" ];
+        }
+      }
+      $stale = (abs($lastRun - time()) >= 60);
+      if ($stale && !$paused) {
+        $healthy = false;
+      }
+      $results[ 'healthy' ] = $healthy;
+      $results[ 'status' ] = $stale ? "Paused" : "Running";
+      break;
+    }
+
     mysql_close( $link );
 
-    return array( );
+    return $results;
 
   }
 

@@ -910,9 +910,27 @@ $(function() {
         if (adminUIReady) {
             return;
         }
+        initBotStatus();
         initAutoBuyFundSetter();
         initConfigEditor();
         adminUIReady = true;
+    }
+
+    function initBotStatus() {
+        $.ajax({
+            url: "admin-ui.php",
+            type: "POST",
+            cache: false,
+            data: {
+              action: "get_bot_status"
+            },
+            success: function(data) {
+                var tooltip = data.status + " due to " + (data.healthy ? "being paused" : "a problem");
+                $("#bot-status").css({color:data.healthy ? "green" : "red"}).text(data.status).attr({title:tooltip}).show();
+            }
+        });
+
+        setTimeout(initBotStatus, 60000);
     }
 
     function initAutoBuyFundSetter() {
