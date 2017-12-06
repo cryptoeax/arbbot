@@ -7,6 +7,7 @@ var totalPL = null;
 var profitableTrades = null;
 var plMode = "details";
 var uiDisabled = false;
+var adminUIReady = false;
 
 $(function() {
 
@@ -906,8 +907,12 @@ $(function() {
     }
 
     function initAdminUI() {
+        if (adminUIReady) {
+            return;
+        }
         initAutoBuyFundSetter();
         initConfigEditor();
+        adminUIReady = true;
     }
 
     function initAutoBuyFundSetter() {
