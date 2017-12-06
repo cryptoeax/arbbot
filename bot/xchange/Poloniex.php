@@ -11,6 +11,7 @@ class Poloniex extends Exchange {
 
 //
   private $depositAddresses;
+  private $tradeFee = 0.0025;
 
   function __construct() {
     parent::__construct( Config::get( "poloniex.key" ), Config::get( "poloniex.secret" ) );
@@ -19,19 +20,19 @@ class Poloniex extends Exchange {
 
   public function addFeeToPrice( $price ) {
 
-    return parent::addFeeToPrice( $price );
+    return $price * (1 + $this->tradeFee);
 
   }
 
   public function deductFeeFromAmountBuy( $amount ) {
 
-    return $amount * 0.998;
+    return parent::deductFeeFromAmountBuy( $amount );
 
   }
 
   public function deductFeeFromAmountSell( $amount ) {
 
-    return $amount * 0.998;
+    return $amount * (1 - $this->tradeFee);
 
   }
 
@@ -229,6 +230,12 @@ class Poloniex extends Exchange {
 
     $depositAddresses = $this->queryDepositAddresses();
 
+    $feeInfo = $this->queryFeeInfo();
+    // It is hard to know in each trade whether we are going to be the maker or the taker,
+    // so we are going to assume the worst and assume we're always the taker since that one
+    // has the highest fees.
+    $this->tradeFee = floatval( $feeInfo[ 'takerFee' ] );
+
     $this->pairs = $pairs;
     $this->transferFees = $fees;
     $this->confirmationTimes = $conf;
@@ -393,7 +400,10 @@ class Poloniex extends Exchange {
 
   private function queryBalances() {
     return $this->queryAPI( 'returnBalances' );
+  }
 
+  private function queryFeeInfo() {
+    return $this->queryAPI( 'returnFeeInfo' );
   }
 
   private function queryAPI( $command, array $req = [ ] ) {
