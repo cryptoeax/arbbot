@@ -259,7 +259,7 @@ class Config {
       );
     }
 
-    $file = file_get_contents( __DIR__ . '/config.ini' );
+    $file = file_get_contents( __DIR__ . '/../config.ini' );
     $lines = array( );
     if (strstr( $file, "\r\n" )) {
       $lines = explode( "\r\n", $file );
