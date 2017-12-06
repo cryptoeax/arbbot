@@ -64,6 +64,9 @@ class Config {
   const INTERVAL_DB_CLEANUP = 'expert.interval-db-cleanup';
   const DEFAULT_INTERVAL_DB_CLEANUP = 2;
   //
+  const ALLOW_INSECURE_UI = 'expert.allow-insecure-ui';
+  const DEFAULT_ALLOW_INSECURE_UI = false;
+  //
   //
   // GENERAL
   const CANCEL_STRAY_ORDERS = 'general.cancel-stray-orders';

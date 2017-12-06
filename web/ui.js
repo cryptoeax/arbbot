@@ -6,6 +6,7 @@ var stats = null;
 var totalPL = null;
 var profitableTrades = null;
 var plMode = "details";
+var uiDisabled = false;
 
 $(function() {
 
@@ -848,6 +849,11 @@ $(function() {
             type: "GET",
             cache: false,
             success: function(data) {
+                if (!uiDisabled && data.error) {
+                  alert(data.error);
+                  uiDisabled = true;
+                }
+
                 stats = data;
                 if (stats.admin_ui) {
                     $("#admin-ui").addClass("enabled");

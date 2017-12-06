@@ -170,3 +170,6 @@ interval-take-profit = 12
 interval-stuck-detection = 12
 interval-unused-coin-detection = 4
 interval-db-cleanup = 24
+
+; Allow the UI when the bot is exposed to insecure Internet connected machines
+allow-insecure-ui = false
