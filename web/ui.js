@@ -180,6 +180,7 @@ $(function() {
                     legend: {
                         show: true,
                         position: "nw",
+                        backgroundOpacity: 0,
                         noColumns: 1
                     },
                     zoom: {
