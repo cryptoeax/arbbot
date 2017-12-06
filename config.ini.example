@@ -140,7 +140,7 @@ query-delay = 5
 ; Max age of database records to include them in profitability calculations
 opportunity-count-age = 240
 
-; Max transfer fee that is desirable for coins that we want to hold in our trading portfolio.
+; Max transfer fee (in BTC) that is desirable for coins that we want to hold in our trading portfolio.
 max-tx-fee-allowed = 0.00001
 
 ; Max number of confirmation allowed for tradeable assets.  Increasing this number allows holding
