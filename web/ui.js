@@ -682,6 +682,14 @@ $(function() {
         return rval;
     }
 
+    function fmt5(b) {
+        var rval = new String(Math.min(99999, b));
+        if (rval.length < 5) {
+            rval = "0" + rval;
+        }
+        return rval;
+    }
+
     function updateWallets() {
         setTimeout(updateWallets, 60000);
         $.ajax({
@@ -704,7 +712,7 @@ $(function() {
                 Object.keys(btcData).forEach(function(xid) {
 
                     var exname = no2el(xid);
-                    while (exname.length < 8) {
+                    while (exname.length < 5) {
                         exname = " " + exname;
                     }
 
@@ -715,16 +723,16 @@ $(function() {
                     htmlData += "</a>";
                     htmlData += " T:";
                     htmlData += "<span title=\"Trade counts\">";
-                    htmlData += fmt2(tradeCounts[xid]);
+                    htmlData += fmt5(tradeCounts[xid]);
                     htmlData += "</span>|O:";
                     htmlData += "<span title=\"Opportunity counts\">";
-                    htmlData += fmt2(useCounts[xid]);
+                    htmlData += fmt5(useCounts[xid]);
                     htmlData += "</span>\n";
                     total += parseFloat(btcData[xid]['balance']);
                     totalChange += parseFloat(btcData[xid]['change']);
                 });
 
-                htmlData += "   TOTAL: ";
+                htmlData += "TOTAL: ";
                 htmlData += "<a href=\"#\" coin=\"BTC\" exchange=\"0\" mode=\"0\" class=\"showGraph\" title=\"Total balance (BTC)\">";
                 htmlData += rnd4(total);
                 htmlData += "</a>";
@@ -768,7 +776,7 @@ $(function() {
                         var diff = new String(Math.floor(dat.balance_diff));
 
                         var balance = formatBalance(dat.balance);
-                        var balws = genWhitespace(balance, 8);
+                        var balws = genWhitespace(balance, 6);
 
                         htmlData += "<a href=\"#\" coin=\"" + coin + "\" exchange=\"" + xid + "\" mode=\"1\" class=\"showGraph\" title=\"Exchange\">";
                         htmlData += no2e(xid);
@@ -781,9 +789,9 @@ $(function() {
                         htmlData += "</a>";
 
                         htmlData += " (<span title=\"Total opportunities\">";
-                        htmlData += fmt2(dat.opportunities);
+                        htmlData += fmt5(dat.opportunities);
                         htmlData += "</span>|<span title=\"Total trades\">";
-                        htmlData += fmt2(dat.trades);
+                        htmlData += fmt5(dat.trades);
                         htmlData += "</span>|";
 
                         htmlData += "<a href=\"#\" coin=\"" + coin + "\" exchange=\"" + xid + "\" mode=\"2\" class=\"showGraph\" title=\"Balance change\">";
@@ -797,7 +805,7 @@ $(function() {
                     });
 
                     var balance = formatBalance(total);
-                    var balws = genWhitespace(balance, 8);
+                    var balws = genWhitespace(balance, 6);
 
                     htmlData += "<a href=\"#\" coin=\"" + coin + "\" exchange=\"0\" mode=\"1\" class=\"showGraph\" title=\"Comparative rate\">";
                     htmlData += "T</a> = ";
