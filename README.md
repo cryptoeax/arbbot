@@ -116,7 +116,7 @@ Now you are ready to give the bot a test by running it:
 php main.php
 ```
 
-(Note: It is recommended to run `main.php` with `[hhvm](https://docs.hhvm.com/hhvm/installation/linux)` instead of `php` in order to speed up the bot a bit.)
+(Note: It is recommended to run `main.php` with [`hhvm`](https://docs.hhvm.com/hhvm/installation/linux) instead of `php` in order to speed up the bot a bit.)
 
 You should see output like this:
 
