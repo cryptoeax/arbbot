@@ -940,6 +940,8 @@ $(function() {
     }
 
     function initConfigEditor() {
+      // Disable temporarily...
+      return;
       $.ajax({
           url: "admin-ui.php",
           type: "POST",
