@@ -374,7 +374,9 @@ class Config {
       }
       if ($line == '') {
         $currentComment = '';
-        $output .= $sep;
+	if ($i != count( $lines ) - 1) {
+          $output .= $sep;
+        }
         continue;
       }
       if (preg_match( '/^\s*;\s*.*$/', $line )) {
@@ -394,7 +396,11 @@ class Config {
           continue;
         }
       }
-      $output .= "$line$sep";
+      if ($i == count( $lines ) - 1) {
+        $output .= $line;
+      } else {
+        $output .= "$line$sep";
+      }
     }
 
     $bytes = file_put_contents( __DIR__ . '/../config.ini', $output );
