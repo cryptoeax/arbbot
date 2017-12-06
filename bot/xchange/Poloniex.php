@@ -193,11 +193,6 @@ class Poloniex extends Exchange {
 
   public function refreshExchangeData() {
 
-    if (empty($this->wallets)) {
-      logg("Attempting to refresh exchange data before wallets are initialized");
-      throw new Exception("wallets not initialized");
-    }
-
     $pairs = [ ];
     $markets = $this->queryTicker();
 
@@ -210,8 +205,7 @@ class Poloniex extends Exchange {
       $currency = $split[ 0 ];
 
       if ( !Config::isCurrency( $currency ) ||
-           Config::isBlocked( $tradeable ) ||
-           !in_array( $tradeable, array_keys( $this->wallets ) ) ) {
+           Config::isBlocked( $tradeable ) ) {
         continue;
       }
 
