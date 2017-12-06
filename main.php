@@ -2,9 +2,10 @@
 
 require_once 'bot/utils.php';
 require_once 'bot/Config.php';
-require_once 'bot/Database.php';
 require_once 'bot/Exchange.php';
 require_once 'bot/Arbitrator.php';
+
+$gVerbose = true;
 
 date_default_timezone_set( "UTC" );
 
@@ -69,13 +70,5 @@ function sendmail( $title, $message ) {
   }
   mail( $mailRecipient, "[ARB] " . $title, $message );
 
-
-}
-
-function logg( $message, $mail = false ) {
-
-  Database::log( $message );
-
-  echo date( "H:i:s" ) . ": " . $message . "\n";
 
 }

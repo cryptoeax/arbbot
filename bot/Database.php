@@ -1,5 +1,5 @@
 <?php
-require_once 'lib/mysql.php';
+require_once __DIR__ . '/../lib/mysql.php';
 class Database {
 
   const STATISTICS_MAX_AGE = 432000;
