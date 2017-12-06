@@ -56,6 +56,16 @@ class Arbitrator {
   private function updateRunTimestamp() {
     $stats = Database::getStats();
     $stats[ "last_run" ] = time();
+
+    $first = true;
+    while (in_array( "paused", array_keys( $stats ) )) {
+      if ($first) {
+        logg( "Noticing that we're paused now, waiting to be resumed..." );
+        $first = false;
+      }
+      sleep( 3 );
+      $stats = Database::getStats();
+    }
     Database::saveStats( $stats );
   }
 

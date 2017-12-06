@@ -9,6 +9,9 @@ var plMode = "details";
 var uiDisabled = false;
 var adminUIReady = false;
 
+var botStatus = null;
+var hideStatus = false;
+
 $(function() {
 
     $(document).on("click", ".showGraph", function() {
@@ -911,6 +914,7 @@ $(function() {
             return;
         }
         initBotStatus();
+        initBotCtrl();
         initAutoBuyFundSetter();
         initConfigEditor();
         adminUIReady = true;
@@ -925,12 +929,74 @@ $(function() {
               action: "get_bot_status"
             },
             success: function(data) {
+                botStatus = data;
+                if (hideStatus) {
+                  return;
+                }
                 var tooltip = data.status + " due to " + (data.healthy ? "being paused" : "a problem");
                 $("#bot-status").css({color:data.healthy ? "green" : "red"}).text(data.status).attr({title:tooltip}).show();
             }
         });
 
-        setTimeout(initBotStatus, 60000);
+        setTimeout(initBotStatus, 3000);
+    }
+
+    function initBotCtrl() {
+        var ctrl = $("#bot-ctrl");
+        ctrl.hide();
+
+        function phase() {
+          if (!botStatus) {
+            setTimeout(phase, 100);
+            return;
+          }
+
+          var isRunning = (botStatus.status == "Running");
+          ctrl[0].value = isRunning ? "Pause" : "Resume";
+          ctrl.show();
+          ctrl.click(function onClick() {
+            var action;
+            var isRunning = (botStatus.status == "Running");
+            if (isRunning) {
+              action = "pause_bot";
+            } else {
+              action = "resume_bot";
+            }
+            ctrl[0].disabled = true;
+            $("#bot-status").hide();
+            hideStatus = true;
+            $.ajax({
+                url: "admin-ui.php",
+                type: "POST",
+                cache: false,
+                data: {
+                  action: action
+                },
+                success: function manipulateBot() {
+                  var expected = isRunning ? "Paused" : "Running";
+                  waitForBotOperation(expected, function() {
+                    hideStatus = false;
+                    ctrl[0].disabled = false;
+                    if (isRunning) {
+                      ctrl[0].value = "Resume";
+                    } else {
+                      ctrl[0].value = "Pause";
+                    }
+                  });
+                }
+            });
+          });
+        }
+
+        setTimeout(phase, 100);
+    }
+
+    function waitForBotOperation(expected, callback) {
+        if (botStatus.status == expected) {
+          callback();
+          return;
+        }
+        setTimeout(waitForBotOperation, 100, expected, callback);
     }
 
     function initAutoBuyFundSetter() {

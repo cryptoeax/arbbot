@@ -511,7 +511,14 @@ class WebDB {
                         $post[ 'value' ] );
       break;
     case 'get_bot_status':
-      $query = "SELECT keyy, value FROM stats WHERE keyy IN ('last_run', 'paused');";
+      $query = "SELECT keyy, value FROM stats WHERE keyy IN ('last_run', 'last_paused', 'paused');";
+      break;
+    case 'pause_bot':
+      $query = sprintf( "INSERT INTO stats (keyy, value) VALUES ('paused', '1'), ('last_paused', '%d') ON DUPLICATE KEY UPDATE value = '1';",
+               time() );
+      break;
+    case 'resume_bot':
+      $query = "DELETE FROM stats WHERE keyy = 'paused';";
       break;
     case 'get_config_fields':
       return Config::getEditableKeys();
@@ -534,20 +541,24 @@ class WebDB {
       $paused = false;
       $healthy = true;
       $lastRun = 0;
+      $lastPaused = 0;
       while ( $row = mysql_fetch_assoc( $result ) ) {
         if ($row[ "keyy" ] == "paused" &&
             $row[ "value" ] == true) {
           $paused = true;
         } else if ($row[ "keyy" ] == "last_run") {
           $lastRun = $row[ "value" ];
+        } else if ($row[ "keyy" ] == "last_paused") {
+          $lastPaused = $row[ "value" ];
         }
       }
-      $stale = (abs($lastRun - time()) >= 60);
-      if ($stale && !$paused) {
+      $stale = (abs($lastRun - time()) >= 30);
+      $recentlyPaused = (abs($lastPaused - time()) >= 30);
+      if ($stale && !$paused && !$recentlyPaused) {
         $healthy = false;
       }
       $results[ 'healthy' ] = $healthy;
-      $results[ 'status' ] = $stale ? "Paused" : "Running";
+      $results[ 'status' ] = ($paused || $stale) ? "Paused" : "Running";
       break;
     }
 
