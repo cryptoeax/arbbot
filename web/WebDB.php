@@ -512,6 +512,9 @@ class WebDB {
       break;
     case 'get_config_fields':
       return Config::getEditableKeys();
+    case 'set_config_fields':
+      return Config::setEditableKeys( $post[ 'data' ] ) ? array( ) :
+             'Error string which will not parse as valid JSON';
     }
 
     $link = self::connect();

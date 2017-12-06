@@ -945,8 +945,6 @@ $(function() {
     }
 
     function initConfigEditor() {
-      // Disable temporarily...
-      return;
       $.ajax({
           url: "admin-ui.php",
           type: "POST",
@@ -963,7 +961,7 @@ $(function() {
                   for (var j = 0; j < data[ section ].length; ++j) {
                       var item = data[ section ][ j ];
                       var boolean = (item.value == 'true' || item.value == 'false');
-                      htmlData += "<div class=\"item\">" + item.name +
+                      htmlData += "<div class=\"item\" data-name=\"" + sections[i] + "." + item.name + "\">" + item.name +
                                   "</div><div class=\"value\"><input type=\"" + (boolean ? 'checkbox' : 'text') +
                                   "\" id=\"" + item.name +
                                   "\" value=\"" + (('value' in item) ? item.value : '') +
@@ -972,7 +970,46 @@ $(function() {
                                   "</div>";
                   }
               }
+              htmlData += "<input type=\"button\" value=\"Update\" id=\"save-config\"> ";
+              htmlData += "<span id=\"config-status\"></span>";
+              $(document).on("click", "#save-config", onSaveConfig);
               $("#config-editor").html(htmlData);
+          },
+      });
+    }
+
+    function onSaveConfig() {
+      var list = $("#config-editor .item");
+      var results = [];
+      for (var i = 0; i < list.length; ++i) {
+          var name = list[i].dataset.name;
+          var value = list[i].nextSibling.firstChild;
+          if (value.type == "checkbox") {
+              value = value.checked;
+          } else {
+              value = value.value;
+          }
+          results.push({name:name, value:value});
+      }
+      $.ajax({
+          url: "admin-ui.php",
+          type: "POST",
+          cache: false,
+          data: {
+            action: "set_config_fields",
+            data: results
+          },
+          success: function(data) {
+              $("#config-status").css({color:"green"}).text("Succeeded").show();
+              setTimeout(function() {
+                $("#config-status").fadeOut();
+              }, 3000);
+          },
+          error: function() {
+              $("#config-status").css({color: "red"}).text("Error while updating the config").show();
+              setTimeout(function() {
+                $("#config-status").fadeOut();
+              }, 3000);
           },
       });
     }

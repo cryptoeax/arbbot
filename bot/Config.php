@@ -307,4 +307,109 @@ class Config {
 
   }
 
+  public static function setEditableKeys($input) {
+
+    $editableConfigs = [
+      self::MIN_BTC_XFER,
+      self::CANCEL_STRAY_ORDERS,
+      self::BLOCKED_COINS,
+      self::MODULE_TRADE,
+      self::MODULE_AUTOBUY,
+      self::MODULE_LIQUIDATE,
+      self::MODULE_TAKE_PROFIT,
+      self::MODULE_STUCK_DETECTION,
+      self::MODULE_UNUSED_COINS_DETECTION,
+      self::MAX_BUY,
+      self::TAKE_PROFIT_ADDRESS,
+      self::TAKE_PROFIT_AMOUNT,
+      self::MAX_TRADE_SIZE,
+      self::MIN_PROFIT,
+      self::BUY_RATE_FACTOR,
+      self::SELL_RATE_FACTOR
+    ];
+
+    $results = array( );
+    foreach ($editableConfigs as $config) {
+      $arr = explode( ".", $config );
+      $section = $arr[ 0 ];
+      $name = $arr[ 1 ];
+
+      $results[ $section ][] = array(
+        'name' => $name,
+      );
+    }
+
+    $inputs = array( );
+    foreach ($input as $item) {
+      $inputs[ $item[ 'name' ] ] = $item[ 'value' ];
+    }
+
+    $file = file_get_contents( __DIR__ . '/../config.ini' );
+    file_put_contents( __DIR__ . '/../config.ini.' . time(), $file );
+
+    $lines = array( );
+    $output = '';
+    if (strstr( $file, "\r\n" )) {
+      $lines = explode( "\r\n", $file );
+      $sep = "\r\n";
+    } else {
+      $lines = explode( "\n", $file );
+      $sep = "\n";
+    }
+
+    $currentSection = '';
+    $currentComment = '';
+    for ($i = 0; $i < count( $lines ); $i++) {
+      $line = $lines[ $i ];
+      if (preg_match( '/\[.*\]/', $line )) {
+        $output .= $line . $sep;
+	$currentSection = '';
+        foreach (array_keys( $results ) as $section) {
+          if (strstr( $line, "[$section]" )) {
+            $currentSection = $section;
+            break;
+          }
+        }
+        continue;
+      }
+      if ($line == '') {
+        $currentComment = '';
+        $output .= $sep;
+        continue;
+      }
+      if (preg_match( '/^\s*;\s*.*$/', $line )) {
+        $comment = preg_replace( '/^\s*;\s*(.*)$/', '$1', $line );
+        $currentComment .= "$comment ";
+        $output .= $line . $sep;
+        continue;
+      }
+      if (strchr( $line, '=' ) && $currentSection != '') {
+        $arr = array_map( 'trim', explode( "=", $line ) );
+        $name = $arr[ 0 ];
+	$value = $arr[ 1 ];
+        $inputName = "$currentSection.${arr[0]}";
+        if (in_array( $inputName, array_keys( $inputs ) ) ) {
+          $value = self::quoteValue( $inputs[ $inputName ] );
+	  $output .= "$name = $value$sep";
+          continue;
+        }
+      }
+      $output .= "$line$sep";
+    }
+
+    $bytes = file_put_contents( __DIR__ . '/../config.ini', $output );
+
+    return $bytes !== false;
+
+  }
+
+  private static function quoteValue( $str ) {
+
+    if (preg_match( '/\s/', $str )) {
+      return "\"$str\"";
+    }
+    return $str;
+
+  }
+
 }
