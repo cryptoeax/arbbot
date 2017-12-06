@@ -112,7 +112,8 @@ class Poloniex extends Exchange {
 
     foreach ($result as $entry) {
       if ($entry[ 'orderNumber' ] == $orderNumber) {
-        return floatval( $entry[ 'total' ] ) * (1 + floatval( $entry[ 'fee' ] ));
+        $factor = ($type == 'sell') ? -1 : 1;
+        return floatval( $entry[ 'total' ] ) * (1 + $factor * floatval( $entry[ 'fee' ] ));
       }
     }
     return null;

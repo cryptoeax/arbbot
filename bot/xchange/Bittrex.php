@@ -90,7 +90,8 @@ class Bittrex extends Exchange {
         if ($order[ 'QuantityRemaining' ] != 0) {
           logg( $this->prefix() . "Order " . $id . " assumed to be filled but " . $order[ 'QuantityRemaining' ] . " still remaining" );
         }
-        return $order[ 'Price' ] + $order[ 'Commission' ];
+        $factor = ($type == 'sell') ? -1 : 1;
+        return $order[ 'Price' ] + $factor * $order[ 'Commission' ];
       }
     }
     return null;
