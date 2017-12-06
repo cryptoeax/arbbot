@@ -6,6 +6,11 @@ The original version of this bot had a [backdoor which was removed from this for
 You can see the bot running on a cheap [linode](https://www.linode.com) here.  Currently the bot is yielding daily profits of `7-20%` on a seed investment of around `0.4BTC`.
 ![](https://screenshots.firefoxusercontent.com/images/64c6a25c-d733-46fa-acb9-25f3e002b124.png)
 
+## Supported Exchanges
+
+  * Poloniex (all BTC markets)
+  * Bittrex (all BTC markets)
+
 ## Installation on Debian 9.0+ / Ubuntu 16.04+
 
 Install required packages:
