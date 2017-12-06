@@ -67,6 +67,9 @@ class Config {
   const ALLOW_INSECURE_UI = 'expert.allow-insecure-ui';
   const DEFAULT_ALLOW_INSECURE_UI = false;
   //
+  const ALLOW_UNAUTHENTICATED_UI = 'expert.allow-unauthenticated-ui';
+  const DEFAULT_ALLOW_UNAUTHENTICATED_UI = false;
+  //
   //
   // GENERAL
   const CANCEL_STRAY_ORDERS = 'general.cancel-stray-orders';

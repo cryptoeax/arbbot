@@ -171,5 +171,8 @@ interval-stuck-detection = 12
 interval-unused-coin-detection = 4
 interval-db-cleanup = 24
 
-; Allow the UI when the bot is exposed to insecure Internet connected machines
+; Allow the UI over HTTP when the bot is exposed to insecure Internet connected machines
 allow-insecure-ui = false
+
+; Allow the UI without authentication when the bot is exposed to the insecure Internet
+allow-unauthenticated-ui = false
