@@ -255,3 +255,7 @@ p {
 #config-editor div {
     padding: 3px;
 }
+
+#wallets.hide-zero .zero {
+    display: none;
+}

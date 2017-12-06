@@ -47,6 +47,18 @@ $(function() {
         return false;
     });
 
+    function onHideZeroChange() {
+        var checked = $('#hidezero')[0].checked;
+        Cookies.set('hidezero', checked);
+        if (checked) {
+            $("#wallets").addClass("hide-zero");
+        } else {
+            $("#wallets").removeClass("hide-zero");
+        }
+        return false;
+    }
+    $(document).on("change", "#hidezero", onHideZeroChange);
+
     var walletAge = 0;
 
     function no2e(x) {
@@ -743,6 +755,14 @@ $(function() {
                 htmlData += "--------------------------\n";
                 htmlData += "\n";
 
+                htmlData += "<input type=\"checkbox\" id=\"hidezero\"";
+                var hzCookie = Cookies.get('hidezero');
+                if (hzCookie == 'true') {
+                    htmlData += " checked";
+                    setTimeout(onHideZeroChange, 100);
+                }
+                htmlData += "> <label for=\"hidezero\">Hide zero balances</label>\n";
+
                 Object.keys(wallets).forEach(function(coin) {
 
                     if (coin === "BTC") {
@@ -757,6 +777,14 @@ $(function() {
 
                     if (!valid) {
                         return;
+                    }
+
+                    var totalBalance = 0;
+                    Object.keys(dataset).forEach(function(xid) {
+                        totalBalance += dataset[xid].balance;
+                    });
+                    if (totalBalance == 0) {
+                        htmlData += "<span class=\"zero\">";
                     }
 
                     var dashes = "";
@@ -815,6 +843,10 @@ $(function() {
                     htmlData += "</a>";
                     htmlData += "\n";
                     htmlData += "\n";
+
+                    if (totalBalance == 0) {
+                        htmlData += "</span>";
+		    }
                 });
 
                 $("#wallets").html("<pre>" + htmlData + "</pre>");
