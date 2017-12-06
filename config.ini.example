@@ -134,6 +134,8 @@ secret =
 
 ; PLEASE CHANGE THESE ONLY IF YOU ARE SURE WHAT YOU ARE DOING :)
 
+[expert]
+
 ; Delay between queries [s]
 query-delay = 5
 
