@@ -156,6 +156,11 @@ class Bittrex extends Exchange {
 
   public function refreshExchangeData() {
 
+    if (empty($this->wallets)) {
+      logg("Attempting to refresh exchange data before wallets are initialized");
+      throw new Exception("wallets not initialized");
+    }
+
     $pairs = [ ];
     $markets = $this->queryMarkets();
     $currencies = $this->queryCurrencies();
@@ -169,7 +174,8 @@ class Bittrex extends Exchange {
       $currency = $market[ 'BaseCurrency' ];
 
       if ( !Config::isCurrency( $currency ) ||
-           Config::isBlocked( $tradeable ) ) {
+           Config::isBlocked( $tradeable ) ||
+           !in_array( $tradeable, array_keys( $this->wallets ) ) ) {
         continue;
       }
 
