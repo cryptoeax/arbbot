@@ -118,22 +118,26 @@ function startImportJobs() {
   $tmp = tempnam( "/tmp", "profitloss" );
   file_put_contents( $tmp, $ser );
 
-  // The import process is very memory consuming, so we run it in subprocesses.
-  // We use one subprocess per 50-PL rows.
-  define( 'ROWS_PER_JOB', 10 );
-  for ($i = 0; $i < count( $pl ); $i += ROWS_PER_JOB) {
-    print "\rImported $i out of " . count( $pl ) . " transactions...";
+  try {
+    // The import process is very memory consuming, so we run it in subprocesses.
+    // We use one subprocess per 50-PL rows.
+    define( 'ROWS_PER_JOB', 10 );
+    for ($i = 0; $i < count( $pl ); $i += ROWS_PER_JOB) {
+      print "\rImported $i out of " . count( $pl ) . " transactions...";
 
-    $command = $_SERVER[ '_' ] . ' "' . __FILE__ .
-               "\" import-worker \"$tmp\" $i " .
-               min( count( $pl ), $i + ROWS_PER_JOB );
-    $fp = popen( $command, "r" );
-    while (!feof( $fp )) {
-      $buffer = fgets( $fp, 4096 );
-      print $buffer;
+      $command = $_SERVER[ '_' ] . ' "' . __FILE__ .
+                 "\" import-worker \"$tmp\" $i " .
+                 min( count( $pl ), $i + ROWS_PER_JOB );
+      $fp = popen( $command, "r" );
+      while (!feof( $fp )) {
+        $buffer = fgets( $fp, 4096 );
+        print $buffer;
+      }
+      pclose( $fp );
+      sleep( 10 ); // allow some time to pass so the next process gets a different nonce
     }
-    pclose( $fp );
-    sleep( 10 ); // allow some time to pass so the next process gets a different nonce
+  } finally {
+    unlink( $tmp );
   }
 }
 
