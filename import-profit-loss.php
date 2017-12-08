@@ -171,11 +171,11 @@ function doImport($from, $to, &$pl) {
     $market = $row[ 'currency' ] . '_' . $row[ 'coin' ];
     $buy_matches = array( );
     $sell_matches = array( );
-    checkTradeSide( $buy_matches, $histories[ $row[ 'source_exchange' ] ][ $market ],
-                    $row, 'tradeable_bought' );
-    checkTradeSide( $sell_matches, $histories[ $row[ 'target_exchange' ] ][ $market ],
-                    $row, 'tradeable_sold' );
-  
+    $buy_success = checkTradeSide( $buy_matches, $histories[ $row[ 'source_exchange' ] ][ $market ],
+                                   $row, 'tradeable_bought' );
+    $sell_success = checkTradeSide( $sell_matches, $histories[ $row[ 'target_exchange' ] ][ $market ],
+                                    $row, 'tradeable_sold' );
+
     $coin = $row[ 'coin' ];
     $currency = $row[ 'currency' ];
     $time = $row[ 'time' ];
@@ -198,40 +198,69 @@ function doImport($from, $to, &$pl) {
     $currencyTransferFee = 0;
     $buyFee = 0;
     $sellFee = 0;
-  
-    foreach ($buy_matches as $match) {
-      $rawTradeIDsBuy[] = $match[ 'rawID' ];
-      $tradeIDsBuy[] = $match[ 'id' ];
-      $rateTimesAmountBuy += $match[ 'rate' ] * $match[ 'amount' ];
-      $tradeableBought += $match[ 'amount' ];
-      $currencyBought += $match[ 'total' ] * (1 + $match[ 'fee' ]);
+
+    if ($buy_success) {
+      foreach ($buy_matches as $match) {
+        $rawTradeIDsBuy[] = $match[ 'rawID' ];
+        $tradeIDsBuy[] = $match[ 'id' ];
+        $rateTimesAmountBuy += $match[ 'rate' ] * $match[ 'amount' ];
+        $tradeableBought += $match[ 'amount' ];
+        $currencyBought += $match[ 'total' ] * (1 + $match[ 'fee' ]);
+        $ex = $exchanges[ $row[ 'source_exchange' ] ];
+        $boughtAmount = $ex->deductFeeFromAmountBuy( $match[ 'amount' ] );
+        $txFee = $cm->getSafeTxFee( $ex, $coin, $boughtAmount );
+        $tradeableTransferFee = max( $tradeableTransferFee, $txFee );
+        $buyFee += $match[ 'fee' ];
+      }
+
+      $rawTradeIDsBuy = implode( ',', $rawTradeIDsBuy );
+      $tradeIDsBuy = implode( ',', $tradeIDsBuy );
+      $rateBuy = ($tradeableBought > 0.0e-9) ? ($rateTimesAmountBuy / $tradeableBought) : 0;
+    } else {
+      // Fall back to what we have read from the DB.
       $ex = $exchanges[ $row[ 'source_exchange' ] ];
-      $boughtAmount = $ex->deductFeeFromAmountBuy( $match[ 'amount' ] );
-      $txFee = $cm->getSafeTxFee( $ex, $coin, $boughtAmount );
-      $tradeableTransferFee = max( $tradeableTransferFee, $txFee );
-      $buyFee += $match[ 'fee' ];
+      $rawTradeIDsBuy = '';
+      $tradeIDsBuy = '';
+      $rateTimesAmountBuy = $row[ 'currency_bought' ];
+      $tradeableBought = $row[ 'tradeable_bought' ];
+      $currencyBought = $ex->addFeeToPrice( $row[ 'currency_bought' ] );
+      $boughtAmount = $ex->deductFeeFromAmountBuy( $row[ 'amount_bought_tradeable' ] );
+      $tradeableTransferFee = $cm->getSafeTxFee( $ex, $coin, $boughtAmount );
+      $buyFee = $ex->addFeeToPrice( 1 ) - 1;
+      $rateBuy = ($tradeableBought > 0.0e-9) ? ($rateTimesAmountBuy / $tradeableBought) : 0;
     }
   
-    $rawTradeIDsBuy = implode( ',', $rawTradeIDsBuy );
-    $tradeIDsBuy = implode( ',', $tradeIDsBuy );
-    $rateBuy = $tradeableBought ? ($rateTimesAmountBuy / $tradeableBought) : 0;
-  
-    foreach ($sell_matches as $match) {
-      $rawTradeIDsSell[] = $match[ 'rawID' ];
-      $tradeIDsSell[] = $match[ 'id' ];
-      $rateTimesAmountSell += $match[ 'rate' ] * $match[ 'amount' ];
-      $tradeableSold += $match[ 'amount' ];
-      $currencySold += $match[ 'total' ] * (1 + $match[ 'fee' ]);
+    if ($sell_success) {
+      foreach ($sell_matches as $match) {
+        $rawTradeIDsSell[] = $match[ 'rawID' ];
+        $tradeIDsSell[] = $match[ 'id' ];
+        $rateTimesAmountSell += $match[ 'rate' ] * $match[ 'amount' ];
+        $tradeableSold += $match[ 'amount' ];
+        $currencySold += $match[ 'total' ] * (1 + $match[ 'fee' ]);
+        $ex = $exchanges[ $row[ 'target_exchange' ] ];
+        $soldAmount = $ex->deductFeeFromAmountSell( $match[ 'amount' ] );
+        $totalSoldAmount += $soldAmount;
+        $txFee = $cm->getSafeTxFee( $ex, $coin, $soldAmount );
+        $sellFee += $match[ 'fee' ];
+      }
+
+      $rawTradeIDsSell = implode( ',', $rawTradeIDsSell );
+      $tradeIDsSell = implode( ',', $tradeIDsSell );
+      $rateSell = ($totalSoldAmount > 0.0e-9) ? ($rateTimesAmountSell / $totalSoldAmount) : 0;
+    } else {
+      // Fall back to what we have read from the DB.
       $ex = $exchanges[ $row[ 'target_exchange' ] ];
-      $soldAmount = $ex->deductFeeFromAmountSell( $match[ 'amount' ] );
+      $rawTradeIDsSell = '';
+      $tradeIDsSell = '';
+      $rateTimesAmountSell = $row[ 'currency_sold' ];
+      $tradeableSold = $row[ 'tradeable_sold' ];
+      $currencySold = $ex->addFeeToPrice( $row[ 'currency_sold' ] );
+      $soldAmount = $ex->deductFeeFromAmountSell( $row[ 'amount_sold_tradeable' ] );
       $totalSoldAmount += $soldAmount;
-      $txFee = $cm->getSafeTxFee( $ex, $coin, $soldAmount );
-      $sellFee += $match[ 'fee' ];
+      $tradeableTransferFee = $cm->getSafeTxFee( $ex, $coin, $soldAmount );
+      $buyFee = $ex->addFeeToPrice( 1 ) - 1;
+      $rateSell = ($tradeableSold > 0.0e-9) ? ($rateTimesAmountSell / $tradeableSold) : 0;
     }
-  
-    $rawTradeIDsSell = implode( ',', $rawTradeIDsSell );
-    $tradeIDsSell = implode( ',', $tradeIDsSell );
-    $rateSell = $totalSoldAmount ? ($rateTimesAmountSell / $totalSoldAmount) : 0;
   
     $currencyTransferFee = $tradeableTransferFee * $rateSell;
     $currencyRevenue = $currencySold + $sellFee - $currencyBought - $buyFee;
