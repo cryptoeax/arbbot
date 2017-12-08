@@ -133,7 +133,7 @@ function startImportJobs() {
       print $buffer;
     }
     pclose( $fp );
-    sleep( 1 ); // allow some time to pass so the next process gets a different nonce
+    sleep( 10 ); // allow some time to pass so the next process gets a different nonce
   }
 }
 
