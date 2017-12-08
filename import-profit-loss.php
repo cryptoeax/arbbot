@@ -116,8 +116,8 @@ function startImportJobs() {
 
   try {
     // The import process is very memory consuming, so we run it in subprocesses.
-    // We use one subprocess per 50-PL rows.
-    define( 'ROWS_PER_JOB', 10 );
+    // We use one subprocess per 100-PL rows.
+    define( 'ROWS_PER_JOB', 100 );
     for ($i = 0; $i < count( $pl ); $i += ROWS_PER_JOB) {
       print "\rImported $i out of " . count( $pl ) . " transactions...";
 
