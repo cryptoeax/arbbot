@@ -104,7 +104,7 @@ function importProfitLoss() {
     throw new Exception( 'import process failed' );
   }
   
-  doImport();
+  startImportJobs();
 
   if (!Database::profitLossTableExists()) {
     throw new Exception( 'import process failed' );
@@ -112,7 +112,32 @@ function importProfitLoss() {
   print "The import process finished successfully, resuming\n";
 }
 
-function doImport() {
+function startImportJobs() {
+  $pl = Database::getPL();
+  $ser = serialize( $pl );
+  $tmp = tempnam( "/tmp", "profitloss" );
+  file_put_contents( $tmp, $ser );
+
+  // The import process is very memory consuming, so we run it in subprocesses.
+  // We use one subprocess per 50-PL rows.
+  define( 'ROWS_PER_JOB', 10 );
+  for ($i = 0; $i < count( $pl ); $i += ROWS_PER_JOB) {
+    print "\rImported $i out of " . count( $pl ) . " transactions...";
+
+    $command = $_SERVER[ '_' ] . ' "' . __FILE__ .
+               "\" import-worker \"$tmp\" $i " .
+               min( count( $pl ), $i + ROWS_PER_JOB );
+    $fp = popen( $command, "r" );
+    while (!feof( $fp )) {
+      $buffer = fgets( $fp, 4096 );
+      print $buffer;
+    }
+    pclose( $fp );
+    sleep( 1 ); // allow some time to pass so the next process gets a different nonce
+  }
+}
+
+function doImport($from, $to, &$pl) {
   $x1 = new Bittrex();
   $x2 = new Poloniex();
   $x1->refreshWallets();
@@ -136,9 +161,9 @@ function doImport() {
   
   $cm = new CoinManager( $exchanges );
   
-  $pl = Database::getPL();
-  foreach ( $pl as $row ) {
+  for ($i = $from; $i < $to; ++$i) {
     // Go through the PL database and try to find matching trades.
+    $row = $pl[ $i ];
     $market = $row[ 'currency' ] . '_' . $row[ 'coin' ];
     $buy_matches = array( );
     $sell_matches = array( );
@@ -216,3 +241,24 @@ function doImport() {
   
   }
 }
+
+if ($_SERVER[ 'PHP_SELF' ] == __FILE__ &&
+    $_SERVER[ 'argc' ] == 5 &&
+    $_SERVER[ 'argv' ][ 1 ] == 'import-worker') {
+  // Subprocess worker mode.
+  try {
+    Config::refresh();
+  }
+  catch ( Exception $ex ) {
+    echo "Error loading config: " . $ex->getMessage() . "\n";
+    return;
+  }
+
+  $pl_file = $_SERVER[ 'argv' ][ 2 ];
+  $pl = unserialize( file_get_contents( $pl_file ) );
+  $from = $_SERVER[ 'argv' ][ 3 ];
+  $to = $_SERVER[ 'argv' ][ 4 ];
+
+  doImport( $from, $to, $pl );
+}
+
