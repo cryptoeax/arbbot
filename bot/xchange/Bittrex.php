@@ -8,6 +8,8 @@ class Bittrex extends Exchange {
   //
   const PUBLIC_URL = 'https://bittrex.com/api/v1.1/public/';
 
+  private $fullOrderHistory = null;
+
   function __construct() {
     parent::__construct( Config::get( "bittrex.key" ), Config::get( "bittrex.secret" ) );
 
@@ -95,6 +97,90 @@ class Bittrex extends Exchange {
       }
     }
     return null;
+  }
+
+  public function queryTradeHistory() {
+    $results = array( );
+
+    if ($this->fullOrderHistory !== null) {
+      $results = $this->fullOrderHistory;
+    } else if (!$this->fullOrderHistory &&
+               file_exists( __DIR__ . '/../../bittrex-fullOrders.csv' )) {
+      $file = file_get_contents( __DIR__ . '/../../bittrex-fullOrders.csv' );
+      $file = iconv( 'utf-16', 'utf-8', $file );
+      $lines = explode( "\r\n", $file );
+      $first = true;
+      foreach ($lines as $line) {
+        if ($first) {
+          // Ignore the first line.
+          $first = false;
+          continue;
+        }
+        $data = str_getcsv( $line );
+        if (count( $data ) != 9) {
+          continue;
+        }
+	$market = $data[ 1 ];
+	$arr = explode( '-', $market );
+	$currency = $arr[ 0 ];
+	$tradeable = $arr[ 1 ];
+	$market = "${currency}_${tradeable}";
+	$amount = $data[ 3 ];
+	$feeFactor = ($data[ 2 ] == 'LIMIT_SELL') ? -1 : 1;
+	$results[ $market ][] = array(
+	  'rawID' => $data[ 0 ],
+	  'id' => $data[ 0 ],
+	  'time' => strtotime( $data[ 7 ] ),
+	  'rate' => $data[ 6 ] / $amount,
+	  'amount' => $amount,
+	  'fee' => $feeFactor * $data[ 5 ],
+	  'total' => $data[ 6 ],
+	);
+      }
+      $this->fullOrderHistory = $results;
+    }
+
+    $result = $this->queryAPI( 'account/getorderhistory' );
+
+    $checkArray = !empty( $results );
+
+    foreach ($result as $row) {
+      $market = $row[ 'Exchange' ];
+      $arr = explode( '-', $market );
+      $currency = $arr[ 0 ];
+      $tradeable = $arr[ 1 ];
+      $market = "${currency}_${tradeable}";
+      if (!in_array( $market, array_keys( $results ) )) {
+        $results[ $market ] = array();
+      }
+      $amount = $row[ 'Quantity' ] - $row[ 'QuantityRemaining' ];
+      $feeFactor = ($row[ 'OrderType' ] == 'LIMIT_SELL') ? -1 : 1;
+
+      if ($checkArray) {
+        $seen = false;
+        foreach ($results[ $market ] as $item) {
+          if ($item[ 'rawID' ] == $row[ 'OrderUuid' ]) {
+            // We have already recorder this ID.
+            $seen = true;
+            break;
+          }
+        }
+        if ($seen) {
+          continue;
+        }
+      }
+
+      $results[ $market ][] = array(
+        'rawID' => $row[ 'OrderUuid' ],
+        'id' => $row[ 'OrderUuid' ],
+        'time' => strtotime( $row[ 'TimeStamp' ] ),
+        'rate' => $row[ 'PricePerUnit' ],
+        'amount' => $amount,
+        'fee' => $feeFactor * $row[ 'Commission' ],
+        'total' => $row[ 'Price' ],
+      );
+    }
+    return $results;
   }
 
   protected function fetchOrderbook( $tradeable, $currency ) {

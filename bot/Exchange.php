@@ -119,6 +119,8 @@ abstract class Exchange {
 
   public abstract function getFilledOrderPrice( $type, $tradeable, $currency, $orderID );
 
+  public abstract function queryTradeHistory();
+
   public abstract function cancelAllOrders();
 
   public abstract function refreshExchangeData();

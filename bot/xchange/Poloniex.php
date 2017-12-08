@@ -13,6 +13,8 @@ class Poloniex extends Exchange {
   private $depositAddresses;
   private $tradeFee = 0.0025;
 
+  private $fullOrderHistory = null;
+
   function __construct() {
     parent::__construct( Config::get( "poloniex.key" ), Config::get( "poloniex.secret" ) );
 
@@ -117,6 +119,90 @@ class Poloniex extends Exchange {
       }
     }
     return null;
+  }
+
+  public function queryTradeHistory($options = array( )) {
+    $results = array( );
+
+    if ($this->fullOrderHistory !== null) {
+      $results = $this->fullOrderHistory;
+    } else if (!$this->fullOrderHistory &&
+               file_exists( __DIR__ . '/../../poloniex-tradeHistory.csv' )) {
+      $file = file_get_contents( __DIR__ . '/../../poloniex-tradeHistory.csv' );
+      $lines = explode( "\n", $file );
+      $first = true;
+      foreach ($lines as $line) {
+        if ($first) {
+          // Ignore the first line.
+          $first = false;
+          continue;
+        }
+        $data = str_getcsv( $line );
+        if (count( $data ) != 11) {
+          continue;
+        }
+        $market = $data[ 1 ];
+        $arr = explode( '/', $market );
+        $currency = $arr[ 1 ];
+        $tradeable = $arr[ 0 ];
+        $market = "${currency}_${tradeable}";
+        $feeFactor = ($data[ 3 ] == 'Sell') ? -1 : 1;
+        $results[ $market ][] = array(
+          'rawID' => $data[ 8 ],
+          'id' => $currency . '_' . $tradeable . ':' . $data[ 8 ],
+          'time' => strtotime( $data[ 0 ] ),
+          'rate' => floatval( $data[ 4 ] ),
+          'amount' => floatval( $data[ 5 ] ),
+          'fee' => floatval( $data[ 6 ] ) * ($feeFactor * floatval( $data[ 7 ] )),
+          'total' => floatval( $data[ 6 ] ),
+        );
+      }
+      $this->fullOrderHistory = $results;
+    }
+
+    if (!in_array( 'currencyPair', $options )) {
+      $options[ 'currencyPair' ] = 'all';
+    }
+    $history = $this->queryAPI( 'returnTradeHistory', $options );
+
+    $checkArray = !empty( $results );
+
+    foreach (array_keys($history) as $market) {
+      $arr = explode( '_', $market );
+      $currency = $arr[ 0 ];
+      $tradeable = $arr[ 1 ];
+      foreach ($history[ $market ] as $row) {
+        if (!in_array( $market, array_keys( $results ) )) {
+          $results[ $market ] = array();
+        }
+        $feeFactor = ($row[ 'type' ] == 'sell') ? -1 : 1;
+
+        if ($checkArray) {
+          $seen = false;
+          foreach ($results[ $market ] as $item) {
+            if ($item[ 'rawID' ] == $row[ 'orderNumber' ]) {
+              // We have already recorder this ID.
+              $seen = true;
+              break;
+            }
+          }
+          if ($seen) {
+            continue;
+          }
+        }
+
+        $results[ $market ][] = array(
+          'rawID' => $row[ 'orderNumber' ],
+          'id' => $currency . '_' . $tradeable . ':' . $row[ 'orderNumber' ],
+          'time' => strtotime( $row[ 'date' ] ),
+          'rate' => floatval( $row[ 'rate' ] ),
+          'amount' => floatval( $row[ 'amount' ] ),
+          'fee' => floatval( $row[ 'total' ] ) * ($feeFactor * floatval( $row[ 'fee' ] )),
+          'total' => floatval( $row[ 'total' ] ),
+        );
+      }
+    }
+    return $results;
   }
 
   protected function fetchOrderbook( $tradeable, $currency ) {
@@ -413,7 +499,7 @@ class Poloniex extends Exchange {
     return $this->queryAPI( 'returnFeeInfo' );
   }
 
-  private function queryAPI( $command, array $req = [ ] ) {
+  public function queryAPI( $command, array $req = [ ] ) {
 
     $key = $this->apiKey;
     $secret = $this->apiSecret;

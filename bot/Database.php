@@ -409,4 +409,136 @@ class Database {
 
   }
 
+  public static function getPL() {
+
+    $link = self::connect();
+
+    $result = mysql_query( "SELECT trade.created AS created, trade.coin AS coin, trade.currency AS currency, " .
+                           "       trade.amount AS amount, ID_exchange_source AS source, ID_exchange_target AS target, message " .
+                           "FROM trade, log WHERE message LIKE 'TRADE SUMMARY:\\nPAIR: %' AND trade.created = log.created " .
+                           "ORDER BY trade.created DESC", $link );
+    if ( !$result ) {
+      throw new Exception( "database selection error: " . mysql_error( $link ) );
+    }
+
+    $results = array();
+    $data = array();
+    $total_pl = 0;
+    $pl_currency = '';
+    $profitables = 0;
+    while ( $row = mysql_fetch_assoc( $result ) ) {
+      $message = $row[ 'message' ];
+      if (!preg_match( '/^TRADE SUMMARY:\n(?:[^\n]+\n){3}\n(?:[^\n]+\n)\s*' .
+                       $row[ 'coin' ] . '[^\n]+?([0-9.]+)\n\s*' .
+                       $row[ 'currency' ] . '[^\n]+?(-?[0-9.]+)\n' .
+                       '\n(?:[^\n]+\n)\s*' . $row[ 'coin' ] . '[^\n]+?(-?[0-9.]+)\n\s*' .
+                       $row[ 'currency' ] . '[^\n]+?([0-9.]+)\n' .
+                       '\n(?:[^\n]+\n)\s*' . $row[ 'currency' ] . '[^\n]+?(-?[0-9.]+)\n' .
+                       '(?:[^\n]+\n){2}\n\(Transfer fee is ([0-9.]+)\)/',
+                       $message, $matches )) {
+        throw new Exception( "invalid log message encountered: " . $message );
+      }
+      $exchange_map = [
+        '1' => 'Poloniex',
+        '3' => 'Bittrex',
+      ];
+      require_once __DIR__ . '/Exchange.php';
+      require_once __DIR__ . '/xchange/' . $exchange_map[ $row[ 'target' ] ] . '.php';
+      $exchange = new $exchange_map[ $row[ 'target' ] ];
+      $price_sold = $matches[ 2 ] / $exchange->deductFeeFromAmountSell( $row[ 'amount' ] );
+      $tx_fee = $matches[ 5 ] * $price_sold;
+      $pl = $matches[ 4 ] - $tx_fee;
+      if ($pl > 0) {
+        $profitables++;
+      }
+      $total_pl += $pl;
+      if (empty( $pl_currency )) {
+        $pl_currency = $row[ 'currency' ];
+      } else if ($row[ 'currency' ] != $pl_currency) {
+        throw new Exception( "P&L currency changed from ${pl_currency} to ${row['currency']} unexpectedly." );
+      }
+      $data[] = [
+        'time' => $row[ 'created' ],
+        'coin' => $row[ 'coin' ],
+        'currency' => $row[ 'currency' ],
+        'amount_bought_tradeable' => $matches[ 1 ],
+        'amount_sold_tradeable' => abs( $matches[ 3 ] ),
+        'tradeable_bought' => $matches[ 1 ],
+        'tradeable_sold' => abs( $matches[ 3 ] ),
+        'currency_bought' => abs( $matches[ 2 ] ),
+        'currency_sold' => $matches[ 4 ],
+        'tx_fee_tradeable' => $matches[ 5 ],
+        'source_exchange' => $row[ 'source' ],
+        'target_exchange' => $row[ 'target' ],
+      ];
+    }
+
+    mysql_close( $link );
+
+    return $data;
+  }
+
+  public static function saveProfitLoss( $coin, $currency, $time, $sourceExchange, $targetExchange,
+                                         $rawTradeIDsBuy, $tradeIDsBuy, $rawTradeIDsSell, $tradeIDsSell,
+                                         $rateBuy, $rateSell, $tradeableBought, $tradeableSold,
+                                         $currencyBought, $currencySold, $currencyRevenue, $currencyProfitLoss,
+                                         $tradeableTransferFee, $currencyTransferFee, $buyFee, $sellFee ) {
+
+    $link = self::connect();
+    $query = sprintf( "INSERT INTO profit_loss (created, ID_exchange_source, ID_exchange_target, coin, " .
+                      "                         currency, raw_trade_IDs_buy, trade_IDs_buy, " .
+                      "                         raw_trade_IDs_sell, trade_IDs_sell, rate_buy, " .
+                      "                         rate_sell, tradeable_bought, tradeable_sold, " .
+                      "                         currency_bought, currency_sold, currency_revenue, currency_pl, " .
+                      "                         tradeable_tx_fee, currency_tx_fee, buy_fee, sell_fee) VALUES " .
+                      "  (%d, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', " .
+                      "   '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');",
+            $time, $sourceExchange, $targetExchange, $coin, $currency, $rawTradeIDsBuy, $tradeIDsBuy,
+            $rawTradeIDsSell, $tradeIDsSell, formatBTC( $rateBuy ), formatBTC( $rateSell ),
+            formatBTC( $tradeableBought ), formatBTC( $tradeableSold ), formatBTC( $currencyBought ),
+            formatBTC( $currencySold ), formatBTC( $currencyRevenue ), formatBTC( $currencyProfitLoss ),
+            formatBTC( $tradeableTransferFee ), formatBTC( $currencyTransferFee ), formatBTC( $buyFee ),
+            formatBTC( $sellFee ) );
+    if ( !mysql_query( $query, $link ) ) {
+      throw new Exception( "database insertion error: " . mysql_error( $link ) );
+    }
+    mysql_close( $link );
+
+  }
+
+  public static function profitLossTableExists() {
+
+    $link = self::connect();
+
+    if ( !mysql_query( sprintf( "SELECT * FROM information_schema.tables WHERE table_schema = '%s' " .
+                                "AND table_name = 'profit_loss' LIMIT 1;",
+                                mysql_escape_string( Config::get( Config::DB_NAME, null ) ) ), $link ) ) {
+      throw new Exception( "database insertion error: " . mysql_error( $link ) );
+    }
+
+    $rows = mysql_affected_rows( $link );
+    $result = $rows > 0;
+
+    mysql_close( $link );
+
+    return $result;
+
+  }
+
+  public static function createProfitLossTable() {
+
+    $link = self::connect();
+
+    $query = file_get_contents( __DIR__ . '/../profit_loss.sql' );
+
+    if ( !mysql_query( $query, $link ) ) {
+      throw new Exception( "database insertion error: " . mysql_error( $link ) );
+    }
+
+    mysql_close( $link );
+
+    return true;
+
+  }
+
 }
