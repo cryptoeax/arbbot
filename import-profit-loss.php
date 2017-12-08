@@ -85,7 +85,7 @@ function checkTradeSide(&$matches, &$histories, &$row, $name ) {
 
 function importProfitLoss() {
   $prompt = file_get_contents( __DIR__ . '/import-profit-loss-prompt.txt' );
-  print "$prompt\n";
+  logg( $prompt );
   readline();
 
 /*
