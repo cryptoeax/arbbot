@@ -11,47 +11,52 @@ require_once 'bot/xchange/Bittrex.php';
 require_once 'bot/xchange/Poloniex.php';
 
 function checkItems(&$matches, &$indices, &$fractions, $amount) {
-
   $sum = 0;
 
   foreach ( $indices as $index ) {
     $item = $fractions[ $index ];
     $sum += $item[ 'amount' ];
-
-    $ratio = max( $amount, $sum ) / min( $amount, $sum );
-    if ($ratio > 1.0025) {
-      // The sum has already grown too large, abort!
-      return false;
-    }
   }
 
-  $ratio = max( $amount, $sum ) / min( $amount, $sum );
-  if ($ratio <= 1.0025) {
-    $matches = $fractions;
-    return false;
-  }
-  return false;
+  return $sum - $amount;
 }
 
 function checkPermutations(&$matches, &$fractions, $amount) {
   $combinatorics = new Math_Combinatorics();
 
+  $minDifference = 0xffffffff;
+  $minFractions = null;
+  // Iterate over all possible trade combinations.  For each combination, compute the diff
+  // of the sum and the amount of the trades we're trying to match.  Try to minimize number
+  // inside the loop.
+  // After we're done, determine success based on how large the difference is.
+  // If the sum is greater than 1% of the amount, then we consider the result as failure.
+  // If the sum is less than the amount, then we order wasn't completely filled, so we just
+  // return what we have.
   for ( $count = count( $fractions ); $count >= 1; --$count ) {
     $perms = $combinatorics->combinations( range( 0, count( $fractions ) - 1 ), $count );
     foreach ( $perms as $indices ) {
-      if (checkItems( $matches, $indices, $fractions, $amount )) {
-        return true;
+      $diff = checkItems( $matches, $indices, $fractions, $amount );
+      if ($diff < $minDifference) {
+        $minFractions = &$fractions;
+        $minDifference = $diff;
       }
     }
   }
-  return false;
+  if (is_null( $minFractions ) ||
+      $minDifference > 1.01 * $amount) {
+    return false;
+  }
+  $matches = $minFractions;
+  return true;
 }
 
 function checkTradeSide(&$matches, &$histories, &$row, $name ) {
 
   foreach ( $histories as $item ) {
     if ($item[ 'amount' ] == $row[ $name ] &&
-        abs( $item[ 'time' ] - $row[ 'time' ] ) < 60) {
+        // Look in a 5-minute window
+        abs( $item[ 'time' ] - $row[ 'time' ] ) < 5 * 60) {
       $matches[] = $item;
     }
   }
@@ -64,11 +69,7 @@ function checkTradeSide(&$matches, &$histories, &$row, $name ) {
     // The trade may have happened in a few iterations
     $fractions = array( );
     foreach ( $histories as $item ) {
-      if (abs( $item[ 'time' ] - $row[ 'time' ] ) < 60) {
-        if ($item[ 'amount' ] > $row[ $name ] * 1.0025) {
-          // This trade's amount is larger than what we are looking for, so discard it now.
-          continue;
-        }
+      if (abs( $item[ 'time' ] - $row[ 'time' ] ) < 5 * 60) {
         $fractions[] = $item;
       }
     }
