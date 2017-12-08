@@ -109,7 +109,7 @@ function importProfitLoss() {
   if (!Database::profitLossTableExists()) {
     throw new Exception( 'import process failed' );
   }
-  print "The import process finished successfully, resuming\n";
+  logg( "The import process finished successfully, resuming" );
 }
 
 function startImportJobs() {
@@ -131,7 +131,9 @@ function startImportJobs() {
       $fp = popen( $command, "r" );
       while (!feof( $fp )) {
         $buffer = fgets( $fp, 4096 );
-        print $buffer;
+        if (strlen( $buffer )) {
+          logg( "[CHILD WORKER] " . $buffer );
+        }
       }
       pclose( $fp );
       sleep( 10 ); // allow some time to pass so the next process gets a different nonce
