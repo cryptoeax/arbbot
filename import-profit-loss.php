@@ -128,7 +128,7 @@ function startImportJobs() {
       while (!feof( $fp )) {
         $buffer = fgets( $fp, 4096 );
         if (strlen( $buffer )) {
-          logg( "[CHILD WORKER] " . $buffer );
+          logg( "[CHILD WORKER] " . rtrim( $buffer ) );
         }
       }
       pclose( $fp );
