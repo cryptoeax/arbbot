@@ -1,5 +1,7 @@
 <?php
 
+require_once 'Math/Combinatorics.php';
+
 require_once 'bot/utils.php';
 require_once 'bot/Config.php';
 require_once 'bot/CoinManager.php';
@@ -8,34 +10,36 @@ require_once 'bot/Exchange.php';
 require_once 'bot/xchange/Bittrex.php';
 require_once 'bot/xchange/Poloniex.php';
 
-function allPermutations($inArray, $processedArray = array()) {
-  $return = array();
-  foreach ( $inArray as $key => $value ) {
-    $copy = $processedArray;
-    $copy[ $key ] = $value;
-    $tempArray = array_diff_key( $inArray, $copy );
-    if (count( $tempArray ) == 0) {
-      $return[] = $copy;
-    } else {
-      $return = array_merge( $return, allPermutations( $tempArray, $copy ) );
+function checkItems(&$matches, &$indices, &$fractions, $amount) {
+
+  $sum = 0;
+
+  foreach ( $indices as $index ) {
+    $item = $fractions[ $index ];
+    $sum += $item[ 'amount' ];
+
+    $ratio = max( $amount, $sum ) / min( $amount, $sum );
+    if ($ratio > 1.0025) {
+      // The sum has already grown too large, abort!
+      return false;
     }
   }
-  return $return;
+
+  $ratio = max( $amount, $sum ) / min( $amount, $sum );
+  if ($ratio <= 1.0025) {
+    $matches = $fractions;
+    return false;
+  }
+  return false;
 }
 
 function checkPermutations(&$matches, &$fractions, $amount) {
-  foreach ( allPermutations( $fractions ) as $perm ) {
-    // We check all permutations since we check the sum in each iteration of the
-    // loop, and we want to take all possibilities into account.
-    $sum = 0;
-    $arr = array( );
-    foreach ( $perm as $item ) {
-      $arr[] = $item;
-      $amount = $item[ 'amount' ];
-      $sum += $amount;
-      $ratio = max( $amount, $sum ) / min( $amount, $sum );
-      if ($ratio <= 1.0025) {
-        $matches = $arr;
+  $combinatorics = new Math_Combinatorics();
+
+  for ( $count = count( $fractions ); $count >= 1; --$count ) {
+    $perms = $combinatorics->combinations( range( 0, count( $fractions ) - 1 ), $count );
+    foreach ( $perms as $indices ) {
+      if (checkItems( $matches, $indices, $fractions, $amount )) {
         return true;
       }
     }
@@ -61,6 +65,10 @@ function checkTradeSide(&$matches, &$histories, &$row, $name ) {
     $fractions = array( );
     foreach ( $histories as $item ) {
       if (abs( $item[ 'time' ] - $row[ 'time' ] ) < 60) {
+        if ($item[ 'amount' ] > $row[ $name ] * 1.0025) {
+          // This trade's amount is larger than what we are looking for, so discard it now.
+          continue;
+        }
         $fractions[] = $item;
       }
     }
