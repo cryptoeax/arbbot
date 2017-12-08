@@ -140,6 +140,7 @@ function startImportJobs() {
     }
   } finally {
     unlink( $tmp );
+    print "\n";
   }
 }
 
