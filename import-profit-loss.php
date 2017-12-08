@@ -96,18 +96,6 @@ function importProfitLoss() {
   logg( $prompt );
   readline();
 
-/*
-  if (defined( 'HHVM_VERSION' )) {
-    // The import code crashes hhvm and results in a partial import, so refuse
-    // to run under hhvm.
-
-    die("Running this import process under HHVM isn't supported, because of potential\n" .
-        "crashes in HHVM during the import phase.  Please try running the bot under the\n" .
-        "regular PHP interpreter for this phase.  After the import is done, you can stop\n" .
-        "the bot and restart it under HHVM if you want.\n\nExiting.\n");
-  }
-*/
-
   if (!Database::createProfitLossTable()) {
     throw new Exception( 'import process failed' );
   }
