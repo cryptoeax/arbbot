@@ -381,10 +381,10 @@ function doImportFromDB() {
     $rawTradeIDsBuy = '';
     $tradeIDsBuy = '';
     $rateTimesAmountBuy = $row[ 'currency_bought' ];
-    $tradeableBought = $row[ 'tradeable_bought' ];
-    $currencyBought = $row[ 'currency_bought' ];
-    $boughtAmount = $row[ 'amount_bought_tradeable' ];
-    $buyFee = $ex->addFeeToPrice( $row[ 'currency_bought' ] ) - $row[ 'currency_bought' ];
+    $tradeableBought = $ex->deductFeeFromAmountSell( $row[ 'tradeable_bought' ] );
+    $currencyBought = $ex->deductFeeFromAmountSell( $row[ 'currency_bought' ] );
+    $boughtAmount = $ex->deductFeeFromAmountSell( $row[ 'amount_bought_tradeable' ] );
+    $buyFee = $currencyBought - $ex->addFeeToPrice( $currencyBought );
     $rateBuy = ($tradeableBought > 0.0e-9) ? ($rateTimesAmountBuy / $tradeableBought) : 0;
   
     $ex = $exchanges[ $row[ 'target_exchange' ] ];
@@ -394,7 +394,7 @@ function doImportFromDB() {
     $tradeableSold = $row[ 'tradeable_sold' ];
     $currencySold = $row[ 'currency_sold' ];
     $soldAmount = $row[ 'amount_sold_tradeable' ];
-    $sellFee = $ex->addFeeToPrice( $row[ 'currency_sold' ] ) - $row[ 'currency_sold' ];
+    $sellFee = $row[ 'currency_sold' ] - $ex->addFeeToPrice( $row[ 'currency_sold' ] );
     $rateSell = ($tradeableSold > 0.0e-9) ? ($rateTimesAmountSell / $tradeableSold) : 0;
   
     $tradeableTransferFee = $row[ 'tx_fee_tradeable' ];
