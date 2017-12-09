@@ -431,63 +431,49 @@ class WebDB {
 
     $link = self::connect();
 
-    $result = mysql_query( "SELECT trade.created AS created, trade.coin AS coin, trade.currency AS currency, " .
-                           "       trade.amount AS amount, ID_exchange_source AS source, ID_exchange_target AS target, message " .
-                           "FROM trade, log WHERE message LIKE 'TRADE SUMMARY:\\nPAIR: %' AND trade.created = log.created " .
-                           "ORDER BY trade.created DESC", $link );
+    $result = mysql_query( "SELECT created, coin, currency, tradeable_sold AS amount, currency_bought, " .
+                           "       currency_sold, currency_revenue, currency_pl, currency_tx_fee, " .
+                           "       tradeable_tx_fee, ID_exchange_source AS source, " .
+                           "       ID_exchange_target AS target " .
+                           "FROM profit_loss " .
+                           "ORDER BY created DESC", $link );
     if ( !$result ) {
       throw new Exception( "database selection error: " . mysql_error( $link ) );
     }
 
     $results = array();
     $data = array();
-    $total_pl = 0;
     $pl_currency = '';
     $profitables = 0;
     while ( $row = mysql_fetch_assoc( $result ) ) {
-      $message = $row[ 'message' ];
-      if (!preg_match( '/^TRADE SUMMARY:\n(?:[^\n]+\n){3}\n(?:[^\n]+\n){2}\s*' .
-                       $row[ 'currency' ] . '[^\n]+?(-?[0-9.]+)\n' .
-                       '\n(?:[^\n]+\n){2}\s*' . $row[ 'currency' ] . '[^\n]+?(-?[0-9.]+)\n' .
-                       '\n(?:[^\n]+\n)\s*' . $row[ 'currency' ] . '[^\n]+?(-?[0-9.]+)\n' .
-                       '(?:[^\n]+\n){2}\n\(Transfer fee is (-?[0-9.]+)\)/',
-                       $message, $matches )) {
-        throw new Exception( "invalid log message encountered: " . $message );
-      }
-      $exchange_map = [
-        '1' => 'Poloniex',
-        '3' => 'Bittrex',
-      ];
-      require_once '../bot/Exchange.php';
-      require_once '../bot/xchange/' . $exchange_map[ $row[ 'target' ] ] . '.php';
-      $exchange = new $exchange_map[ $row[ 'target' ] ];
-      $price_sold = $matches[ 2 ] / $exchange->deductFeeFromAmountSell( $row[ 'amount' ] );
-      $tx_fee = $matches[ 4 ] * $price_sold;
-      $pl = $matches[ 3 ] - $tx_fee;
-      if ($pl > 0) {
+      $pl_currency = $row[ 'currency' ];
+      if ($row[ 'currency_pl' ] > 0) {
         $profitables++;
-      }
-      $total_pl += $pl;
-      if (empty( $pl_currency )) {
-        $pl_currency = $row[ 'currency' ];
-      } else if ($row[ 'currency' ] != $pl_currency) {
-        throw new Exception( "P&L currency changed from ${pl_currency} to ${row['currency']} unexpectedly." );
       }
       $data[] = [
         'time' => $row[ 'created' ],
         'coin' => $row[ 'coin' ],
         'currency' => $row[ 'currency' ],
-        'amount_sold' => $row[ 'amount' ],
-        'currency_bought' => $matches[ 1 ],
-        'currency_sold' => $matches[ 2 ],
-        'currency_revenue' => $matches[ 3 ],
-        'currency_pl' => $pl,
-        'currency_tx_fee' => $tx_fee,
-        'tx_fee' => $matches[ 4 ],
+        'amount_sold' => floatval( $row[ 'amount' ] ),
+        'currency_bought' => floatval( $row[ 'currency_bought' ] ),
+        'currency_sold' => floatval( $row[ 'currency_sold' ] ),
+        'currency_revenue' => floatval( $row[ 'currency_revenue' ] ),
+        'currency_pl' => floatval( $row[ 'currency_pl' ] ),
+        'currency_tx_fee' => floatval( $row[ 'currency_tx_fee' ] ),
+        'tx_fee' => floatval( $row[ 'tradeable_tx_fee' ] ),
         'source_exchange' => $row[ 'source' ],
         'target_exchange' => $row[ 'target' ],
       ];
     }
+
+    $result = mysql_query( "SELECT SUM(currency_pl) AS total_pl " .
+                           "FROM profit_loss;", $link );
+    if ( !$result ) {
+      throw new Exception( "database selection error: " . mysql_error( $link ) );
+    }
+
+    $row = mysql_fetch_assoc( $result );
+    $total_pl = $row[ 'total_pl' ];
 
     mysql_close( $link );
 
