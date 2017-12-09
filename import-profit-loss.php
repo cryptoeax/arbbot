@@ -133,7 +133,8 @@ function importProfitLoss() {
     throw new Exception( 'import process failed' );
   }
   
-  startImportJobs();
+  $pl = Database::getPL();
+  doImport(0, count( $pl ), $pl);
 
   if (!Database::profitLossTableExists()) {
     throw new Exception( 'import process failed' );
