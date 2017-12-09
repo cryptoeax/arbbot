@@ -18,7 +18,7 @@ function checkItems(&$matches, &$indices, &$fractions, $amount) {
     $sum += $item[ 'amount' ];
   }
 
-  return $sum - $amount;
+  return ($sum / $amount);
 }
 
 function checkPermutations(&$matches, &$fractions, $amount) {
@@ -26,29 +26,53 @@ function checkPermutations(&$matches, &$fractions, $amount) {
 
   $minDifference = 0xffffffff;
   $minFractions = null;
+
+  $lowestHigher = 0xffffffff;
+  $lowestHigherFraction = null;
+  $highestLower = 0;
+  $highestLowerFraction = null;
+
   // Iterate over all possible trade combinations.  For each combination, compute the diff
   // of the sum and the amount of the trades we're trying to match.  Try to minimize number
   // inside the loop.
   // After we're done, determine success based on how large the difference is.
   // If the sum is greater than 1% of the amount, then we consider the result as failure.
   // If the sum is less than the amount, then we order wasn't completely filled, so we just
-  // return what we have.
-  for ( $count = count( $fractions ); $count >= 1; --$count ) {
+  // return the largest sum that we have.
+  for ( $count = 1; $count <= count( $fractions ); ++$count ) {
     $perms = $combinatorics->combinations( range( 0, count( $fractions ) - 1 ), $count );
     foreach ( $perms as $indices ) {
       $diff = checkItems( $matches, $indices, $fractions, $amount );
-      if ($diff < $minDifference) {
-        $minFractions = &$fractions;
-        $minDifference = $diff;
+      if ($diff > 1 && $diff < $lowestHigher) {
+        $lowestHigher = $diff;
+        $lowestHigherFraction = array( );
+	foreach ( $indices as $index ) {
+	  $lowestHigherFraction[] = $fractions[ $index ];
+	}
+      } else if ($diff < 1 && $diff > $highestLower) {
+        $highestLower = $diff;
+        $highestLowerFraction = array( );
+	foreach ( $indices as $index ) {
+	  $highestLowerFraction[] = $fractions[ $index ];
+	}
+      } else if ($diff == 1) {
+	$matches = array( );
+	foreach ( $indices as $index ) {
+	  $matches[] = $fractions[ $index ];
+	}
+        return true;
       }
     }
   }
-  if (is_null( $minFractions ) ||
-      $minDifference > 1.01 * $amount) {
-    return false;
+  if ($lowestHigher < 1.01) {
+    $matches = $lowestHigherFraction;
+    return true;
   }
-  $matches = $minFractions;
-  return true;
+  if ($highestLower > 0) {
+    $matches = $highestLowerFraction;
+    return true;
+  }
+  return false;
 }
 
 function checkTradeSide(&$matches, &$histories, &$row, $name ) {
