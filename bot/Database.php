@@ -506,6 +506,23 @@ class Database {
 
   }
 
+  public static function saveExchangeTrade( $exchangeID, $coin, $currency, $time,  $rawTradeID, $tradeID,
+                                            $rate, $amount, $fee, $total ) {
+
+    $link = self::connect();
+    $query = sprintf( "INSERT INTO exchange_trades (created, ID_exchange, coin, currency, " .
+                      "                             raw_trade_ID, trade_ID, rate, amount, " .
+                      "                             fee, total) VALUES " .
+                      "  (%d, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');",
+             $time, $exchangeID, $coin, $currency, $rawTradeID, $tradeID, formatBTC( $rate ), 
+             formatBTC( $amount ), formatBTC( $fee ), formatBTC( $total ) );
+    if ( !mysql_query( $query, $link ) ) {
+      throw new Exception( "database insertion error: " . mysql_error( $link ) );
+    }
+    mysql_close( $link );
+
+  }
+
   public static function profitLossTableExists() {
 
     $link = self::connect();
@@ -531,8 +548,14 @@ class Database {
 
     $query = file_get_contents( __DIR__ . '/../profit_loss.sql' );
 
-    if ( !mysql_query( $query, $link ) ) {
-      throw new Exception( "database insertion error: " . mysql_error( $link ) );
+    foreach ( explode( ';', $query ) as $q ) {
+      $q = trim( $q );
+      if ( !strlen( $q ) ) {
+        continue;
+      }
+      if ( !mysql_query( $q, $link ) ) {
+        throw new Exception( "database insertion error: " . mysql_error( $link ) );
+      }
     }
 
     mysql_close( $link );

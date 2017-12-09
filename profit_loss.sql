@@ -1,6 +1,26 @@
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `exchange_trades`
+--
+CREATE TABLE `exchange_trades` (
+  `ID` int(11) NOT NULL AUTO_INCREMENT,
+  `created` int(11) NOT NULL,
+  `ID_exchange` int(11) NOT NULL,
+  `coin` char(5) NOT NULL,
+  `currency` char(5) NOT NULL,
+  `raw_trade_ID` varchar(255) NOT NULL,
+  `trade_ID` varchar(255) NOT NULL,
+  `rate` varchar(18) NOT NULL,
+  `amount` varchar(18) NOT NULL,
+  `fee` varchar(18) NOT NULL,
+  `total` varchar(18) NOT NULL,
+  PRIMARY KEY (`ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `profit_loss`
 --
 CREATE TABLE `profit_loss` (
