@@ -109,6 +109,14 @@ function checkTradeSide(&$matches, &$histories, &$row, $name ) {
       // arriving while a trade is in progress, so trust the exchange side.
       // At this point our best guess is to pick everything is fractions.
       $matches = $fractions;
+      foreach ( $fractions as $item ) {
+        foreach ( $histories as $key => $value ) {
+          if ( $item[ 'rawID' ] == $value[ 'rawID' ] ) {
+            unset( $histories[ $key ] );
+            break;
+          }
+        }
+      }
       return true;
     }
   }
