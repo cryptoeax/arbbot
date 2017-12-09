@@ -446,7 +446,7 @@ class Database {
       require_once __DIR__ . '/xchange/' . $exchange_map[ $row[ 'target' ] ] . '.php';
       $exchange = new $exchange_map[ $row[ 'target' ] ];
       $price_sold = $matches[ 2 ] / $exchange->deductFeeFromAmountSell( $row[ 'amount' ] );
-      $tx_fee = $matches[ 5 ] * $price_sold;
+      $tx_fee = $matches[ 6 ] * $price_sold;
       $pl = $matches[ 4 ] - $tx_fee;
       if ($pl > 0) {
         $profitables++;
@@ -467,7 +467,8 @@ class Database {
         'tradeable_sold' => abs( $matches[ 3 ] ),
         'currency_bought' => abs( $matches[ 2 ] ),
         'currency_sold' => floatval( $matches[ 4 ] ),
-        'tx_fee_tradeable' => floatval( $matches[ 5 ] ),
+        'currency_revenue' => floatval( $matches[ 5 ] ),
+        'tx_fee_tradeable' => floatval( $matches[ 6 ] ),
         'source_exchange' => $row[ 'source' ],
         'target_exchange' => $row[ 'target' ],
       ];
