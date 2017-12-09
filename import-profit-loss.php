@@ -270,7 +270,6 @@ function doImport($from, $to, &$pl) {
       $tradeableBought = $row[ 'tradeable_bought' ];
       $currencyBought = $ex->addFeeToPrice( $row[ 'currency_bought' ] );
       $boughtAmount = $ex->deductFeeFromAmountBuy( $row[ 'amount_bought_tradeable' ] );
-      $tradeableTransferFee = $cm->getSafeTxFee( $ex, $coin, $boughtAmount );
       $buyFee = $ex->addFeeToPrice( 1 ) - 1;
       $rateBuy = ($tradeableBought > 0.0e-9) ? ($rateTimesAmountBuy / $tradeableBought) : 0;
     }
@@ -301,8 +300,7 @@ function doImport($from, $to, &$pl) {
       $tradeableSold = $row[ 'tradeable_sold' ];
       $currencySold = $ex->addFeeToPrice( $row[ 'currency_sold' ] );
       $soldAmount = $ex->deductFeeFromAmountSell( $row[ 'amount_sold_tradeable' ] );
-      $totalSoldAmount += $soldAmount;
-      $tradeableTransferFee = $cm->getSafeTxFee( $ex, $coin, $soldAmount );
+      $tradeableTransferFee = $row[ 'tx_fee_tradeable' ];
       $buyFee = $ex->addFeeToPrice( 1 ) - 1;
       $rateSell = ($tradeableSold > 0.0e-9) ? ($rateTimesAmountSell / $tradeableSold) : 0;
     }
@@ -356,11 +354,7 @@ function doImportFromDB() {
     }
   }
   
-  $cm = new CoinManager( $exchanges );
-  
-  for ($i = $from; $i < $to; ++$i) {
-    $row = $pl[ $i ];
-
+  foreach ( $pl as $row ) {
     $coin = $row[ 'coin' ];
     $currency = $row[ 'currency' ];
     $time = $row[ 'time' ];
@@ -374,7 +368,6 @@ function doImportFromDB() {
     $rateTimesAmountSell = 0;
     $tradeableBought = 0;
     $tradeableSold = 0;
-    $totalSoldAmount = 0;
     $currencyBought = 0;
     $currencySold = 0;
     $currencyRevenue = 0;
@@ -389,10 +382,9 @@ function doImportFromDB() {
     $tradeIDsBuy = '';
     $rateTimesAmountBuy = $row[ 'currency_bought' ];
     $tradeableBought = $row[ 'tradeable_bought' ];
-    $currencyBought = $ex->addFeeToPrice( $row[ 'currency_bought' ] );
-    $boughtAmount = $ex->deductFeeFromAmountBuy( $row[ 'amount_bought_tradeable' ] );
-    $tradeableTransferFee = $cm->getSafeTxFee( $ex, $coin, $boughtAmount );
-    $buyFee = $ex->addFeeToPrice( 1 ) - 1;
+    $currencyBought = $row[ 'currency_bought' ];
+    $boughtAmount = $row[ 'amount_bought_tradeable' ];
+    $buyFee = $ex->addFeeToPrice( $row[ 'currency_bought' ] ) - $row[ 'currency_bought' ];
     $rateBuy = ($tradeableBought > 0.0e-9) ? ($rateTimesAmountBuy / $tradeableBought) : 0;
   
     $ex = $exchanges[ $row[ 'target_exchange' ] ];
@@ -400,15 +392,14 @@ function doImportFromDB() {
     $tradeIDsSell = '';
     $rateTimesAmountSell = $row[ 'currency_sold' ];
     $tradeableSold = $row[ 'tradeable_sold' ];
-    $currencySold = $ex->addFeeToPrice( $row[ 'currency_sold' ] );
-    $soldAmount = $ex->deductFeeFromAmountSell( $row[ 'amount_sold_tradeable' ] );
-    $totalSoldAmount += $soldAmount;
-    $tradeableTransferFee = $cm->getSafeTxFee( $ex, $coin, $soldAmount );
-    $buyFee = $ex->addFeeToPrice( 1 ) - 1;
+    $currencySold = $row[ 'currency_sold' ];
+    $soldAmount = $row[ 'amount_sold_tradeable' ];
+    $sellFee = $ex->addFeeToPrice( $row[ 'currency_sold' ] ) - $row[ 'currency_sold' ];
     $rateSell = ($tradeableSold > 0.0e-9) ? ($rateTimesAmountSell / $tradeableSold) : 0;
   
+    $tradeableTransferFee = $row[ 'tx_fee_tradeable' ];
     $currencyTransferFee = $tradeableTransferFee * $rateSell;
-    $currencyRevenue = $currencySold + $sellFee - $currencyBought - $buyFee;
+    $currencyRevenue = $row[ 'currency_revenue' ];
     $currencyProfitLoss = $currencyRevenue - $currencyTransferFee;
   
     Database::saveProfitLoss( $coin, $currency, $time, $sourceExchange, $targetExchange,
