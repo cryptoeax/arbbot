@@ -133,8 +133,7 @@ function importProfitLoss() {
     throw new Exception( 'import process failed' );
   }
   
-  $pl = Database::getPL();
-  doImport(0, count( $pl ), $pl);
+  doImportFromDB();
 
   if (!Database::profitLossTableExists()) {
     throw new Exception( 'import process failed' );
@@ -307,6 +306,106 @@ function doImport($from, $to, &$pl) {
       $buyFee = $ex->addFeeToPrice( 1 ) - 1;
       $rateSell = ($tradeableSold > 0.0e-9) ? ($rateTimesAmountSell / $tradeableSold) : 0;
     }
+  
+    $currencyTransferFee = $tradeableTransferFee * $rateSell;
+    $currencyRevenue = $currencySold + $sellFee - $currencyBought - $buyFee;
+    $currencyProfitLoss = $currencyRevenue - $currencyTransferFee;
+  
+    Database::saveProfitLoss( $coin, $currency, $time, $sourceExchange, $targetExchange,
+                              $rawTradeIDsBuy, $tradeIDsBuy, $rawTradeIDsSell, $tradeIDsSell,
+                              $rateBuy, $rateSell, $tradeableBought, $tradeableSold, $currencyBought,
+                              $currencySold, $currencyRevenue, $currencyProfitLoss, $tradeableTransferFee,
+                              $currencyTransferFee, $buyFee, $sellFee );
+  
+  }
+}
+
+function doImportFromDB() {
+  $pl = Database::getPL();
+  $x1 = new Bittrex();
+  $x2 = new Poloniex();
+  $x1->refreshWallets();
+  $x2->refreshWallets();
+  $x1->refreshExchangeData();
+  $x2->refreshExchangeData();
+  $exchanges = array(
+    '1' => $x2,
+    '3' => $x1,
+  );
+  
+  $hist1 = $x1->queryTradeHistory();
+  $hist2 = $x2->queryTradeHistory(array(
+    'start' => strtotime( '1/1/1970 1:1:1' ),
+    'end' => time(),
+  ));
+  $histories = array(
+    '1' => &$hist2,
+    '3' => &$hist1,
+  );
+
+  foreach ( $histories as $id => &$hist ) {
+    foreach ( $hist as $market => $data ) {
+      $arr = explode( '_', $market );
+      $currency = $arr[ 0 ];
+      $tradeable = $arr[ 1 ];
+      foreach ( $data as $row ) {
+        Database::saveExchangeTrade( $id, $tradeable, $currency, $row[ 'time' ],
+                                     $row[ 'rawID' ], $row[ 'id' ], $row[ 'rate' ],
+                                     $row[ 'amount' ], $row[ 'fee' ], $row[ 'total' ] );
+      }
+    }
+  }
+  
+  $cm = new CoinManager( $exchanges );
+  
+  for ($i = $from; $i < $to; ++$i) {
+    $row = $pl[ $i ];
+
+    $coin = $row[ 'coin' ];
+    $currency = $row[ 'currency' ];
+    $time = $row[ 'time' ];
+    $sourceExchange = $row[ 'source_exchange' ];
+    $targetExchange = $row[ 'target_exchange' ];
+    $rawTradeIDsBuy = array( );
+    $tradeIDsBuy = array( );
+    $rawTradeIDsSell = array( );
+    $tradeIDsSell = array( );
+    $rateTimesAmountBuy = 0;
+    $rateTimesAmountSell = 0;
+    $tradeableBought = 0;
+    $tradeableSold = 0;
+    $totalSoldAmount = 0;
+    $currencyBought = 0;
+    $currencySold = 0;
+    $currencyRevenue = 0;
+    $currencyProfitLoss = 0;
+    $tradeableTransferFee = 0;
+    $currencyTransferFee = 0;
+    $buyFee = 0;
+    $sellFee = 0;
+
+    $ex = $exchanges[ $row[ 'source_exchange' ] ];
+    $rawTradeIDsBuy = '';
+    $tradeIDsBuy = '';
+    $rateTimesAmountBuy = $row[ 'currency_bought' ];
+    $tradeableBought = $row[ 'tradeable_bought' ];
+    $currencyBought = $ex->addFeeToPrice( $row[ 'currency_bought' ] );
+    $boughtAmount = $ex->deductFeeFromAmountBuy( $row[ 'amount_bought_tradeable' ] );
+    $tradeableTransferFee = $cm->getSafeTxFee( $ex, $coin, $boughtAmount );
+    $buyFee = $ex->addFeeToPrice( 1 ) - 1;
+    $rateBuy = ($tradeableBought > 0.0e-9) ? ($rateTimesAmountBuy / $tradeableBought) : 0;
+  
+    $ex = $exchanges[ $row[ 'target_exchange' ] ];
+    $rawTradeIDsSell = '';
+    $tradeIDsSell = '';
+    $rateTimesAmountSell = $row[ 'currency_sold' ];
+    $tradeableSold = $row[ 'tradeable_sold' ];
+    $currencySold = $ex->addFeeToPrice( $row[ 'currency_sold' ] );
+    $soldAmount = $ex->deductFeeFromAmountSell( $row[ 'amount_sold_tradeable' ] );
+    $totalSoldAmount += $soldAmount;
+    $tradeableTransferFee = $cm->getSafeTxFee( $ex, $coin, $soldAmount );
+    $buyFee = $ex->addFeeToPrice( 1 ) - 1;
+    $rateSell = ($tradeableSold > 0.0e-9) ? ($rateTimesAmountSell / $tradeableSold) : 0;
   
     $currencyTransferFee = $tradeableTransferFee * $rateSell;
     $currencyRevenue = $currencySold + $sellFee - $currencyBought - $buyFee;
