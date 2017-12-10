@@ -99,12 +99,12 @@ class Bittrex extends Exchange {
     return null;
   }
 
-  public function queryTradeHistory() {
+  public function queryTradeHistory( $options = array( ), $recentOnly = false ) {
     $results = array( );
 
-    if ($this->fullOrderHistory !== null) {
+    if (!$recentOnly && $this->fullOrderHistory !== null) {
       $results = $this->fullOrderHistory;
-    } else if (!$this->fullOrderHistory &&
+    } else if (!$recentOnly && !$this->fullOrderHistory &&
                file_exists( __DIR__ . '/../../bittrex-fullOrders.csv' )) {
       $file = file_get_contents( __DIR__ . '/../../bittrex-fullOrders.csv' );
       $file = iconv( 'utf-16', 'utf-8', $file );

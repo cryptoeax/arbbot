@@ -121,12 +121,12 @@ class Poloniex extends Exchange {
     return null;
   }
 
-  public function queryTradeHistory($options = array( )) {
+  public function queryTradeHistory( $options = array( ), $recentOnly = false ) {
     $results = array( );
 
-    if ($this->fullOrderHistory !== null) {
+    if (!$recentOnly && $this->fullOrderHistory !== null) {
       $results = $this->fullOrderHistory;
-    } else if (!$this->fullOrderHistory &&
+    } else if (!$recentOnly && !$this->fullOrderHistory &&
                file_exists( __DIR__ . '/../../poloniex-tradeHistory.csv' )) {
       $file = file_get_contents( __DIR__ . '/../../poloniex-tradeHistory.csv' );
       $lines = explode( "\n", $file );
