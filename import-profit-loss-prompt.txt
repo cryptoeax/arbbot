@@ -6,15 +6,4 @@ We now need to do a one time conversion of your current data to store it
 in the database, and from now on your new trade's data will be stored in
 the database automatically.
 
-Before you start, please log in to your Bittrex and Poloniex accounts, and
-download a full trade history CSV file from both exchanges, and pleace them
-inside the application directory, next to config.ini.  You need to give
-these files the following names in order for the application to pick them
-up, otherwise it won't manage to match old trades.
-
-  * bittrex-fullOrders.csv
-  * poloniex-tradeHistory.csv
-
-Please note that the names are case sensitive.
-
 Press enter when you are ready to start.  This operation may take a while.

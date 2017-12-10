@@ -425,6 +425,12 @@ class Poloniex extends Exchange {
 
   }
 
+  public function getTradeHistoryCSVName() {
+
+    return "poloniex-tradeHistory.csv";
+
+  }
+
 // Internal functions for querying the exchange
 
   private function queryDepositsAndWithdrawals() {

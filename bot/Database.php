@@ -511,7 +511,7 @@ class Database {
                                             $rate, $amount, $fee, $total ) {
 
     $link = self::connect();
-    $query = sprintf( "INSERT INTO exchange_trades (created, ID_exchange, coin, currency, " .
+    $query = sprintf( "INSERT IGNORE INTO exchange_trades (created, ID_exchange, coin, currency, " .
                       "                             raw_trade_ID, trade_ID, rate, amount, " .
                       "                             fee, total) VALUES " .
                       "  (%d, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');",
@@ -562,6 +562,37 @@ class Database {
     mysql_close( $link );
 
     return true;
+
+  }
+
+  public static function getNewTrades( $recentTradeIDs ) {
+
+    $link = self::connect();
+
+    $arg = implode( ", ", array_map( 'quoteStr',
+                            array_map( 'mysql_escape_string', $recentTradeIDs ) ) );
+
+    if ( !$result = mysql_query( sprintf( "SELECT raw_trade_ID " .
+                                          "FROM exchange_trades WHERE raw_trade_ID IN ( %s );",
+                                          $arg ) ) ) {
+      throw new Exception( "database insertion error: " . mysql_error( $link ) );
+    }
+
+    $return = array( );
+    while ( $row = mysql_fetch_assoc( $result ) ) {
+      $return[ $row[ 'raw_trade_ID' ] ] = true;
+    }
+
+    mysql_close( $link );
+
+    $result = array( );
+    foreach ( $recentTradeIDs as $id ) {
+      if ( !isset( $return[ $id ] ) ) {
+        $result[] = $id;
+      }
+    }
+
+    return $result;
 
   }
 

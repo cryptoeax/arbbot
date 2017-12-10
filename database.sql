@@ -18,7 +18,8 @@ CREATE TABLE `exchange_trades` (
   `amount` varchar(18) NOT NULL,
   `fee` varchar(18) NOT NULL,
   `total` varchar(18) NOT NULL,
-  PRIMARY KEY (`ID`)
+  PRIMARY KEY (`ID`),
+  UNIQUE KEY (`ID_exchange`, `raw_trade_ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------

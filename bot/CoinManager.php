@@ -30,7 +30,7 @@ class CoinManager {
   private $exchangesID = [ ];
 
   function __construct( $exchanges ) {
-    $this->exchanges = $exchanges;
+    $this->exchanges = &$exchanges;
 
     foreach ( $exchanges as $exchange ) {
       $this->exchangesID[ $exchange->getID() ] = $exchange;

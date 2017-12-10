@@ -4,6 +4,7 @@ require_once 'bot/utils.php';
 require_once 'bot/Config.php';
 require_once 'bot/Exchange.php';
 require_once 'bot/Arbitrator.php';
+require_once 'bot/TradeMatcher.php';
 
 $gVerbose = true;
 
@@ -61,6 +62,42 @@ foreach ( $exchanges as $exchange ) {
     logg( $exchange->getName() . " [ERROR]\n" . $ex->getMessage() );
     return;
   }
+}
+
+$tradeMatcher = new TradeMatcher( $exchanges );
+foreach ( $exchanges as $id => $exchange ) {
+
+  if ( $tradeMatcher->hasExchangeNewTrades( $id ) ) {
+
+    logg( "Noticed new trades on " . $exchange->getName() . " that we haven't seen before, importing them now..." );
+
+    $csvPath = __DIR__ . '/' . $exchange->getTradeHistoryCSVName();
+    if ( ! is_readable( $csvPath ) ) {
+      $prompt = file_get_contents( __DIR__ . '/bot/xchange/' . $exchange->getName() . '-csv-missing.txt' );
+      logg( $prompt );
+      readline();
+      if ( !is_readable( $csvPath ) ) {
+        die( "Still can't find the file, refusing to continue\n" );
+      }
+    }
+
+    // Now read the full history
+    $hist = $exchange->queryTradeHistory();
+
+    // Insert what we don't have into the database
+    foreach ( $hist as $market => $data ) {
+      $arr = explode( '_', $market );
+      $currency = $arr[ 0 ];
+      $tradeable = $arr[ 1 ];
+      foreach ( $data as $row ) {
+        Database::saveExchangeTrade( $id, $tradeable, $currency, $row[ 'time' ],
+                                     $row[ 'rawID' ], $row[ 'id' ], $row[ 'rate' ],
+                                     $row[ 'amount' ], $row[ 'fee' ], $row[ 'total' ] );
+      }
+    }
+
+  }
+
 }
 
 $arbitrator = new Arbitrator( $exchanges );

@@ -16,8 +16,7 @@ You can see the bot running on a cheap [linode](https://www.linode.com) here.  C
 Install required packages:
 
 ```
-apt-get install php-cli php-curl php-mysqlnd mysql-server nginx-full php-fpm unzip apache2-utils php-pear
-pear install Math_Combinatorics
+apt-get install php-cli php-curl php-mysqlnd mysql-server nginx-full php-fpm unzip apache2-utils
 ```
 
 Download the archive to the server and extract it:
