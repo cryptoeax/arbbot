@@ -249,7 +249,7 @@ class Bittrex extends Exchange {
       // initialized yet.
       $currencies = $this->queryCurrencies();
     }
-    foreach ( array_keys( $this->transferFees ) as $coin ) {
+    foreach ( array_keys( $currencies ) as $coin ) {
       $wallets[ $coin ] = 0;
     }
 
