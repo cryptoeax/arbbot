@@ -329,7 +329,13 @@ class Bittrex extends Exchange {
     $wallets = [ ];
 
     // Create artifical wallet balances for all traded coins:
-    foreach ( array_keys( $this->transferFees ) as $coin ) {
+    $currencies = $this->transferFees;
+    if (!count( $currencies )) {
+      // If this is the first call to refreshWallets(), $this->transferFees isn't
+      // initialized yet.
+      $currencies = $this->queryCurrencies();
+    }
+    foreach ( array_keys( $currencies ) as $coin ) {
       $wallets[ $coin ] = 0;
     }
 
