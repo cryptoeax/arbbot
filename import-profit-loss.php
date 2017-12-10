@@ -163,19 +163,6 @@ function doImportFromDB() {
     '1' => &$hist2,
     '3' => &$hist1,
   );
-
-  foreach ( $histories as $id => &$hist ) {
-    foreach ( $hist as $market => $data ) {
-      $arr = explode( '_', $market );
-      $currency = $arr[ 0 ];
-      $tradeable = $arr[ 1 ];
-      foreach ( $data as $row ) {
-        Database::saveExchangeTrade( $id, $tradeable, $currency, $row[ 'time' ],
-                                     $row[ 'rawID' ], $row[ 'id' ], $row[ 'rate' ],
-                                     $row[ 'amount' ], $row[ 'fee' ], $row[ 'total' ] );
-      }
-    }
-  }
   
   foreach ( $pl as $row ) {
     $coin = $row[ 'coin' ];

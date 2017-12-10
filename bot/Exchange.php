@@ -137,6 +137,8 @@ abstract class Exchange {
 
   public abstract function getName();
 
+  public abstract function getTradeHistoryCSVName();
+
   public abstract function testAccess();
 
   public abstract function getWalletsConsideringPendingDeposits();

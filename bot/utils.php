@@ -39,3 +39,7 @@ function logg( $message, $mail = false ) {
 
 }
 
+function quoteStr( $str ) {
+  return "\"$str\"";
+}
+

@@ -14,7 +14,7 @@ class Arbitrator {
   private $tradeHappened = false;
 
   function __construct( $exchanges ) {
-    $this->exchanges = $exchanges;
+    $this->exchanges = &$exchanges;
 
     // Create a list containing the exchange pairs:
     for ( $i = 0; $i < count( $exchanges ); $i++ ) {

@@ -366,6 +366,12 @@ class Bittrex extends Exchange {
 
   }
 
+  public function getTradeHistoryCSVName() {
+
+    return "bittrex-fullOrders.csv";
+
+  }
+
   // Internal functions for querying the exchange
 
   private function queryDepositAddress( $coin ) {

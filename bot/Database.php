@@ -565,4 +565,35 @@ class Database {
 
   }
 
+  public static function getNewTrades( $recentTradeIDs ) {
+
+    $link = self::connect();
+
+    $arg = implode( ", ", array_map( 'quoteStr',
+                            array_map( 'mysql_escape_string', $recentTradeIDs ) ) );
+
+    if ( !$result = mysql_query( sprintf( "SELECT raw_trade_ID " .
+                                          "FROM exchange_trades WHERE raw_trade_ID IN ( %s );",
+                                          $arg ) ) ) {
+      throw new Exception( "database insertion error: " . mysql_error( $link ) );
+    }
+
+    $return = array( );
+    while ( $row = mysql_fetch_assoc( $result ) ) {
+      $return[ $row[ 'raw_trade_ID' ] ] = true;
+    }
+
+    mysql_close( $link );
+
+    $result = array( );
+    foreach ( $recentTradeIDs as $id ) {
+      if ( !isset( $return[ $id ] ) ) {
+        $result[] = $id;
+      }
+    }
+
+    return $result;
+
+  }
+
 }
