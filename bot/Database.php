@@ -511,7 +511,7 @@ class Database {
                                             $rate, $amount, $fee, $total ) {
 
     $link = self::connect();
-    $query = sprintf( "INSERT INTO exchange_trades (created, ID_exchange, coin, currency, " .
+    $query = sprintf( "INSERT IGNORE INTO exchange_trades (created, ID_exchange, coin, currency, " .
                       "                             raw_trade_ID, trade_ID, rate, amount, " .
                       "                             fee, total) VALUES " .
                       "  (%d, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');",
