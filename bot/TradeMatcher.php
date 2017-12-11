@@ -12,7 +12,7 @@ class TradeMatcher {
 
     $this->exchanges = array( );
     foreach ( $exchanges as $ex ) {
-      $this->exchanges[ $ex->getID() ] = &$ex;
+      $this->exchanges[ $ex->getID() ] = $ex;
     }
 
   }
@@ -22,19 +22,25 @@ class TradeMatcher {
       logg( "WARNING: Invalid exchange ID passed: $id" );
       return array( );
     }
-    $ex = $this->exchanges[ $id ];
+    $ex = &$this->exchanges[ $id ];
     $hist = $ex->queryTradeHistory( array( ), true );
     $tradeIDs = array( );
+    $map = array( );
     foreach ( $hist as $market => &$data ) {
       $arr = explode( '_', $market );
       $currency = $arr[ 0 ];
       $tradeable = $arr[ 1 ];
       foreach ( $data as $row ) {
         $tradeIDs[] = $row[ 'rawID' ];
+        $map[ $row[ 'rawID' ] ] = $row;
       }
     }
 
-    $result = Database::getNewTrades( $tradeIDs );
+    $newIDs = Database::getNewTrades( $tradeIDs );
+    $result = array( );
+    foreach ( $newIDs as $id ) {
+      $result[] = $map[ $id ];
+    }
     return $result;
   }
 

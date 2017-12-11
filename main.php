@@ -98,7 +98,7 @@ foreach ( $exchanges as $exchange ) {
 
 }
 
-$arbitrator = new Arbitrator( $exchanges );
+$arbitrator = new Arbitrator( $exchanges, $tradeMatcher );
 $arbitrator->run();
 
 function sendmail( $title, $message ) {

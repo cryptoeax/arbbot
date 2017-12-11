@@ -8,13 +8,15 @@ class Arbitrator {
   private $exchangePairs = [ ];
   //
   private $coinManager;
+  private $tradeMatcher;
   //
   private $nextCoinUpdate = 0;
   private $walletsRefreshed = false;
   private $tradeHappened = false;
 
-  function __construct( $exchanges ) {
+  function __construct( $exchanges, &$tradeMatcher ) {
     $this->exchanges = &$exchanges;
+    $this->tradeMatcher = &$tradeMatcher;
 
     // Create a list containing the exchange pairs:
     for ( $i = 0; $i < count( $exchanges ); $i++ ) {
@@ -311,6 +313,16 @@ class Arbitrator {
 
       $totalCost = $source->getFilledOrderPrice( 'buy', $tradeable, $currency, $buyOrderID );
       $totalRevenue = $target->getFilledOrderPrice( 'sell', $tradeable, $currency, $sellOrderID );
+
+      $buyTrades = $this->tradeMatcher->getExchangeNewTrades( $source->getID() );
+      $sellTrades = $this->tradeMatcher->getExchangeNewTrades( $target->getID() );
+
+      foreach ( $buyTrades as $trade ) {
+        $this->tradeMatcher->saveTrade( $source->getID(), $tradeable, $currency, $trade );
+      }
+      foreach ( $sellTrades as $trade ) {
+        $this->tradeMatcher->saveTrade( $target->getID(), $tradeable, $currency, $trade );
+      }
 
       $sourceTradeableAfter = $source->getWallets()[ $tradeable ];
       $targetTradeableAfter = $target->getWallets()[ $tradeable ];
