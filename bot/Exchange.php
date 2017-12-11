@@ -149,15 +149,10 @@ abstract class Exchange {
 
   protected function nonce() {
 
-    $nonce = 0;
-    while ( true ) {
-      usleep( 1000 );
-      $nonce = floor( microtime( true ) * 1000000);
-      if ( $nonce == $this->previousNonce ) {
-        usleep( 100 );
-        continue;
-      }
-      break;
+    // Try the current time, if we're getting called too fast, step up one by one.
+    $nonce = floor( microtime( true ) * 1000000);
+    if ( $nonce <= $this->previousNonce ) {
+      $nonce = $this->previousNonce + 1;
     }
 
     $this->previousNonce = $nonce;
