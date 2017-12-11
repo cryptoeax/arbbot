@@ -13,6 +13,7 @@ abstract class Exchange {
   protected $confirmationTimes = [ ];
   protected $names = [ ];
   protected $pairs = [ ];
+  protected $tradeablePairs = [ ];
   //
   protected $previousNonce = 0;
 
@@ -28,9 +29,33 @@ abstract class Exchange {
 
   }
 
+  protected function calculateTradeablePairs() {
+
+    $maxConfTime = Config::get( Config::MAX_MIN_CONFIRMATIONS_ALLOWED, Config::DEFAULT_MAX_MIN_CONFIRMATIONS_ALLOWED );
+
+    // Never consider pairs that have a confirmation time that exceeds
+    // max-min-confirmations-allowed for trading.
+    $pairs = array( );
+    foreach ( $this->pairs as $pair ) {
+      $arr = explode( '_', $pair );
+      $tradeable = $arr[ 0 ];
+      $currency = $arr[ 1 ];
+
+      if ( isset( $this->confirmationTimes[ $tradeable ] ) &&
+           $this->confirmationTimes[ $tradeable ] >= $maxConfTime ) {
+        continue;
+      }
+
+      $pairs[] = $pair;
+    }
+
+    $this->tradeablePairs = $pairs;
+
+  }
+
   public function getTradeablePairs() {
 
-    return $this->pairs;
+    return $this->tradeablePairs;
 
   }
 
