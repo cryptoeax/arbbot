@@ -65,9 +65,9 @@ foreach ( $exchanges as $exchange ) {
 }
 
 $tradeMatcher = new TradeMatcher( $exchanges );
-foreach ( $exchanges as $id => $exchange ) {
+foreach ( $exchanges as $exchange ) {
 
-  if ( $tradeMatcher->hasExchangeNewTrades( $id ) ) {
+  if ( $tradeMatcher->hasExchangeNewTrades( $exchange->getID() ) ) {
 
     logg( "Noticed new trades on " . $exchange->getName() . " that we haven't seen before, importing them now..." );
 

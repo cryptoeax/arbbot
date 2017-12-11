@@ -10,7 +10,10 @@ class TradeMatcher {
 
   function __construct( &$exchanges ) {
 
-    $this->exchanges = &$exchanges;
+    $this->exchanges = array( );
+    foreach ( $exchanges as $ex ) {
+      $this->exchanges[ $ex->getID() ] = &$ex;
+    }
 
   }
 
