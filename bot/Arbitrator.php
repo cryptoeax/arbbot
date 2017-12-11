@@ -318,10 +318,10 @@ class Arbitrator {
       $sellTrades = $this->tradeMatcher->getExchangeNewTrades( $target->getID() );
 
       foreach ( $buyTrades as $trade ) {
-        $this->tradeMatcher->saveTrade( $source->getID(), $tradeable, $currency, $trade );
+        $this->tradeMatcher->saveTrade( $source->getID(), 'buy', $tradeable, $currency, $trade );
       }
       foreach ( $sellTrades as $trade ) {
-        $this->tradeMatcher->saveTrade( $target->getID(), $tradeable, $currency, $trade );
+        $this->tradeMatcher->saveTrade( $target->getID(), 'sell', $tradeable, $currency, $trade );
       }
 
       $sourceTradeableAfter = $source->getWallets()[ $tradeable ];

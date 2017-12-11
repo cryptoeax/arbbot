@@ -48,9 +48,9 @@ class TradeMatcher {
     return count( $this->getExchangeNewTrades( $id ) ) > 0;
   }
 
-  public function saveTrade( $exchangeID, $tradeable, $currency, $trade ) {
+  public function saveTrade( $exchangeID, $type, $tradeable, $currency, $trade ) {
 
-    Database::saveExchangeTrade( $exchangeID, $tradeable, $currency, $trade[ 'time' ],
+    Database::saveExchangeTrade( $exchangeID, $type, $tradeable, $currency, $trade[ 'time' ],
                                  $trade[ 'rawID' ], $trade[ 'id' ], $trade[ 'rate' ],
                                  $trade[ 'amount' ], $trade[ 'fee' ], $trade[ 'total' ] );
 

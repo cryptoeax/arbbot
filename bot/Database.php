@@ -507,16 +507,16 @@ class Database {
 
   }
 
-  public static function saveExchangeTrade( $exchangeID, $coin, $currency, $time,  $rawTradeID, $tradeID,
+  public static function saveExchangeTrade( $exchangeID, $type, $coin, $currency, $time, $rawTradeID, $tradeID,
                                             $rate, $amount, $fee, $total ) {
 
     $link = self::connect();
     $query = sprintf( "INSERT IGNORE INTO exchange_trades (created, ID_exchange, coin, currency, " .
                       "                             raw_trade_ID, trade_ID, rate, amount, " .
-                      "                             fee, total) VALUES " .
-                      "  (%d, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');",
+                      "                             fee, total, type) VALUES " .
+                      "  (%d, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');",
              $time, $exchangeID, $coin, $currency, $rawTradeID, $tradeID, formatBTC( $rate ), 
-             formatBTC( $amount ), formatBTC( $fee ), formatBTC( $total ) );
+             formatBTC( $amount ), formatBTC( $fee ), formatBTC( $total ), $type );
     if ( !mysql_query( $query, $link ) ) {
       throw new Exception( "database insertion error: " . mysql_error( $link ) );
     }

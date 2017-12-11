@@ -7,6 +7,7 @@ CREATE TABLE `exchange_trades` (
   `ID` int(11) NOT NULL AUTO_INCREMENT,
   `created` int(11) NOT NULL,
   `ID_exchange` int(11) NOT NULL,
+  `type` ENUM('buy', 'sell') NOT NULL,
   `coin` char(5) NOT NULL,
   `currency` char(5) NOT NULL,
   `raw_trade_ID` varchar(255) NOT NULL,

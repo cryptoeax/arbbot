@@ -150,6 +150,7 @@ class Poloniex extends Exchange {
         $results[ $market ][] = array(
           'rawID' => $data[ 8 ],
           'id' => $currency . '_' . $tradeable . ':' . $data[ 8 ],
+          'type' => strtolower( $data[ 3 ] ),
           'time' => strtotime( $data[ 0 ] ),
           'rate' => floatval( $data[ 4 ] ),
           'amount' => floatval( $data[ 5 ] ),
@@ -194,6 +195,7 @@ class Poloniex extends Exchange {
         $results[ $market ][] = array(
           'rawID' => $row[ 'orderNumber' ],
           'id' => $currency . '_' . $tradeable . ':' . $row[ 'orderNumber' ],
+          'type' => $row[ 'type' ],
           'time' => strtotime( $row[ 'date' ] ),
           'rate' => floatval( $row[ 'rate' ] ),
           'amount' => floatval( $row[ 'amount' ] ),
