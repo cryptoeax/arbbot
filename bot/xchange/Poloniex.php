@@ -334,6 +334,8 @@ class Poloniex extends Exchange {
     $this->confirmationTimes = $conf;
     $this->depositAddresses = $depositAddresses;
 
+    $this->calculateTradeablePairs();
+
   }
 
   private $lastStuckReportTime = [ ];

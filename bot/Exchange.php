@@ -2,6 +2,7 @@
 ini_set("precision", 16);
 
 require_once __DIR__ . '/Orderbook.php';
+require_once __DIR__ . '/utils.php';
 
 abstract class Exchange {
 
@@ -13,6 +14,7 @@ abstract class Exchange {
   protected $confirmationTimes = [ ];
   protected $names = [ ];
   protected $pairs = [ ];
+  protected $tradeablePairs = [ ];
   //
   protected $previousNonce = 0;
 
@@ -28,9 +30,43 @@ abstract class Exchange {
 
   }
 
+  protected function calculateTradeablePairs() {
+
+    $maxTxFee = Config::get( Config::MAX_TX_FEE_ALLOWED, Config::DEFAULT_MAX_TX_FEE_ALLOWED );
+    $maxConfTime = Config::get( Config::MAX_MIN_CONFIRMATIONS_ALLOWED, Config::DEFAULT_MAX_MIN_CONFIRMATIONS_ALLOWED );
+
+    // Never consider pairs that have a confirmation time that exceeds
+    // max-min-confirmations-allowed for trading.
+    $pairs = array( );
+    foreach ( $this->pairs as $pair ) {
+      $arr = explode( '_', $pair );
+      $tradeable = $arr[ 0 ];
+      $currency = $arr[ 1 ];
+      $averageRate = Database::getAverageRate( $tradeable );
+
+      // If the tradeable is too expensive to transfer, let it go.
+      if ( isset( $this->transferFees[ $tradeable ] ) &&
+           !endsWith( $this->transferFees[ $tradeable ], '%' ) &&
+           $this->transferFees[ $tradeable ] * $averageRate >= $maxTxFee ) {
+        continue;
+      }
+
+      // If a transaction of the tradeable takes too long to confirm on its blockchain, let it go.
+      if ( isset( $this->confirmationTimes[ $tradeable ] ) &&
+           $this->confirmationTimes[ $tradeable ] >= $maxConfTime ) {
+        continue;
+      }
+
+      $pairs[] = $pair;
+    }
+
+    $this->tradeablePairs = $pairs;
+
+  }
+
   public function getTradeablePairs() {
 
-    return $this->pairs;
+    return $this->tradeablePairs;
 
   }
 
@@ -153,15 +189,10 @@ abstract class Exchange {
 
   protected function nonce() {
 
-    $nonce = 0;
-    while ( true ) {
-      usleep( 1000 );
-      $nonce = floor( microtime( true ) * 1000000);
-      if ( $nonce == $this->previousNonce ) {
-        usleep( 100 );
-        continue;
-      }
-      break;
+    // Try the current time, if we're getting called too fast, step up one by one.
+    $nonce = floor( microtime( true ) * 1000000);
+    if ( $nonce <= $this->previousNonce ) {
+      $nonce = $this->previousNonce + 1;
     }
 
     $this->previousNonce = $nonce;

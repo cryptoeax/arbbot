@@ -294,6 +294,8 @@ class Bittrex extends Exchange {
     $this->transferFees = $txFees;
     $this->confirmationTimes = $conf;
 
+    $this->calculateTradeablePairs();
+
   }
 
   public function detectStuckTransfers() {

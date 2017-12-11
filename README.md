@@ -16,7 +16,8 @@ You can see the bot running on a cheap [linode](https://www.linode.com) here.  C
 Install required packages:
 
 ```
-apt-get install php-cli php-curl php-mysqlnd mysql-server nginx-full php-fpm unzip apache2-utils
+sudo apt-get install php-cli php-curl php-mysqlnd mysql-server nginx-full php-fpm unzip apache2-utils ntpdate
+sudo ntpdate ntp.ubuntu.com
 ```
 
 Download the archive to the server and extract it:
