@@ -2,6 +2,7 @@
 ini_set("precision", 16);
 
 require_once __DIR__ . '/Orderbook.php';
+require_once __DIR__ . '/utils.php';
 
 abstract class Exchange {
 
@@ -31,6 +32,7 @@ abstract class Exchange {
 
   protected function calculateTradeablePairs() {
 
+    $maxTxFee = Config::get( Config::MAX_TX_FEE_ALLOWED, Config::DEFAULT_MAX_TX_FEE_ALLOWED );
     $maxConfTime = Config::get( Config::MAX_MIN_CONFIRMATIONS_ALLOWED, Config::DEFAULT_MAX_MIN_CONFIRMATIONS_ALLOWED );
 
     // Never consider pairs that have a confirmation time that exceeds
@@ -40,7 +42,16 @@ abstract class Exchange {
       $arr = explode( '_', $pair );
       $tradeable = $arr[ 0 ];
       $currency = $arr[ 1 ];
+      $averageRate = Database::getAverageRate( $tradeable );
 
+      // If the tradeable is too expensive to transfer, let it go.
+      if ( isset( $this->transferFees[ $tradeable ] ) &&
+           !endsWith( $this->transferFees[ $tradeable ], '%' ) &&
+           $this->transferFees[ $tradeable ] * $averageRate >= $maxTxFee ) {
+        continue;
+      }
+
+      // If a transaction of the tradeable takes too long to confirm on its blockchain, let it go.
       if ( isset( $this->confirmationTimes[ $tradeable ] ) &&
            $this->confirmationTimes[ $tradeable ] >= $maxConfTime ) {
         continue;
