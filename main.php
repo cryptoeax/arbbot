@@ -90,9 +90,7 @@ foreach ( $exchanges as $exchange ) {
       $currency = $arr[ 0 ];
       $tradeable = $arr[ 1 ];
       foreach ( $data as $row ) {
-        Database::saveExchangeTrade( $id, $tradeable, $currency, $row[ 'time' ],
-                                     $row[ 'rawID' ], $row[ 'id' ], $row[ 'rate' ],
-                                     $row[ 'amount' ], $row[ 'fee' ], $row[ 'total' ] );
+        $tradeMatcher->saveTrade( $exchange->getID(), $tradeable, $currency, $row );
       }
     }
 
