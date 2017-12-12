@@ -276,11 +276,9 @@ class CoinManager {
     if ( $coin == 'BTC' ) {
       $minXFER = Config::get( Config::MIN_BTC_XFER, Config::DEFAULT_MIN_BTC_XFER );
     }
-    else {
-      foreach ( $exchanges as $exchange ) {
-        // Allow max 1% of coin amount to be transfer fee:
-        $minXFER = max( $minXFER, $this->getSafeTxFee( $exchange, $coin, $averageCoins ) * 100 );
-      }
+    foreach ( $exchanges as $exchange ) {
+      // Allow max 1% of coin amount to be transfer fee:
+      $minXFER = max( $minXFER, $this->getSafeTxFee( $exchange, $coin, $averageCoins ) * 100 );
     }
     logg( "XFER THRES.: $minXFER $coin" );
 
