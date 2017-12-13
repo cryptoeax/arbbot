@@ -82,7 +82,7 @@ The NGINX configuration file should look like this:
 server {
 
         listen 80;
-        root /var/www/arbitrage-bot/web;
+        root /var/www/arbitrage-production/web;
         index index.html;
         server_name localhost;
 
