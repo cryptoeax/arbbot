@@ -39,3 +39,23 @@ function logg( $message, $mail = false ) {
 
 }
 
+function installDirectoryDirty() {
+
+  $installDir = __DIR__ . '/../';
+  $result = array( );
+  foreach ( array_merge( glob( "$installDir/bot/*.php" ),
+                         glob( "$installDir/bot/xchange/*.php" ) ) as $file ) {
+    $name = basename( $file );
+    if ( is_readable( "$installDir/$name" ) ) {
+      $result[] = $name;
+    } else if ( is_readable( "$installDir/xchange/$name" ) ) {
+      $result[] = "xchange/$name";
+    }
+  }
+  if ( !count( $result ) ) {
+    $result = null;
+  }
+  return $result;
+
+}
+

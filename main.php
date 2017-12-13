@@ -9,6 +9,15 @@ $gVerbose = true;
 
 date_default_timezone_set( "UTC" );
 
+if ( $files = installDirectoryDirty() ) {
+  echo "Error launching due to the following files being found in the installation directory.\n";
+  echo "Please remove them before proceeding.\n";
+  foreach ( $files as $file ) {
+    echo "\t* $file\n";
+  }
+  return;
+}
+
 try {
   Config::refresh();
 }
