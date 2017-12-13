@@ -289,7 +289,8 @@ class Bittrex extends Exchange {
       $coin = strtoupper( $data[ 'Currency' ] );
       $type = strtoupper( $data[ 'CoinType' ] );
 
-      if ( array_search( $coin, $tradeables ) !== false ) {
+      if ( $coin == 'BTC' ||
+           array_search( $coin, $tradeables ) !== false ) {
         $names[ $coin ] = strtoupper( $data[ 'CurrencyLong' ] );
         $txFees[ $coin ] = $data[ 'TxFee' ] . ($type == 'BITCOIN_PERCENTAGE_FEE' ? '%' : '');
         $conf[ $coin ] = $data[ 'MinConfirmation' ];

@@ -15,8 +15,6 @@ abstract class Exchange {
   protected $names = [ ];
   protected $pairs = [ ];
   protected $tradeablePairs = [ ];
-  //
-  protected $previousNonce = 0;
 
   function __construct( $apiKey, $apiSecret ) {
 
@@ -28,7 +26,7 @@ abstract class Exchange {
     $this->apiKey = $apiKey;
     $this->apiSecret = $apiSecret;
 
-  }
+ }
 
   protected function calculateTradeablePairs() {
 
@@ -189,13 +187,19 @@ abstract class Exchange {
 
   protected function nonce() {
 
-    // Try the current time, if we're getting called too fast, step up one by one.
-    $nonce = floor( microtime( true ) * 1000000);
-    if ( $nonce <= $this->previousNonce ) {
-      $nonce = $this->previousNonce + 1;
+    static $previousNonce = array( );
+    $id = $this->getID();
+    if ( !isset( $previousNonce[ $id ] ) ) {
+      $previousNonce[ $id ] = 0;
     }
 
-    $this->previousNonce = $nonce;
+    // Try the current time, if we're getting called too fast, step up one by one.
+    $nonce = floor( microtime( true ) * 1000000);
+    if ( $nonce <= $previousNonce[ $id ] ) {
+      $nonce = $previousNonce[ $id ] + 1;
+    }
+
+    $previousNonce[ $id ] = $nonce;
     return $nonce;
 
   }
