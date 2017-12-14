@@ -88,7 +88,6 @@ server {
 
         location / {
 
-                try_files $uri $uri/ /index.html;
                 auth_basic           "Restricted area";
                 auth_basic_user_file /var/www/conf/arbitrage.passwd;
 
