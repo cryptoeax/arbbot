@@ -317,12 +317,73 @@ class Arbitrator {
       $buyTrades = $this->tradeMatcher->getExchangeNewTrades( $source->getID() );
       $sellTrades = $this->tradeMatcher->getExchangeNewTrades( $target->getID() );
 
+      $rawTradeIDsBuy = array( );
+      $tradeIDsBuy = array( );
+      $rawTradeIDsSell = array( );
+      $tradeIDsSell = array( );
+
+      $rateTimesAmountBuy = 0;
+      $tradeableBought = 0;
+      $currencyBought = 0;
+      $buyFee = 0;
+      $rateTimesAmountSell = 0;
+      $tradeableSold = 0;
+      $currencySold = 0;
+      $sellFee = 0;
+
+      $tradeableTransferFee = 0;
+
       foreach ( $buyTrades as $trade ) {
         $this->tradeMatcher->saveTrade( $source->getID(), 'buy', $tradeable, $currency, $trade );
+
+        $rawTradeIDsBuy[] = $trade[ 'rawID' ];
+        $tradeIDsBuy[] = $trade[ 'id' ];
+
+        $rateTimesAmountBuy += $trade[ 'rate' ] * $trade[ 'amount' ];
+        $tradeableBought += $trade[ 'amount' ];
+        // Fee is positive for "buy" trades.
+        $currencyBought += $trade[ 'total' ] * (1 - $trade[ 'fee' ]);
+        $buyFee = -$trade[ 'fee' ];
+
+        $boughtAmount = $source->deductFeeFromAmountBuy( $trade[ 'amount' ] );
+        $txFee = $this->coinManager->getSafeTxFee( $source, $tradeable, $boughtAmount );
+        $tradeableTransferFee = max( $tradeableTransferFee, $txFee );
       }
       foreach ( $sellTrades as $trade ) {
         $this->tradeMatcher->saveTrade( $target->getID(), 'sell', $tradeable, $currency, $trade );
+
+        $rawTradeIDsSell[] = $trade[ 'rawID' ];
+        $tradeIDsSell[] = $trade[ 'id' ];
+
+        $rateTimesAmountSell += $trade[ 'rate' ] * $trade[ 'amount' ];
+        $tradeableSold += $trade[ 'amount' ];
+        // Fee is negative for "buy" trades.
+        $currencySold += $trade[ 'total' ] * (1 + $trade[ 'fee' ]);
+        $sellFee = $trade[ 'fee' ];
+
+        $soldAmount = $target->deductFeeFromAmountSell( $trade[ 'amount' ] );
+        $txFee = $this->coinManager->getSafeTxFee( $target, $tradeable, $soldAmount );
+        $tradeableTransferFee = max( $tradeableTransferFee, $txFee );
       }
+
+      $time = time();
+      $rawTradeIDsBuy = implode( ',', $rawTradeIDsBuy );
+      $tradeIDsBuy = implode( ',', $tradeIDsBuy );
+      $rawTradeIDsSell = implode( ',', $rawTradeIDsSell );
+      $tradeIDsSell = implode( ',', $tradeIDsSell );
+
+      $rateBuy = ($tradeableBought > 0.0e-9) ? ($rateTimesAmountBuy / $tradeableBought) : 0;
+      $rateSell = ($tradeableSold > 0.0e-9) ? ($rateTimesAmountSell / $tradeableSold) : 0;
+
+      $currencyTransferFee = $tradeableTransferFee * $rateSell;
+      $currencyRevenue = $currencySold - $currencyBought;
+      $currencyProfitLoss = $currencyRevenue - $currencyTransferFee;
+
+      Database::saveProfitLoss( $tradeable, $currency, $time, $source->getID(), $target->getID(),
+                                $rawTradeIDsBuy, $tradeIDsBuy, $rawTradeIDsSell, $tradeIDsSell,
+                                $rateBuy, $rateSell, $tradeableBought, $tradeableSold,
+                                $currencyBought, $currencySold, $currencyRevenue, $currencyProfitLoss,
+                                $tradeableTransferFee, $currencyTransferFee, $buyFee, $sellFee );
 
       $sourceTradeableAfter = $source->getWallets()[ $tradeable ];
       $targetTradeableAfter = $target->getWallets()[ $tradeable ];
@@ -360,6 +421,8 @@ class Arbitrator {
       $message .= "(Transfer fee is " . formatBTC( $txFee ) . ")\n\n";
 
       logg( $message );
+
+      logg( sprintf( "Calculated P&L: %.8f", formatBTC( $currencyProfitLoss) ) );
 
       Database::saveTrade( $tradeable, $currency, $sellAmount, $source->getID(), $target->getID() );
 
