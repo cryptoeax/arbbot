@@ -168,11 +168,19 @@ class Poloniex extends Exchange {
 
     $checkArray = !empty( $results );
 
+    $idsSeen = array( );
+
     foreach (array_keys($history) as $market) {
       $arr = explode( '_', $market );
       $currency = $arr[ 0 ];
       $tradeable = $arr[ 1 ];
       foreach ($history[ $market ] as $row) {
+	if ( isset( $idsSeen[ $row[ 'orderNumber' ] ] ) ) {
+	  // Poloniex sometimes returns duplicate results!
+	  continue;
+	}
+	$idsSeen[ $row[ 'orderNumber' ] ] = true;
+
         if (!in_array( $market, array_keys( $results ) )) {
           $results[ $market ] = array();
         }
