@@ -187,6 +187,11 @@ class Bittrex extends Exchange {
         'total' => $row[ 'Price' ],
       );
     }
+
+    foreach ( array_keys( $results ) as $market ) {
+      usort( $results[ $market ], 'compareByTime' );
+    }
+
     return $results;
   }
 

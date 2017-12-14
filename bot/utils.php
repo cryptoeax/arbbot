@@ -43,6 +43,10 @@ function quoteStr( $str ) {
   return "\"$str\"";
 }
 
+function compareByTime( $row1, $row2 ) {
+  return $row1[ 'time' ] - $row2[ 'time' ];
+}
+
 function installDirectoryDirty() {
 
   $installDir = __DIR__ . '/../';

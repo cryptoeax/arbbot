@@ -212,6 +212,11 @@ class Poloniex extends Exchange {
         );
       }
     }
+
+    foreach ( array_keys( $results ) as $market ) {
+      usort( $results[ $market ], 'compareByTime' );
+    }
+
     return $results;
   }
 
