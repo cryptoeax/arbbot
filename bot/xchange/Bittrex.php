@@ -135,6 +135,8 @@ class Bittrex extends Exchange {
 	$results[ $market ][] = array(
 	  'rawID' => $data[ 0 ],
 	  'id' => $data[ 0 ],
+	  'currency' => $currency,
+	  'tradeable' => $tradeable,
 	  'type' => $type_map[ $data[ 2 ] ],
 	  'time' => strtotime( $data[ 7 ] ),
 	  'rate' => $data[ 6 ] / $amount,
@@ -179,6 +181,8 @@ class Bittrex extends Exchange {
       $results[ $market ][] = array(
         'rawID' => $row[ 'OrderUuid' ],
         'id' => $row[ 'OrderUuid' ],
+        'currency' => $currency,
+        'tradeable' => $tradeable,
         'type' => $type_map[ $row[ 'OrderType' ] ],
         'time' => strtotime( $row[ 'TimeStamp' ] ),
         'rate' => $row[ 'PricePerUnit' ],

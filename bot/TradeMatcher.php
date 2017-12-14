@@ -56,5 +56,104 @@ class TradeMatcher {
 
   }
 
+  public function saveProfitLoss( &$source, &$target, &$buyTrades, &$sellTrades, &$cm ) {
+
+    $tradeable = null;
+    $currency = null;
+
+    $rawTradeIDsBuy = array( );
+    $tradeIDsBuy = array( );
+    $rawTradeIDsSell = array( );
+    $tradeIDsSell = array( );
+
+    $rateTimesAmountBuy = 0;
+    $tradeableBought = 0;
+    $currencyBought = 0;
+    $buyFee = 0;
+    $rateTimesAmountSell = 0;
+    $tradeableSold = 0;
+    $currencySold = 0;
+    $sellFee = 0;
+
+    $tradeableTransferFee = 0;
+
+    foreach ( $buyTrades as $trade ) {
+      if ( !is_null( $tradeable ) && $tradeable != $trade[ 'tradeable' ] ) {
+        logg( "WARNING: While looking through buy trades, found a ${trade['tradeable']} trade but we first saw $tradeable! Ignoring..." );
+        continue;
+      }
+
+      if ( !is_null( $currency ) && $currency != $trade[ 'currency' ] ) {
+        logg( "WARNING: While looking through buy trades, found a ${trade['currency']} trade but we first saw $currency! Ignoring..." );
+        continue;
+      }
+
+      $tradeable = $trade[ 'tradeable' ];
+      $currency = $trade[ 'currency' ];
+
+      $rawTradeIDsBuy[] = $trade[ 'rawID' ];
+      $tradeIDsBuy[] = $trade[ 'id' ];
+
+      $rateTimesAmountBuy += $trade[ 'rate' ] * $trade[ 'amount' ];
+      $tradeableBought += $trade[ 'amount' ];
+      $currencyBought += $trade[ 'total' ];
+      // Fee is positive for "buy" trades.
+      $buyFee = -$trade[ 'fee' ];
+
+      $boughtAmount = $source->deductFeeFromAmountBuy( $trade[ 'amount' ] );
+      $txFee = $cm->getSafeTxFee( $source, $trade[ 'tradeable' ], $boughtAmount );
+      $tradeableTransferFee = max( $tradeableTransferFee, $txFee );
+    }
+    foreach ( $sellTrades as $trade ) {
+      if ( !is_null( $tradeable ) && $tradeable != $trade[ 'tradeable' ] ) {
+        logg( "WARNING: While looking through sell trades, found a ${trade['tradeable']} trade but we first saw $tradeable! Ignoring..." );
+        continue;
+      }
+
+      if ( !is_null( $currency ) && $currency != $trade[ 'currency' ] ) {
+        logg( "WARNING: While looking through sell trades, found a ${trade['currency']} trade but we first saw $currency! Ignoring..." );
+        continue;
+      }
+
+      $tradeable = $trade[ 'tradeable' ];
+      $currency = $trade[ 'currency' ];
+
+      $rawTradeIDsSell[] = $trade[ 'rawID' ];
+      $tradeIDsSell[] = $trade[ 'id' ];
+
+      $rateTimesAmountSell += $trade[ 'rate' ] * $trade[ 'amount' ];
+      $tradeableSold += $trade[ 'amount' ];
+      $currencySold += $trade[ 'total' ];
+      // Fee is negative for "buy" trades.
+      $sellFee = $trade[ 'fee' ];
+
+      $soldAmount = $target->deductFeeFromAmountSell( $trade[ 'amount' ] );
+      $txFee = $cm->getSafeTxFee( $target, $trade[ 'tradeable' ], $soldAmount );
+      $tradeableTransferFee = max( $tradeableTransferFee, $txFee );
+    }
+
+    $time = time();
+    $rawTradeIDsBuy = implode( ',', $rawTradeIDsBuy );
+    $tradeIDsBuy = implode( ',', $tradeIDsBuy );
+    $rawTradeIDsSell = implode( ',', $rawTradeIDsSell );
+    $tradeIDsSell = implode( ',', $tradeIDsSell );
+
+    $rateBuy = ($tradeableBought > 0) ? ($rateTimesAmountBuy / $tradeableBought) : 0;
+    $rateSell = ($tradeableSold > 0) ? ($rateTimesAmountSell / $tradeableSold) : 0;
+
+    $currencyTransferFee = $tradeableTransferFee * $rateSell;
+    $currencyRevenue = $currencySold - $currencyBought;
+    $currencyProfitLoss = $currencyRevenue - $currencyTransferFee + $sellFee + $buyFee;
+
+    Database::saveProfitLoss( $tradeable, $currency, $time, $source->getID(), $target->getID(),
+                              $rawTradeIDsBuy, $tradeIDsBuy, $rawTradeIDsSell, $tradeIDsSell,
+                              $rateBuy, $rateSell, $tradeableBought, $tradeableSold,
+                              $currencyBought, $currencySold, $currencyRevenue, $currencyProfitLoss,
+                              $tradeableTransferFee, $currencyTransferFee, $buyFee, $sellFee );
+
+
+    return $currencyProfitLoss;
+  }
+
 }
 
