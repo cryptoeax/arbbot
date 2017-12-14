@@ -341,8 +341,8 @@ class Arbitrator {
 
         $rateTimesAmountBuy += $trade[ 'rate' ] * $trade[ 'amount' ];
         $tradeableBought += $trade[ 'amount' ];
+        $currencyBought += $trade[ 'total' ];
         // Fee is positive for "buy" trades.
-        $currencyBought += $trade[ 'total' ] * (1 - $trade[ 'fee' ]);
         $buyFee = -$trade[ 'fee' ];
 
         $boughtAmount = $source->deductFeeFromAmountBuy( $trade[ 'amount' ] );
@@ -357,8 +357,8 @@ class Arbitrator {
 
         $rateTimesAmountSell += $trade[ 'rate' ] * $trade[ 'amount' ];
         $tradeableSold += $trade[ 'amount' ];
+        $currencySold += $trade[ 'total' ];
         // Fee is negative for "buy" trades.
-        $currencySold += $trade[ 'total' ] * (1 + $trade[ 'fee' ]);
         $sellFee = $trade[ 'fee' ];
 
         $soldAmount = $target->deductFeeFromAmountSell( $trade[ 'amount' ] );
@@ -377,7 +377,7 @@ class Arbitrator {
 
       $currencyTransferFee = $tradeableTransferFee * $rateSell;
       $currencyRevenue = $currencySold - $currencyBought;
-      $currencyProfitLoss = $currencyRevenue - $currencyTransferFee;
+      $currencyProfitLoss = $currencyRevenue - $currencyTransferFee + $sellFee + $buyFee;
 
       Database::saveProfitLoss( $tradeable, $currency, $time, $source->getID(), $target->getID(),
                                 $rawTradeIDsBuy, $tradeIDsBuy, $rawTradeIDsSell, $tradeIDsSell,
