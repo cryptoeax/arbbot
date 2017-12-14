@@ -277,7 +277,8 @@ class CoinManager {
     if ( $coin == 'BTC' ) {
       $minXFER = Config::get( Config::MIN_BTC_XFER, Config::DEFAULT_MIN_BTC_XFER );
       // Be a bit more conservative with BTC, since it's our profits after all!
-      $safetyFactor /= 1.5;
+      $safetyFactor /= Config::get( Config::BTC_XFER_SAFETY_FACTOR,
+                                    Config::DEFAULT_BTC_XFER_SAFETY_FACTOR );
     }
     foreach ( $exchanges as $exchange ) {
       // Allow max 1% of coin amount to be transfer fee:
