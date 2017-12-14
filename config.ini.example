@@ -2,9 +2,18 @@
 [general]
 ; GENERAL SETTINGS
 
-; The bot automatically evens out the exchange wallets. This sets the required
-; BTC amount for a transfer .
+; The bot automatically evens out the exchange wallets. This sets the minimum
+; required BTC amount for a transfer. The bot may decide to adjust the minimum
+; to a higher value if the transfer fees are really high.
 min-btc-xfer = 0.025
+
+; The bot has a safety factor for being more conservative by default about
+; transfering BTC versus other assets.  The bot tries to not lose more than
+; 1% of an altcoin during transfer, but we are more conservative by a factor
+; of btc-xfer-safety-factor.  For example if you adjust this value to 2,
+; the bot tries to not lose more than 0.5% of our BTC during transfer, and
+; help accumulate profits faster.
+btc-xfer-safety-factor = 1.5
 
 ; It could happen that the bot leaves orders at the exchange (if an order was
 ; only partially filled). Enable this setting to cancel those orders in regular

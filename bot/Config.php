@@ -78,6 +78,9 @@ class Config {
   const MIN_BTC_XFER = 'general.min-btc-xfer';
   const DEFAULT_MIN_BTC_XFER = 0.02;
   //
+  const BTC_XFER_SAFETY_FACTOR = 'general.btc-xfer-safety-factor';
+  const DEFAULT_BTC_XFER_SAFETY_FACTOR = 1.5;
+  //
   const BLOCKED_COINS = 'general.blockedCoins';
   const DEFAULT_BLOCKED_COINS = 'BTS,NXT,XMR,ETH,ETC,BURST,SWIFT,XRP,STEEM,ARDR,SBD,NAUT';
   //
@@ -231,6 +234,7 @@ class Config {
 
     $editableConfigs = [
       self::MIN_BTC_XFER,
+      self::BTC_XFER_SAFETY_FACTOR,
       self::CANCEL_STRAY_ORDERS,
       self::BLOCKED_COINS,
       self::MODULE_TRADE,
@@ -312,6 +316,7 @@ class Config {
 
     $editableConfigs = [
       self::MIN_BTC_XFER,
+      self::BTC_XFER_SAFETY_FACTOR,
       self::CANCEL_STRAY_ORDERS,
       self::BLOCKED_COINS,
       self::MODULE_TRADE,
