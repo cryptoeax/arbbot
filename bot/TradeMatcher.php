@@ -196,7 +196,8 @@ class TradeMatcher {
                    formatBTC( $tradeableDifference ), formatBTC( $finishedDepositSum )
     ) );
 
-    return $tradesSum == 0 || abs( abs( $netBalanceDiff / $tradesSum ) - 1 ) < 1e-5;
+    return $tradesSum == 0 ||
+           abs( abs( $tradesSum / $netBalanceDiff ) - 1 ) <= $exchange->addFeeToPrice( 1 );
 
   }
 
