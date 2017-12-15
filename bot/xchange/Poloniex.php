@@ -224,6 +224,36 @@ class Poloniex extends Exchange {
     return $results;
   }
 
+  public function queryRecentDeposits( $currency = null ) {
+
+    $now = time();
+    $history = $this->queryAPI( 'returnDepositsWithdrawals', array(
+      'start' => $now - 30 * 60,
+      'end' => $now,
+    ) );
+
+    $result = array();
+    foreach ( $history[ 'deposits' ] as $row ) {
+      if ( !is_null( $currency ) && $currency != $row[ 'currency' ] ) {
+        continue;
+      }
+
+      $result[] = array(
+        'currency' => $row[ 'currency' ],
+        'amount' => $row[ 'amount' ],
+        'txid' => $row[ 'txid' ],
+        'address' => $row[ 'address' ],
+        'time' => $row[ 'timestamp' ],
+        'pending' => $row[ 'status' ] != 'COMPLETE',
+      );
+    }
+
+    usort( $result, 'compareByTime' );
+
+    return $result;
+
+  }
+
   protected function fetchOrderbook( $tradeable, $currency ) {
 
     $orderbook = $this->queryOrderbook( $tradeable, $currency );
