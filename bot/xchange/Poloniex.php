@@ -457,6 +457,15 @@ class Poloniex extends Exchange {
       if ( $res === false ) {
         $error = $this->prefix() . "Could not get reply: " . curl_error( $ch );
         logg( $error );
+
+        // Refresh request parameters
+        $nonce = $this->nonce();
+        $req['nonce'] = sprintf( "%ld", $nonce );
+        $post_data = http_build_query( $req, '', '&' );
+        $sign = hash_hmac( 'sha512', $post_data, $secret );
+        $headers[ 1 ] = 'Sign: ' . $sign;
+        curl_setopt( $ch, CURLOPT_POSTFIELDS, $post_data );
+        curl_setopt( $ch, CURLOPT_HTTPHEADER, $headers );
         continue;
       }
 
@@ -464,6 +473,15 @@ class Poloniex extends Exchange {
       if ( !$data ) {
         $error = $this->prefix() . "Invalid data received: (" . $res . ")";
         logg( $error );
+
+        // Refresh request parameters
+        $nonce = $this->nonce();
+        $req['nonce'] = sprintf( "%ld", $nonce );
+        $post_data = http_build_query( $req, '', '&' );
+        $sign = hash_hmac( 'sha512', $post_data, $secret );
+        $headers[ 1 ] = 'Sign: ' . $sign;
+        curl_setopt( $ch, CURLOPT_POSTFIELDS, $post_data );
+        curl_setopt( $ch, CURLOPT_HTTPHEADER, $headers );
         continue;
       }
 

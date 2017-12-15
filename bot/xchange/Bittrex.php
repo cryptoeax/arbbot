@@ -431,6 +431,12 @@ class Bittrex extends Exchange {
         $error = $ex->getMessage();
         logg( $this->prefix() . $error );
         sleep( 1 );
+
+        // Refresh request parameters
+        $nonce = $this->nonce();
+        $req[ 'nonce' ] = sprintf( "%ld", $nonce );
+        $uri = 'https://bittrex.com/api/v1.1/' . $method . '?' . http_build_query( $req );
+        curl_setopt( $ch, CURLOPT_URL, $uri );
         continue;
       }
 
