@@ -235,16 +235,16 @@ class WebDB {
       $balance = $row[ 'balance' ];
 
       if ( key_exists( $exid, $extc ) === false ) {
-        $extc[ $exid ] = self::getTradeCount( $exid );
-        $exoc[ $exid ] = self::getOpportunityCount( $exid );
+        $extc[ $exid ] = intval( self::getTradeCount( $exid ) );
+        $exoc[ $exid ] = intval( self::getOpportunityCount( $exid ) );
       }
 
       $age = time() - $row[ 'created' ];
-      $wallets[ $coin ][ $exid ][ 'balance' ] = $balance ;
-      $wallets[ $coin ][ $exid ][ 'balance_diff' ] = formatBTC( $row[ 'desired_balance' ] - $balance );
-      $wallets[ $coin ][ $exid ][ 'opportunities' ] = $row[ 'uses' ];
-      $wallets[ $coin ][ $exid ][ 'change' ] = $balance  - self::getHistoricBalance( $coin, $exid );
-      $wallets[ $coin ][ $exid ][ 'trades' ] = $row[ 'trades' ];
+      $wallets[ $coin ][ $exid ][ 'balance' ] = floatval( $balance );
+      $wallets[ $coin ][ $exid ][ 'balance_diff' ] = floatval( formatBTC( $row[ 'desired_balance' ] - $balance ) );
+      $wallets[ $coin ][ $exid ][ 'opportunities' ] = intval( $row[ 'uses' ] );
+      $wallets[ $coin ][ $exid ][ 'change' ] = floatval( $balance  - self::getHistoricBalance( $coin, $exid ) );
+      $wallets[ $coin ][ $exid ][ 'trades' ] = intval( $row[ 'trades' ] );
     }
 
     mysql_close( $link );
