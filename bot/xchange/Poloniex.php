@@ -582,7 +582,7 @@ class Poloniex extends Exchange {
     if ( is_null( $ch ) ) {
       $ch = curl_init();
       curl_setopt( $ch, CURLOPT_RETURNTRANSFER, TRUE );
-      curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, FALSE );
+      curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, TRUE );
       curl_setopt( $ch, CURLOPT_USERAGENT, 'Mozilla/4.0 (compatible; Poloniex PHP bot; ' . php_uname( 'a' ) . '; PHP/' . phpversion() . ')' );
       curl_setopt( $ch, CURLOPT_URL, 'https://poloniex.com/tradingApi' );
     }
