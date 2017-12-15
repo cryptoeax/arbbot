@@ -47,6 +47,10 @@ function compareByTime( $row1, $row2 ) {
   return $row1[ 'time' ] - $row2[ 'time' ];
 }
 
+function sumOfAmount( $carry, $item ) {
+  return $carry + $item[ 'amount' ];
+}
+
 function installDirectoryDirty() {
 
   $installDir = __DIR__ . '/../';

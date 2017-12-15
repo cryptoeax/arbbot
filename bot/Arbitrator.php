@@ -13,6 +13,8 @@ class Arbitrator {
   private $nextCoinUpdate = 0;
   private $walletsRefreshed = false;
   private $tradeHappened = false;
+  //
+  private $lastRecentDeposits = [ ];
 
   function __construct( $exchanges, &$tradeMatcher ) {
     $this->exchanges = &$exchanges;
@@ -23,6 +25,7 @@ class Arbitrator {
       for ( $j = $i + 1; $j < count( $exchanges ); $j++ ) {
         $this->exchangePairs[] = [$exchanges[ $i ], $exchanges[ $j ] ];
       }
+      $this->lastRecentDeposits[ $exchanges[ $i ]->getID() ] = array( );
     }
 
     $this->coinManager = new CoinManager( $exchanges );
@@ -311,11 +314,45 @@ class Arbitrator {
       $target->refreshWallets();
       $source->refreshWallets();
 
+      $sourceTradeableAfter = $source->getWallets()[ $tradeable ];
+      $targetTradeableAfter = $target->getWallets()[ $tradeable ];
+      $sourceTradeableDifference = $sourceTradeableAfter - $sourceTradeableBefore;
+      $targetTradeableDifference = $targetTradeableAfter - $targetTradeableBefore;
+
+      $sourceNewPendingDeposits = $source->queryRecentDeposits( $tradeable );
+      $targetNewPendingDeposits = $target->queryRecentDeposits( $tradeable );
+
       $totalCost = $source->getFilledOrderPrice( 'buy', $tradeable, $currency, $buyOrderID );
       $totalRevenue = $target->getFilledOrderPrice( 'sell', $tradeable, $currency, $sellOrderID );
 
-      $buyTrades = $this->tradeMatcher->getExchangeNewTrades( $source->getID() );
-      $sellTrades = $this->tradeMatcher->getExchangeNewTrades( $target->getID() );
+      $buyTrades = array( );
+      while (true) {
+        $buyTrades = $this->tradeMatcher->getExchangeNewTrades( $source->getID() );
+        $matched = $this->tradeMatcher->matchTradesConsideringPendingDeposits( $buyTrades, $tradeable,
+                                                                               'buy', $source,
+                                                                               $this->lastRecentDeposits[ $source->getID() ],
+                                                                               $sourceNewPendingDeposits,
+                                                                               $sourceTradeableDifference );
+        if ( $matched ) {
+          break;
+        }
+        logg( "WARNING: not reciving all buy trades from the source exchange in time, waiting a bit and retrying..." );
+        usleep( 500000 );
+      }
+
+      $sellTrades = array( );
+      while (true) {
+        $sellTrades = $this->tradeMatcher->getExchangeNewTrades( $target->getID() );
+        $matched = $this->tradeMatcher->matchTradesConsideringPendingDeposits( $sellTrades, $tradeable, 'sell', $target,
+                                                                               $this->lastRecentDeposits[ $target->getID() ],
+                                                                               $targetNewPendingDeposits,
+                                                                               $targetTradeableDifference );
+        if ( $matched ) {
+          break;
+        }
+        logg( "WARNING: not reciving all sell trades from the target exchange in time, waiting a bit and retrying..." );
+        usleep( 500000 );
+      }
 
       foreach ( $buyTrades as $trade ) {
         $this->tradeMatcher->saveTrade( $source->getID(), 'buy', $trade[ 'tradeable' ],
@@ -330,8 +367,6 @@ class Arbitrator {
                                                                  $buyTrades, $sellTrades,
                                                                  $this->coinManager );
 
-      $sourceTradeableAfter = $source->getWallets()[ $tradeable ];
-      $targetTradeableAfter = $target->getWallets()[ $tradeable ];
       $sourceCurrencyAfter = $sourceCurrencyBefore - $totalCost;
       $targetCurrencyAfter = $targetCurrencyBefore + $totalRevenue;
 
@@ -340,14 +375,12 @@ class Arbitrator {
       $message .= "DIRECTION: " . $source->getName() . " TO " . $target->getName() . "\n";
       $message .= "BALANCES BEFORE / AFTER\n";
       $message .= "\n" . $source->getName() . ":\n";
-      $sourceTradeableDifference = $sourceTradeableAfter - $sourceTradeableBefore;
       $message .= formatCoin( $tradeable ) . ": " . formatBalance( $sourceTradeableBefore ) . " => " . formatBalance( $sourceTradeableAfter ) . " = " . formatBalance( $sourceTradeableDifference ) . "\n";
 
       $sourceCurrencyDifference = $sourceCurrencyAfter - $sourceCurrencyBefore;
       $message .= formatCoin( $currency ) . ": " . formatBalance( $sourceCurrencyBefore ) . " => " . formatBalance( $sourceCurrencyAfter ) . " = " . formatBalance( $sourceCurrencyDifference ) . "\n";
 
       $message .= "\n" . $target->getName() . ":\n";
-      $targetTradeableDifference = $targetTradeableAfter - $targetTradeableBefore;
       $message .= formatCoin( $tradeable ) . ": " . formatBalance( $targetCurrencyBefore ) . " => " . formatBalance( $targetTradeableAfter ) . " = " . formatBalance( $targetTradeableDifference ) . "\n";
 
       $targetCurrencyDifference = $targetCurrencyAfter - $targetCurrencyBefore;
@@ -439,6 +472,9 @@ class Arbitrator {
     logg( "Refreshing wallets..." );
     foreach ( $this->exchanges as $exchange ) {
       $exchange->refreshWallets();
+      if ($this->walletsRefreshed) {
+        $this->lastRecentDeposits[ $exchange->getID() ] = $exchange->queryRecentDeposits();
+      }
     }
 
     $this->walletsRefreshed = true;

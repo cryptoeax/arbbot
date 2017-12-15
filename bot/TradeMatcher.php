@@ -155,5 +155,50 @@ class TradeMatcher {
     return $currencyProfitLoss;
   }
 
+  public function matchTradesConsideringPendingDeposits( $trades, $tradeable, $type, $exchange,
+                                                         $depositsBefore, $depositsAfter,
+                                                         $tradeableDifference ) {
+
+    $pendingInitialDeposits = array();
+    foreach ( $depositsBefore as $dep ) {
+      if ( $dep[ 'currency' ] != $tradeable || !$dep[ 'pending' ] ) {
+        continue;
+      }
+      $pendingInitialDeposits[] = $dep;
+    }
+
+    $finishedDepositsAtEnd = array();
+    foreach ( $depositsAfter as $dep ) {
+      if ( $dep[ 'currency' ] != $tradeable || $dep[ 'pending' ] ) {
+        continue;
+      }
+      $finishedDepositsAtEnd[] = $dep;
+    }
+
+    $finishedDeposits = array();
+    foreach ( $pendingInitialDeposits as $dep1 ) {
+      foreach ( $finishedDepositsAtEnd as $dep2 ) {
+        if ( $dep1[ 'txid' ] != $dep2[ 'txid' ] ) {
+          continue;
+        }
+        $finishedDeposits[] = $dep2;
+      }
+    }
+
+    $tradeableDifference = abs( $tradeableDifference );
+    $finishedDepositSum = array_reduce( $finishedDeposits, 'sumOfAmount', 0 );
+    $tradesSum = array_reduce( $trades, 'sumOfAmount', 0 );
+    $netBalanceDiff = $tradeableDifference - $finishedDepositSum;
+
+    logg( sprintf( "Received %.8f %s from the exchange while our wallets show a " .
+                   "balance difference of %.8f (%.8f - %.8f finished deposits)",
+                   formatBTC( $tradesSum ), $tradeable, formatBTC( $netBalanceDiff ),
+                   formatBTC( $tradeableDifference ), formatBTC( $finishedDepositSum )
+    ) );
+
+    return $tradesSum == 0 || abs( abs( $netBalanceDiff / $tradesSum ) - 1 ) < 1e-5;
+
+  }
+
 }
 
