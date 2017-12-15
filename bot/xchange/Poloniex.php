@@ -470,7 +470,7 @@ class Poloniex extends Exchange {
       }
 
       $data = json_decode( $res, true );
-      if ( !$data ) {
+      if ( $data === null ) {
         $error = $this->prefix() . "Invalid data received: (" . $res . ")";
         logg( $error );
 
