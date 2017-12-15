@@ -569,6 +569,10 @@ class Database {
 
     $link = self::connect();
 
+    if ( !count( $recentTradeIDs ) ) {
+      return array( );
+    }
+
     $arg = implode( ", ", array_map( 'quoteStr',
                             array_map( 'mysql_escape_string', $recentTradeIDs ) ) );
 
