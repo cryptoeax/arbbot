@@ -455,12 +455,23 @@ class CoinManager {
       $totalBTC += $balance;
     }
 
+    $averageBTC = formatBTC( $totalBTC / count( $this->exchanges ) );
+
     $profit = formatBTC( $totalBTC - $profitLimit );
     logg( "Profit: " . $profit );
     $restockCash = formatBTC( min( 0.1, $profit * 0.33 ) );
 
+    $minXFER = Config::get( Config::MIN_BTC_XFER, Config::DEFAULT_MIN_BTC_XFER );
+    // Be a bit more conservative with BTC, since it's our profits after all!
+    $safetyFactor = 0.01 / Config::get( Config::BTC_XFER_SAFETY_FACTOR,
+                                        Config::DEFAULT_BTC_XFER_SAFETY_FACTOR );
+    foreach ( $this->exchanges as $exchange ) {
+      // Allow max 1%/safetyFactor of coin amount to be transfer fee:
+      $minXFER = max( $minXFER, $this->getSafeTxFee( $exchange, 'BTC', $averageBTC ) / $safetyFactor );
+    }
+
     $remainingProfit = formatBTC( $profit - $restockCash );
-    if ( $remainingProfit < Config::get( Config::MIN_BTC_XFER, Config::DEFAULT_MIN_BTC_XFER ) ) {
+    if ( $remainingProfit < $minXFER ) {
       logg( "Not enough profit yet..." );
       return;
     }
