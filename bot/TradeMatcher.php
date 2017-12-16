@@ -201,5 +201,37 @@ class TradeMatcher {
 
   }
 
+  function handlePostTradeTasks( &$arbitrator, &$exchange, $coin, $type, $tradeableBefore ) {
+
+    $exchange->refreshWallets();
+
+    $newPendingDeposits = $exchange->queryRecentDeposits( $coin );
+    $tradeableAfter = $exchange->getWallets()[ $coin ];
+    $tradeableDifference = $tradeableAfter - $tradeableBefore;
+    $tradeMatcher = &$arbitrator->getTradeMatcher();
+
+    $trades = array( );
+    while (true) {
+      $trades = $tradeMatcher->getExchangeNewTrades( $exchange->getID() );
+      $matched = $tradeMatcher->matchTradesConsideringPendingDeposits( $trades, $coin, $type, $exchange,
+                                                                       $arbitrator->getLastRecentDeposits()[ $exchange->getID() ],
+                                                                       $newPendingDeposits,
+                                                                       $tradeableDifference );
+      if ( $matched ) {
+        break;
+      }
+      logg( "WARNING: not reciving all $type trades from the exchange in time, waiting a bit and retrying..." );
+      usleep( 500000 );
+    }
+
+    foreach ( $trades as $trade ) {
+      $tradeMatcher->saveTrade( $exchange->getID(), $type, $trade[ 'tradeable' ],
+                                $trade[ 'currency' ], $trade );
+    }
+
+    return $trades;
+
+  }
+
 }
 

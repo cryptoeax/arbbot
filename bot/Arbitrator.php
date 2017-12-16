@@ -311,57 +311,14 @@ class Arbitrator {
 
       logg( "Checking trade results ($i)..." );
 
-      $target->refreshWallets();
-      $source->refreshWallets();
-
-      $sourceTradeableAfter = $source->getWallets()[ $tradeable ];
-      $targetTradeableAfter = $target->getWallets()[ $tradeable ];
-      $sourceTradeableDifference = $sourceTradeableAfter - $sourceTradeableBefore;
-      $targetTradeableDifference = $targetTradeableAfter - $targetTradeableBefore;
-
-      $sourceNewPendingDeposits = $source->queryRecentDeposits( $tradeable );
-      $targetNewPendingDeposits = $target->queryRecentDeposits( $tradeable );
+      // handlePostTradeTasks will call refreshWallets for us.
+      $buyTrades = $this->tradeMatcher->handlePostTradeTasks( $this, $source, $tradeable, 'buy',
+                                                              $sourceTradeableBefore );
+      $sellTrades = $this->tradeMatcher->handlePostTradeTasks( $this, $target, $tradeable, 'sell',
+                                                               $targetTradeableBefore );
 
       $totalCost = $source->getFilledOrderPrice( 'buy', $tradeable, $currency, $buyOrderID );
       $totalRevenue = $target->getFilledOrderPrice( 'sell', $tradeable, $currency, $sellOrderID );
-
-      $buyTrades = array( );
-      while (true) {
-        $buyTrades = $this->tradeMatcher->getExchangeNewTrades( $source->getID() );
-        $matched = $this->tradeMatcher->matchTradesConsideringPendingDeposits( $buyTrades, $tradeable,
-                                                                               'buy', $source,
-                                                                               $this->lastRecentDeposits[ $source->getID() ],
-                                                                               $sourceNewPendingDeposits,
-                                                                               $sourceTradeableDifference );
-        if ( $matched ) {
-          break;
-        }
-        logg( "WARNING: not reciving all buy trades from the source exchange in time, waiting a bit and retrying..." );
-        usleep( 500000 );
-      }
-
-      $sellTrades = array( );
-      while (true) {
-        $sellTrades = $this->tradeMatcher->getExchangeNewTrades( $target->getID() );
-        $matched = $this->tradeMatcher->matchTradesConsideringPendingDeposits( $sellTrades, $tradeable, 'sell', $target,
-                                                                               $this->lastRecentDeposits[ $target->getID() ],
-                                                                               $targetNewPendingDeposits,
-                                                                               $targetTradeableDifference );
-        if ( $matched ) {
-          break;
-        }
-        logg( "WARNING: not reciving all sell trades from the target exchange in time, waiting a bit and retrying..." );
-        usleep( 500000 );
-      }
-
-      foreach ( $buyTrades as $trade ) {
-        $this->tradeMatcher->saveTrade( $source->getID(), 'buy', $trade[ 'tradeable' ],
-                                        $trade[ 'currency' ], $trade );
-      }
-      foreach ( $sellTrades as $trade ) {
-        $this->tradeMatcher->saveTrade( $target->getID(), 'sell', $trade[ 'tradeable' ],
-                                        $trade[ 'currency' ], $trade );
-      }
 
       $currencyProfitLoss = $this->tradeMatcher->saveProfitLoss( $source, $target,
                                                                  $buyTrades, $sellTrades,
@@ -369,6 +326,12 @@ class Arbitrator {
 
       $sourceCurrencyAfter = $sourceCurrencyBefore - $totalCost;
       $targetCurrencyAfter = $targetCurrencyBefore + $totalRevenue;
+
+      $sourceTradeableAfter = $source->getWallets()[ $tradeable ];
+      $targetTradeableAfter = $target->getWallets()[ $tradeable ];
+
+      $sourceTradeableDifference = $sourceTradeableAfter - $sourceTradeableBefore;
+      $targetTradeableDifference = $targetTradeableAfter - $targetTradeableBefore;
 
       $message = "TRADE SUMMARY:\n";
       $message .= "PAIR: $tradeable vs $currency\n";
