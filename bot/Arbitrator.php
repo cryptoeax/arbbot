@@ -293,18 +293,34 @@ class Arbitrator {
     logg( $orderInfo );
 
     $sellOrderID = $target->sell( $tradeable, $currency, $reducedSellRate, $sellAmount );
-    logg( "Placed sell order (" . $target->getName() . " ID: $sellOrderID)" );
-    $buyOrderID = $source->buy( $tradeable, $currency, $increasedBuyRate, $tradeAmount );
-    logg( "Placed buy order (" . $source->getName() . " ID: $buyOrderID)" );
+    if ( is_null( $sellOrderID ) ) {
+      logg( "Sell order failed, we will not attempt a buy order to avoid incurring a loss." );
+      $buyOrderID = null;
+    } else {
+      logg( "Placed sell order (" . $target->getName() . " ID: $sellOrderID)" );
+      for ( $i = 0; $i < 5; ++ $i ) {
+        $buyOrderID = $source->buy( $tradeable, $currency, $increasedBuyRate, $tradeAmount );
+        if ( is_null( $buyOrderID ) ) {
+          if ( $i < 4 ) {
+            logg( "Buy order failed, we will probably incur a profit (but we have really sold off our altcoin), so let's retry..." );
+          }
+          continue;
+        }
+        logg( "Placed buy order (" . $source->getName() .  " ID: $buyOrderID)" );
 
-    logg( "Waiting for order execution..." );
-    sleep( Config::get( Config::ORDER_CHECK_DELAY, Config::DEFAULT_ORDER_CHECK_DELAY ) );
+        logg( "Waiting for order execution..." );
+        sleep( Config::get( Config::ORDER_CHECK_DELAY, Config::DEFAULT_ORDER_CHECK_DELAY ) );
+        break;
+      }
 
-    if ( $target->cancelOrder( $sellOrderID ) ) {
-      logg( "A sell order hasn't been filled. If this happens regulary you should increase the " . Config::ORDER_CHECK_DELAY . " setting!", true );
-    }
-    if ( $source->cancelOrder( $buyOrderID ) ) {
-      logg( "A buy order hasn't been filled. If this happens regulary you should increase the " . Config::ORDER_CHECK_DELAY . " setting!", true );
+      if ( !is_null( $sellOrderID ) &&
+           $target->cancelOrder( $sellOrderID ) ) {
+        logg( "A sell order hasn't been filled. If this happens regulary you should increase the " . Config::ORDER_CHECK_DELAY . " setting!", true );
+      }
+      if ( !is_null( $buyOrderID ) &&
+           $source->cancelOrder( $buyOrderID ) ) {
+        logg( "A buy order hasn't been filled. If this happens regulary you should increase the " . Config::ORDER_CHECK_DELAY . " setting!", true );
+      }
     }
 
     for ( $i = 1; $i <= 8; $i *= 2 ) {
@@ -317,8 +333,10 @@ class Arbitrator {
       $sellTrades = $this->tradeMatcher->handlePostTradeTasks( $this, $target, $tradeable, 'sell',
                                                                $targetTradeableBefore );
 
-      $totalCost = $source->getFilledOrderPrice( 'buy', $tradeable, $currency, $buyOrderID );
-      $totalRevenue = $target->getFilledOrderPrice( 'sell', $tradeable, $currency, $sellOrderID );
+      $totalCost = is_null( $buyOrderID ) ? 0 :
+                     $source->getFilledOrderPrice( 'buy', $tradeable, $currency, $buyOrderID );
+      $totalRevenue = is_null( $sellOrderID ) ? 0 :
+                        $target->getFilledOrderPrice( 'sell', $tradeable, $currency, $sellOrderID );
 
       $currencyProfitLoss = $this->tradeMatcher->saveProfitLoss( $source, $target,
                                                                  $buyTrades, $sellTrades,
