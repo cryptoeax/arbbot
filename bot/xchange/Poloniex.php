@@ -95,12 +95,24 @@ class Poloniex extends Exchange {
   }
 
   public function buy( $tradeable, $currency, $rate, $amount ) {
-    return $this->queryOrder( $tradeable, $currency, 'buy', $rate, $amount );
+    try {
+      return $this->queryOrder( $tradeable, $currency, 'buy', $rate, $amount );
+    }
+    catch ( Exception $ex ) {
+      logg( $this->prefix() . "Got an exception in buy(): " . $ex->getMessage() );
+      return null;
+    }
 
   }
 
   public function sell( $tradeable, $currency, $rate, $amount ) {
-    return $this->queryOrder( $tradeable, $currency, 'sell', $rate, $amount );
+    try {
+      return $this->queryOrder( $tradeable, $currency, 'sell', $rate, $amount );
+    }
+    catch ( Exception $ex ) {
+      logg( $this->prefix() . "Got an exception in sell(): " . $ex->getMessage() );
+      return null;
+    }
 
   }
 
