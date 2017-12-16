@@ -748,8 +748,26 @@ class CoinManager {
       return;
     }
 
+    function doWithdraw( $coin, $amount, $address ) {
+
+      try {
+        return $source->withdraw( $coin, $amount, $address );
+      }
+      catch ( Exception $ex ) {
+        // Perhaps the withdrawal was unsuccessful because of insufficient balance.
+        // This can happen if the account only has $amount balance, in which case
+        // we need to subtract the withdrawal fee.
+        $amount -= $source->getTransferFee( $coin, $amount );
+        return $source->withdraw( $coin, $amount, $address );
+      }
+
+      return false;
+
+    }
+
+
     logg( "Deposit address: $address" );
-    if ( $source->withdraw( $coin, $amount, trim( $address ) ) ) {
+    if ( doWithdraw( $coin, $amount, trim( $address ) ) ) {
       Database::saveWithdrawal( $coin, $amount, trim( $address ), $source->getID(), $target->getID() );
     }
 
