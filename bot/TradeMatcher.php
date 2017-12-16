@@ -224,12 +224,19 @@ class TradeMatcher {
       usleep( 500000 );
     }
 
+    $result = array( );
     foreach ( $trades as $trade ) {
       $tradeMatcher->saveTrade( $exchange->getID(), $type, $trade[ 'tradeable' ],
                                 $trade[ 'currency' ], $trade );
+      if ( $trade[ 'tradeable' ] == $coin ) {
+        $result[] = $trade;
+      } else {
+        logg( "WARNING: Got an unrelated trade while trying to perfrom post-trade tasks: %s of %.8f %s at %.8f, saved but will ignore" );
+        continue;
+      }
     }
 
-    return $trades;
+    return $result;
 
   }
 
