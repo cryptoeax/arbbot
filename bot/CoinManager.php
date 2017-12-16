@@ -756,7 +756,7 @@ class CoinManager {
       return;
     }
 
-    function doWithdraw( $coin, $amount, $address ) {
+    function doWithdraw( $source, $coin, $amount, $address ) {
 
       try {
         return $source->withdraw( $coin, $amount, $address );
@@ -775,7 +775,7 @@ class CoinManager {
 
 
     logg( "Deposit address: $address" );
-    if ( doWithdraw( $coin, $amount, trim( $address ) ) ) {
+    if ( doWithdraw( $source, $coin, $amount, trim( $address ) ) ) {
       Database::saveWithdrawal( $coin, $amount, trim( $address ), $source->getID(), $target->getID() );
     }
 
