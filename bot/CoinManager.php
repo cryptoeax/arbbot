@@ -571,15 +571,17 @@ class CoinManager {
 
       logg( "Posting buy order to " . $exchange->getName() . ": $buyAmount $coin for $buyPrice @ $rate" );
       $orderID = $exchange->buy( $coin, 'BTC', $rate, $buyAmount );
-      logg( "Waiting for order execution..." );
-      sleep( Config::get( Config::ORDER_CHECK_DELAY, Config::DEFAULT_ORDER_CHECK_DELAY ) );
+      if ( !is_null( $orderID ) ) {
+        logg( "Waiting for order execution..." );
+        sleep( Config::get( Config::ORDER_CHECK_DELAY, Config::DEFAULT_ORDER_CHECK_DELAY ) );
 
-      if ( !$exchange->cancelOrder( $orderID ) ) {
-        // Cancellation failed: Order has been executed!
-        logg( "Order executed!" );
-        Database::saveManagement( $coin, $buyAmount, $rate, $exchange->getID() );
-        $this->stats[ self::STAT_AUTOBUY_FUNDS ] = formatBTC( $autobuyFunds - $buyPrice );
-        return;
+        if ( !$exchange->cancelOrder( $orderID ) ) {
+          // Cancellation failed: Order has been executed!
+          logg( "Order executed!" );
+          Database::saveManagement( $coin, $buyAmount, $rate, $exchange->getID() );
+          $this->stats[ self::STAT_AUTOBUY_FUNDS ] = formatBTC( $autobuyFunds - $buyPrice );
+          return;
+        }
       }
     }
 
@@ -712,13 +714,15 @@ class CoinManager {
 
       logg( "Posting sell order to " . $exchange->getName() . ": $sellAmount $coin for $sellPrice @ $rate" );
       $orderID = $exchange->sell( $coin, 'BTC', $rate, $sellAmount );
-      logg( "Waiting for order execution..." );
-      sleep( Config::get( Config::ORDER_CHECK_DELAY, Config::DEFAULT_ORDER_CHECK_DELAY ) );
+      if ( !is_null( $orderID ) ) {
+        logg( "Waiting for order execution..." );
+        sleep( Config::get( Config::ORDER_CHECK_DELAY, Config::DEFAULT_ORDER_CHECK_DELAY ) );
 
-      if ( !$exchange->cancelOrder( $orderID ) ) {
-        // Cancellation failed: Order has been executed!
-        logg( "Order executed!" );
-        Database::saveManagement( $coin, $sellAmount * -1, $rate, $exchange->getID() );
+        if ( !$exchange->cancelOrder( $orderID ) ) {
+          // Cancellation failed: Order has been executed!
+          logg( "Order executed!" );
+          Database::saveManagement( $coin, $sellAmount * -1, $rate, $exchange->getID() );
+        }
       }
     }
 
