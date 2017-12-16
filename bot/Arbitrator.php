@@ -323,6 +323,11 @@ class Arbitrator {
       }
     }
 
+    if ( is_null( $buyOrderID ) && is_null( $sellOrderID ) ) {
+      // Sell order failed, we're bailing out!
+      return false;
+    }
+
     for ( $i = 1; $i <= 8; $i *= 2 ) {
 
       logg( "Checking trade results ($i)..." );
