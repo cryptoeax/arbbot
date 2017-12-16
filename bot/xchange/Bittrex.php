@@ -425,12 +425,15 @@ class Bittrex extends Exchange {
     for ( $i = 0; $i < 5; $i++ ) {
       try {
         $data = curl_exec( $ch );
+        $code = curl_getinfo( $ch, CURLINFO_HTTP_CODE );
+        if ($code != 200) {
+          throw new Exception( "HTTP ${code} received from server" );
+        }
         //
       }
       catch ( Exception $ex ) {
         $error = $ex->getMessage();
         logg( $this->prefix() . $error );
-        sleep( 1 );
 
         // Refresh request parameters
         $nonce = $this->nonce();

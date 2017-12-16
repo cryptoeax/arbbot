@@ -219,9 +219,10 @@ abstract class Exchange {
     for ( $i = 0; $i < 5; $i++ ) {
 
       $data = curl_exec( $pubch );
+      $code = curl_getinfo( $pubch, CURLINFO_HTTP_CODE );
 
-      if ( $data === false ) {
-        $error = $this->prefix() . "Could not get reply: " . curl_error( $pubch );
+      if ( $data === false || $code != 200 ) {
+        $error = $this->prefix() . "Could not get reply (HTTP ${code}): " . curl_error( $pubch );
         logg( $error );
         continue;
       }
