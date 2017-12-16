@@ -595,8 +595,9 @@ class Poloniex extends Exchange {
     $error = null;
     for ( $i = 0; $i < 5; $i++ ) {
       $res = curl_exec( $ch );
-      if ( $res === false ) {
-        $error = $this->prefix() . "Could not get reply: " . curl_error( $ch );
+      $code = curl_getinfo( $ch, CURLINFO_HTTP_CODE );
+      if ( $res === false || $code != 200 ) {
+        $error = $this->prefix() . "Could not get reply (HTTP ${code}): " . curl_error( $ch );
         logg( $error );
 
         // Refresh request parameters
