@@ -46,7 +46,7 @@ class Arbitrator {
 
     $this->refreshWallets();
 
-    if ( $this->coinManager->doManage() ) {
+    if ( $this->coinManager->doManage( $this ) ) {
       return;
     }
 
@@ -460,6 +460,18 @@ class Arbitrator {
         sleep( 1 );
       }
     }
+
+  }
+
+  public function getLastRecentDeposits() {
+
+    return $this->lastRecentDeposits;
+
+  }
+
+  public function getTradeMatcher() {
+
+    return $this->tradeMatcher;
 
   }
 

@@ -38,7 +38,7 @@ class CoinManager {
 
   }
 
-  public function doManage() {
+  public function doManage( &$arbitrator ) {
 
     logg( "doManage()" );
     $this->stats = Database::getStats();
@@ -53,7 +53,7 @@ class CoinManager {
       if ( $stats[ self::STAT_NEXT_MANAGEMENT ] <= time() ) {
         //
         $stats[ self::STAT_NEXT_MANAGEMENT ] = time() + Config::get( Config::INTERVAL_MANAGEMENT, Config::DEFAULT_INTERVAL_MANAGEMENT ) * 1800;
-        self::manageWallets();
+        self::manageWallets( $arbitrator );
         //
       }
       else if ( $stats[ self::STAT_NEXT_TAKE_PROFIT ] <= time() ) {
@@ -492,7 +492,7 @@ class CoinManager {
 
   }
 
-  private function autobuyAltcoins() {
+  private function autobuyAltcoins( &$arbitrator ) {
 
     if ( !Config::get( Config::MODULE_AUTOBUY, Config::DEFAULT_MODULE_AUTOBUY ) ) {
       return;
@@ -569,6 +569,7 @@ class CoinManager {
         continue;
       }
 
+      $tradeableBefore = $exchange->getWallets()[ $coin ];
       logg( "Posting buy order to " . $exchange->getName() . ": $buyAmount $coin for $buyPrice @ $rate" );
       $orderID = $exchange->buy( $coin, 'BTC', $rate, $buyAmount );
       logg( "Waiting for order execution..." );
@@ -579,25 +580,28 @@ class CoinManager {
         logg( "Order executed!" );
         Database::saveManagement( $coin, $buyAmount, $rate, $exchange->getID() );
         $this->stats[ self::STAT_AUTOBUY_FUNDS ] = formatBTC( $autobuyFunds - $buyPrice );
+
+        $arbitrator->getTradeMatcher()->handlePostTradeTasks( $arbitrator, $exchange, $coin, 'buy',
+                                                              $tradeableBefore );
         return;
       }
     }
 
   }
 
-  private function manageWallets() {
+  private function manageWallets( &$arbitrator ) {
 
     logg( "manageWallets()" );
 
     self::saveSnapshot();
 
-    self::autobuyAltcoins();
+    self::autobuyAltcoins( $arbitrator );
 
     self::balanceCurrencies();
 
     self::balanceAltcoins();
 
-    self::liquidateAltcoins();
+    self::liquidateAltcoins( $arbitrator );
 
   }
 
@@ -625,7 +629,7 @@ class CoinManager {
 
   }
 
-  private function liquidateAltcoins() {
+  private function liquidateAltcoins( &$arbitrator ) {
     logg( "liquidateAltcoins()" );
 
     if ( !Config::get( Config::MODULE_LIQUIDATE, Config::DEFAULT_MODULE_LIQUIDATE ) ) {
@@ -710,6 +714,7 @@ class CoinManager {
         continue;
       }
 
+      $tradeableBefore = $exchange->getWallets()[ $coin ];
       logg( "Posting sell order to " . $exchange->getName() . ": $sellAmount $coin for $sellPrice @ $rate" );
       $orderID = $exchange->sell( $coin, 'BTC', $rate, $sellAmount );
       logg( "Waiting for order execution..." );
@@ -719,6 +724,9 @@ class CoinManager {
         // Cancellation failed: Order has been executed!
         logg( "Order executed!" );
         Database::saveManagement( $coin, $sellAmount * -1, $rate, $exchange->getID() );
+
+        $arbitrator->getTradeMatcher()->handlePostTradeTasks( $arbitrator, $exchange, $coin, 'sell',
+                                                              $tradeableBefore );
       }
     }
 
