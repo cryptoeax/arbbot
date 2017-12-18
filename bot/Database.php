@@ -389,6 +389,31 @@ class Database {
 
   }
 
+  public static function handleAddressUpgrade() {
+
+    $link = self::connect();
+
+    $result = mysql_query( "SHOW COLUMNS FROM withdrawal LIKE 'address';", $link );
+    if ( !$result ) {
+      throw new Exception( "database selection error: " . mysql_error( $link ) );
+    }
+
+    $results = array();
+    $row = mysql_fetch_assoc( $result );
+    if ( $row[ 'Type' ] == 'char(35)' ) {
+      // Old database format, need to upgrade first.
+      $result = mysql_query( "ALTER TABLE withdrawal MODIFY address TEXT NOT NULL;", $link );
+      if ( !$result ) {
+        throw new Exception( "database selection error: " . mysql_error( $link ) );
+      }
+    }
+
+    mysql_close( $link );
+
+    return $results;
+
+  }
+
   public static function getStats() {
 
     $link = self::connect();
