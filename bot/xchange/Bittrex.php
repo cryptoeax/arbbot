@@ -76,6 +76,9 @@ class Bittrex extends Exchange {
       return $this->queryOrder( $tradeable, $currency, 'buy', $rate, $amount );
     }
     catch ( Exception $ex ) {
+      if ( strpos( $ex->getMessage(), 'MARKET_OFFLINE' ) !== false ) {
+	$this->onMarketOffline();
+      }
       logg( $this->prefix() . "Got an exception in buy(): " . $ex->getMessage() );
       return null;
     }
@@ -88,6 +91,9 @@ class Bittrex extends Exchange {
       return $this->queryOrder( $tradeable, $currency, 'sell', $rate, $amount );
     }
     catch ( Exception $ex ) {
+      if ( strpos( $ex->getMessage(), 'MARKET_OFFLINE' ) !== false ) {
+	$this->onMarketOffline();
+      }
       logg( $this->prefix() . "Got an exception in sell(): " . $ex->getMessage() );
       return null;
     }
@@ -275,6 +281,7 @@ class Bittrex extends Exchange {
     catch ( Exception $ex ) {
       if ( strpos( $ex->getMessage(), 'ORDER_NOT_OPEN' ) === false ) {
 	logg( $this->prefix() . "Got an exception in cancelOrder(): " . $ex->getMessage() );
+	return true;
       }
       return false;
     }
@@ -348,6 +355,22 @@ class Bittrex extends Exchange {
 
     $this->calculateTradeablePairs();
 
+  }
+
+  private function onMarketOffline( $tradeable ) {
+    $keys = array( );
+    foreach ( $this->pairs as $pair ) {
+      if ( startsWith( $pair, $tradeable . '_' ) ) {
+        $keys[] = $pair;
+      }
+    }
+    foreach ( $keys as $key ) {
+      unset( $this->pairs[ $key ] );
+    }
+
+    unset( $this->names[ $tradeable ] );
+    unset( $this->transferFees[ $tradeable ] );
+    unset( $this->connfirmationTimes[ $tradeable ] );
   }
 
   public function detectStuckTransfers() {
