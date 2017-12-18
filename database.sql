@@ -164,6 +164,6 @@ CREATE TABLE IF NOT EXISTS `withdrawal` (
   `ID_exchange_target` int(11) NOT NULL,
   `coin` char(5) NOT NULL,
   `amount` varchar(18) NOT NULL,
-  `address` char(35) NOT NULL,
+  `address` text NOT NULL,
   PRIMARY KEY (`ID`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
