@@ -182,9 +182,10 @@ class Poloniex extends Exchange {
       return true;
     }
     catch ( Exception $ex ) {
-      if ( strpos( $ex->getMessage(), 'PLACEHODLER' ) ) {
-        return false;
+      if ( strpos( $ex->getMessage(), 'PLACEHODLER' ) === false ) {
+	logg( $this->prefix() . "Got an exception in cancelOrder(): " . $ex->getMessage() );
       }
+      return false;
     }
 
   }
