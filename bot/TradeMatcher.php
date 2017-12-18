@@ -213,6 +213,15 @@ class TradeMatcher {
     $trades = array( );
     while (true) {
       $trades = $tradeMatcher->getExchangeNewTrades( $exchange->getID() );
+      $trades = array_filter( $trades, function( $trade ) use ( $coin, $type ) {
+        if ( $trade[ 'tradeable' ] != $coin ) {
+          logg( sprintf( "WARNING: Got an unrelated trade while trying to perfrom post-trade tasks: %s of %.8f %s at %.8f, saved but will ignore",
+                         $type, formatBTC( $trade[ 'amount' ] ),
+                         $trade[ 'tradeable' ], $trade[ 'rate' ] ) );
+          return false;
+        }
+        return true;
+      } );
       $matched = $tradeMatcher->matchTradesConsideringPendingDeposits( $trades, $coin, $type, $exchange,
                                                                        $arbitrator->getLastRecentDeposits()[ $exchange->getID() ],
                                                                        $newPendingDeposits,
@@ -224,19 +233,12 @@ class TradeMatcher {
       usleep( 500000 );
     }
 
-    $result = array( );
     foreach ( $trades as $trade ) {
       $tradeMatcher->saveTrade( $exchange->getID(), $type, $trade[ 'tradeable' ],
                                 $trade[ 'currency' ], $trade );
-      if ( $trade[ 'tradeable' ] == $coin ) {
-        $result[] = $trade;
-      } else {
-        logg( "WARNING: Got an unrelated trade while trying to perfrom post-trade tasks: %s of %.8f %s at %.8f, saved but will ignore" );
-        continue;
-      }
     }
 
-    return $result;
+    return $trades;
 
   }
 
