@@ -250,7 +250,9 @@ class Config {
       self::MIN_PROFIT,
       self::BUY_RATE_FACTOR,
       self::SELL_RATE_FACTOR,
-      self::MAX_PAIRS_PER_RUN
+      self::MAX_PAIRS_PER_RUN,
+      self::QUERY_DELAY,
+      self::ORDER_CHECK_DELAY
     ];
 
     $results = array( );
@@ -332,7 +334,9 @@ class Config {
       self::MIN_PROFIT,
       self::BUY_RATE_FACTOR,
       self::SELL_RATE_FACTOR,
-      self::MAX_PAIRS_PER_RUN
+      self::MAX_PAIRS_PER_RUN,
+      self::QUERY_DELAY,
+      self::ORDER_CHECK_DELAY
     ];
 
     $results = array( );
