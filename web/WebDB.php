@@ -124,7 +124,7 @@ class WebDB {
     $data = [ ];
     while ( $row = mysql_fetch_assoc( $result ) ) {
 
-      $value = $row[ 'data' ];
+      $value = floatval( $row[ 'data' ] );
       $exchange = $row[ 'ID_exchange' ];
 
       if (!in_array( $exchange, $ma )) {
@@ -141,6 +141,32 @@ class WebDB {
     }
 
     mysql_close( $link );
+
+    if ( $mode == 0 ) {
+      // Append an entry for the current balances
+      $ids = array_reduce( $data, function( $carry, $value ) {
+        if ( !in_array( $value[ 'exchange' ], $carry ) ) {
+          return array_merge( $carry, [ $value[ 'exchange' ] ] );
+        }
+        return $carry;
+      }, [] );
+      foreach ( $ids as $id ) {
+        $ex = Exchange::createFromID( $id );
+        $ex->refreshWallets();
+        $wallets = $ex->getWalletsConsideringPendingDeposits();
+        // Will be 0 if $coin doesn't exist in our wallets!
+        $balance = @floatval( $wallets[ $coin ] );
+
+	$ma[$id][] = $balance;
+	while ( count( $ma[$id] ) > 4 ) {
+	  array_shift( $ma[$id] );
+	}
+
+	$sma = array_sum( $ma[$id] ) / count( $ma[$id] );
+	$data[] = ['time' => strval( time() ), 'value' => $sma, 'raw' => $balance,
+		   'exchange' => $id ];
+      }
+    }
 
     if ( $mode != 1 ) {
       return [ '0' => $data, '1' => self::getTotalValue( $exchange, $coin, $mode ) ];
