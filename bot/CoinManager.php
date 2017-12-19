@@ -523,11 +523,10 @@ class CoinManager {
         continue;
       }
 
-      $wallets = $exchange->getWalletsConsideringPendingDeposits();
-
       foreach ( $data as $exchangeID => $stat ) {
 
         $exchange = $this->exchangesID[ $exchangeID ];
+        $wallets = $exchange->getWalletsConsideringPendingDeposits();
         $balance = $wallets[ $coin ];
         $desiredBalance = $stat[ 'desired_balance' ];
 
@@ -654,12 +653,12 @@ class CoinManager {
       }
 
       $entry = [ ];
-      $wallets = $exchange->getWalletsConsideringPendingDeposits();
 
       $coinIsNeeded = false;
       foreach ( $data as $exchangeID => $stat ) {
 
         $exchange = $this->exchangesID[ $exchangeID ];
+        $wallets = $exchange->getWalletsConsideringPendingDeposits();
         $balance = $wallets[ $coin ];
         $desiredBalance = $stat[ 'desired_balance' ];
 
