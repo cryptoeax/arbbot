@@ -523,10 +523,12 @@ class CoinManager {
         continue;
       }
 
+      $wallets = $exchange->getWalletsConsideringPendingDeposits();
+
       foreach ( $data as $exchangeID => $stat ) {
 
         $exchange = $this->exchangesID[ $exchangeID ];
-        $balance = $exchange->getWallets()[ $coin ];
+        $balance = $wallets[ $coin ];
         $desiredBalance = $stat[ 'desired_balance' ];
 
         $diff = formatBTC( $desiredBalance - $balance );
