@@ -167,12 +167,24 @@ class TradeMatcher {
       $pendingInitialDeposits[] = $dep;
     }
 
+    foreach ( $pendingInitialDeposits as $dep ) {
+      logg( sprintf( "Initial pending deposit while matching trades: %.8f %s (%s)",
+                     formatBTC( $dep[ 'amount' ] ), $dep[ 'currency' ],
+                     $dep[ 'txid' ] ) );
+    }
+
     $finishedDepositsAtEnd = array();
     foreach ( $depositsAfter as $dep ) {
       if ( $dep[ 'currency' ] != $tradeable || $dep[ 'pending' ] ) {
         continue;
       }
       $finishedDepositsAtEnd[] = $dep;
+    }
+
+    foreach ( $finishedDepositsAtEnd as $dep ) {
+      logg( sprintf( "Finished deposits at end while matching trades: %.8f %s (%s)",
+                     formatBTC( $dep[ 'amount' ] ), $dep[ 'currency' ],
+                     $dep[ 'txid' ] ) );
     }
 
     $finishedDeposits = array();
@@ -183,6 +195,12 @@ class TradeMatcher {
         }
         $finishedDeposits[] = $dep2;
       }
+    }
+
+    foreach ( $finishedDeposits as $dep ) {
+      logg( sprintf( "Finished deposits while matching trades: %.8f %s (%s)",
+                     formatBTC( $dep[ 'amount' ] ), $dep[ 'currency' ],
+                     $dep[ 'txid' ] ) );
     }
 
     $tradeableDifference = abs( $tradeableDifference );
