@@ -221,15 +221,14 @@ class TradeMatcher {
 
   function handlePostTradeTasks( &$arbitrator, &$exchange, $coin, $type, $tradeableBefore ) {
 
-    $exchange->refreshWallets();
-
-    $newPendingDeposits = $exchange->queryRecentDeposits( $coin );
-    $tradeableAfter = $exchange->getWallets()[ $coin ];
-    $tradeableDifference = $tradeableAfter - $tradeableBefore;
-    $tradeMatcher = &$arbitrator->getTradeMatcher();
-
-    $trades = array( );
     while (true) {
+      $exchange->refreshWallets();
+
+      $newPendingDeposits = $exchange->queryRecentDeposits( $coin );
+      $tradeableAfter = $exchange->getWallets()[ $coin ];
+      $tradeableDifference = $tradeableAfter - $tradeableBefore;
+      $tradeMatcher = &$arbitrator->getTradeMatcher();
+
       $trades = $tradeMatcher->getExchangeNewTrades( $exchange->getID() );
       $trades = array_filter( $trades, function( $trade ) use ( $coin, $type ) {
         if ( $trade[ 'tradeable' ] != $coin ) {
