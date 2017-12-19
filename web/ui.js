@@ -3,6 +3,7 @@ var graphExchange = "0";
 var graphCoin = "BTC";
 
 var stats = null;
+var statsTimeout = null;
 var totalPL = null;
 var profitableTrades = null;
 var plMode = "details";
@@ -887,7 +888,7 @@ $(function() {
 
     function refreshStats() {
 
-        setTimeout(refreshStats, 60000);
+        statsTimeout = setTimeout(refreshStats, 60000);
 
         $.ajax({
             url: "ajax.php?func=stats",
@@ -1016,6 +1017,10 @@ $(function() {
                 success: function() {
                     $("#autobuy-status").css({color:"green"}).text("Succeeded").show();
                     setTimeout(function() {
+                      if (statsTimeout) {
+                        clearTimeout(statsTimeout);
+                      }
+		      refreshStats();
                       $("#autobuy-status").fadeOut();
                     }, 3000);
                 },
