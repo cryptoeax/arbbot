@@ -349,7 +349,7 @@ class Arbitrator {
 
       $message .= "\n" . $target->getName() . ":\n";
       $targetTradeableDifference = $targetTradeableAfter - $targetTradeableBefore;
-      $message .= formatCoin( $tradeable ) . ": " . formatBalance( $targetCurrencyBefore ) . " => " . formatBalance( $targetTradeableAfter ) . " = " . formatBalance( $targetTradeableDifference ) . "\n";
+      $message .= formatCoin( $tradeable ) . ": " . formatBalance( $targetTradeableBefore ) . " => " . formatBalance( $targetTradeableAfter ) . " = " . formatBalance( $targetTradeableDifference ) . "\n";
 
       $targetCurrencyDifference = $targetCurrencyAfter - $targetCurrencyBefore;
       $message .= formatCoin( $currency ) . ": " . formatBalance( $targetCurrencyBefore ) . " => " . formatBalance( $targetCurrencyAfter ) . " = " . formatBalance( $targetCurrencyDifference ) . "\n\n";
