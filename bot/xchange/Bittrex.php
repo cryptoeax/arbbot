@@ -308,7 +308,7 @@ class Bittrex extends Exchange {
 
   public function getSmallestOrderSize() {
 
-    return '0.00050000';
+    return '0.00100000';
 
   }
 
