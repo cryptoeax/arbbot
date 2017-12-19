@@ -4,6 +4,7 @@ require_once __DIR__ . '/../lib/mysql.php';
 require_once __DIR__ . '/config.inc.php';
 require_once __DIR__ . '/../bot/utils.php';
 require_once __DIR__ . '/../bot/Config.php';
+require_once __DIR__ . '/../bot/Exchange.php';
 
 date_default_timezone_set( "UTC" );
 
@@ -227,12 +228,22 @@ class WebDB {
     $extc = [ ];
     $exoc = [ ];
 
+    $exchangeMap = [ ];
+    $walletMap = [ ];
+
     $wallets = [ ];
     while ( $row = mysql_fetch_assoc( $result ) ) {
 
       $coin = $row[ 'coin' ];
       $exid = $row[ 'ID_exchange' ];
-      $balance = $row[ 'balance' ];
+      if ( !isset( $exchangeMap[ $exid ] ) ) {
+        $exchangeMap[ $exid ] = Exchange::createFromID( $exid );
+        $exchangeMap[ $exid ]->refreshWallets();
+        $walletMap[ $exid ] = $exchangeMap[ $exid ]->getWalletsConsideringPendingDeposits();
+      }
+
+      // Will be 0 if $coin doesn't exist in our wallets!
+      $balance = @floatval( @$walletMap[ $exid ][ $coin ] );
 
       if ( key_exists( $exid, $extc ) === false ) {
         $extc[ $exid ] = intval( self::getTradeCount( $exid ) );
@@ -240,7 +251,7 @@ class WebDB {
       }
 
       $age = time() - $row[ 'created' ];
-      $wallets[ $coin ][ $exid ][ 'balance' ] = floatval( $balance );
+      $wallets[ $coin ][ $exid ][ 'balance' ] = $balance;
       $wallets[ $coin ][ $exid ][ 'balance_diff' ] = floatval( formatBTC( $row[ 'desired_balance' ] - $balance ) );
       $wallets[ $coin ][ $exid ][ 'opportunities' ] = intval( $row[ 'uses' ] );
       $wallets[ $coin ][ $exid ][ 'change' ] = floatval( $balance  - self::getHistoricBalance( $coin, $exid ) );

@@ -463,13 +463,7 @@ class Database {
                        $message, $matches )) {
         throw new Exception( "invalid log message encountered: " . $message );
       }
-      $exchange_map = [
-        '1' => 'Poloniex',
-        '3' => 'Bittrex',
-      ];
-      require_once __DIR__ . '/Exchange.php';
-      require_once __DIR__ . '/xchange/' . $exchange_map[ $row[ 'target' ] ] . '.php';
-      $exchange = new $exchange_map[ $row[ 'target' ] ];
+      $exchange = Exchange::createFromID( $row[ 'target' ] );
       $price_sold = $matches[ 2 ] / $exchange->deductFeeFromAmountSell( $row[ 'amount' ] );
       $tx_fee = $matches[ 6 ] * $price_sold;
       $pl = $matches[ 4 ] - $tx_fee;

@@ -26,7 +26,20 @@ abstract class Exchange {
     $this->apiKey = $apiKey;
     $this->apiSecret = $apiSecret;
 
- }
+  }
+
+  public static function createFromID( $id ) {
+
+    $path = __DIR__ . '/xchange/map.' . $id;
+    if ( !is_readable( $path ) ) {
+      logg( "WARNING: Invalid ID passed to Exchange::createFromID: ${id}" );
+      throw new Exception( "Invalid id: '${id}'" );
+    }
+    $name = file_get_contents( $path );
+    require_once __DIR__ . "/xchange/${name}.php";
+    return new $name();
+
+  }
 
   protected function calculateTradeablePairs() {
 
