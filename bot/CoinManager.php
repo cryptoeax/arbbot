@@ -143,7 +143,7 @@ class CoinManager {
       $exid = $exchange->getID();
       $exname = $exchange->getName();
 
-      $wallets = $exchange->getWallets();
+      $wallets = $exchange->getWalletsConsideringPendingDeposits();
       $ticker = $exchange->getTickers( 'BTC' );
 
       foreach ( $wallets as $coin => $value ) {
