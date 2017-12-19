@@ -253,6 +253,7 @@ class Arbitrator {
     $orderInfo .= " SOURCE MAX : " . formatBalance( $maxSourceAmount ) . "\n";
     $orderInfo .= "   BUY RATE : " . formatBalance( $bestBuyRate ) . "\n";
     $orderInfo .= " BUY AMOUNT : " . formatBalance( $tradeAmount ) . "\n";
+    $orderInfo .= " BOUGHT AMT : " . formatBalance( $boughtAmount ) . "\n";
     $orderInfo .= "  BUY PRICE : " . formatBalance( $buyPrice ) . "\n";
     $orderInfo .= "  SELL RATE : " . formatBalance( $bestSellRate ) . "\n";
     $orderInfo .= "SELL AMOUNT : " . formatBalance( $sellAmount ) . "\n";
