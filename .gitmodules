@@ -1,0 +1,3 @@
+[submodule "lib/composer"]
+	path = lib/composer
+	url = https://github.com/cryptoeax/arbbot-vendor.git
