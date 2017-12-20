@@ -273,6 +273,7 @@ class TradeMatcher {
       $exchange->refreshWallets();
 
       $newPendingDeposits = $exchange->queryRecentDeposits( $coin );
+      $newPendingWithdrawals = $exchange->queryRecentWithdrawals( $coin );
       $tradeableAfter = $exchange->getWallets()[ $coin ];
       $tradeableDifference = $tradeableAfter - $tradeableBefore;
       $tradeMatcher = &$arbitrator->getTradeMatcher();
