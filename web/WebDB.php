@@ -142,6 +142,7 @@ class WebDB {
 
     mysql_close( $link );
 
+    $ids = [ ];
     if ( $mode == 0 ) {
       // Append an entry for the current balances
       $ids = array_reduce( $data, function( $carry, $value ) {
@@ -169,14 +170,14 @@ class WebDB {
     }
 
     if ( $mode != 1 ) {
-      return [ '0' => $data, '1' => self::getTotalValue( $exchange, $coin, $mode ) ];
+      return [ '0' => $data, '1' => self::getTotalValue( $exchange, $coin, $mode, $ids ) ];
     }
 
     return [ '0' => $data ];
 
   }
 
-  public static function getTotalValue( $exchange, $coin, $mode ) {
+  public static function getTotalValue( $exchange, $coin, $mode, $ids ) {
 
     $link = self::connect();
 
@@ -216,6 +217,20 @@ class WebDB {
     $values[] = ['sum' => array_sum( $temp ), 'time' => $created ];
 
     mysql_close( $link );
+
+    if ( $mode == 0 ) {
+      // Append an entry for the current balances
+      $sum = 0;
+      foreach ( $ids as $id ) {
+        $ex = Exchange::createFromID( $id );
+        $ex->refreshWallets();
+        $wallets = $ex->getWalletsConsideringPendingDeposits();
+        // Will be 0 if $coin doesn't exist in our wallets!
+        $balance = @floatval( $wallets[ $coin ] );
+        $sum += $balance;
+      }
+      $values[] = [ 'sum' => $sum, 'time' => time() ];
+    }
 
     $ma = [ ];
 
