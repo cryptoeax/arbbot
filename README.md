@@ -20,17 +20,17 @@ sudo apt-get install php-cli php-curl php-mysqlnd mysql-server nginx-full php-fp
 sudo ntpdate ntp.ubuntu.com
 ```
 
-Download the archive to the server and extract it:
+Clone the repository on the server.  Note that installation from ZIP archives isn't supported any more.
 
 ```
 cd /var/www
-wget https://github.com/cryptoeax/arbbot/archive/production.zip && unzip production.zip
+git clone --recursive https://github.com/cryptoeax/arbbot.git
 ```
 
 cd into the directory:
 
 ```
-cd production
+cd arbbot
 ```
 
 Prepare the MySQL database:
@@ -82,7 +82,7 @@ The NGINX configuration file should look like this:
 server {
 
         listen 80;
-        root /var/www/arbbot-production/web;
+        root /var/www/arbbot/web;
         index index.html;
         server_name localhost;
 
