@@ -10,7 +10,6 @@ class Config {
   //
   // MAIL
   const MAIL_RECIPIENT = 'mail.address';
-  const MANDRILL_API_KEY = 'mail.mandrill-key';
   //
   // EXPERT
   const BALANCE_FACTOR = 'expert.balance-factor';
