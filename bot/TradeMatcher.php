@@ -155,9 +155,10 @@ class TradeMatcher {
     return $currencyProfitLoss;
   }
 
-  public function matchTradesConsideringPendingDeposits( $trades, $tradeable, $type, $exchange,
-                                                         $depositsBefore, $depositsAfter,
-                                                         $tradeableDifference ) {
+  public function matchTradesConsideringPendingTransfers( $trades, $tradeable, $type, $exchange,
+                                                          $depositsBefore, $withdrawalsBefore,
+                                                          $depositsAfter, $withdrawalsAfter,
+                                                          $tradeableDifference ) {
 
     $pendingInitialDeposits = array();
     foreach ( $depositsBefore as $dep ) {
@@ -167,8 +168,22 @@ class TradeMatcher {
       $pendingInitialDeposits[] = $dep;
     }
 
+    $pendingInitialWithdrawals = array();
+    foreach ( $withdrawalsBefore as $dep ) {
+      if ( $dep[ 'currency' ] != $tradeable || !$dep[ 'pending' ] ) {
+        continue;
+      }
+      $pendingInitialWithdrawals[] = $dep;
+    }
+
     foreach ( $pendingInitialDeposits as $dep ) {
       logg( sprintf( "Initial pending deposit while matching trades: %.8f %s (%s)",
+                     formatBTC( $dep[ 'amount' ] ), $dep[ 'currency' ],
+                     $dep[ 'txid' ] ) );
+    }
+
+    foreach ( $pendingInitialWithdrawals as $dep ) {
+      logg( sprintf( "Initial pending withdrawal while matching trades: %.8f %s (%s)",
                      formatBTC( $dep[ 'amount' ] ), $dep[ 'currency' ],
                      $dep[ 'txid' ] ) );
     }
@@ -181,8 +196,22 @@ class TradeMatcher {
       $finishedDepositsAtEnd[] = $dep;
     }
 
+    $finishedWithdrawalsAtEnd = array();
+    foreach ( $withdrawalsAfter as $dep ) {
+      if ( $dep[ 'currency' ] != $tradeable || $dep[ 'pending' ] ) {
+        continue;
+      }
+      $finishedWithdrawalsAtEnd[] = $dep;
+    }
+
     foreach ( $finishedDepositsAtEnd as $dep ) {
       logg( sprintf( "Finished deposits at end while matching trades: %.8f %s (%s)",
+                     formatBTC( $dep[ 'amount' ] ), $dep[ 'currency' ],
+                     $dep[ 'txid' ] ) );
+    }
+
+    foreach ( $finishedWithdrawalsAtEnd as $dep ) {
+      logg( sprintf( "Finished withdrawals at end while matching trades: %.8f %s (%s)",
                      formatBTC( $dep[ 'amount' ] ), $dep[ 'currency' ],
                      $dep[ 'txid' ] ) );
     }
@@ -197,21 +226,40 @@ class TradeMatcher {
       }
     }
 
+    $finishedWithdrawals = array();
+    foreach ( $pendingInitialWithdrawals as $dep1 ) {
+      foreach ( $finishedWithdrawalsAtEnd as $dep2 ) {
+        if ( $dep1[ 'txid' ] != $dep2[ 'txid' ] ) {
+          continue;
+        }
+        $finishedWithdrawals[] = $dep2;
+      }
+    }
+
     foreach ( $finishedDeposits as $dep ) {
       logg( sprintf( "Finished deposits while matching trades: %.8f %s (%s)",
                      formatBTC( $dep[ 'amount' ] ), $dep[ 'currency' ],
                      $dep[ 'txid' ] ) );
     }
 
+    foreach ( $finishedWithdrawals as $dep ) {
+      logg( sprintf( "Finished withdrawal while matching trades: %.8f %s (%s)",
+                     formatBTC( $dep[ 'amount' ] ), $dep[ 'currency' ],
+                     $dep[ 'txid' ] ) );
+    }
+
     $tradeableDifference = abs( $tradeableDifference );
     $finishedDepositSum = array_reduce( $finishedDeposits, 'sumOfAmount', 0 );
+    $finishedWithdrawalSum = array_reduce( $finishedWithdrawals, 'sumOfAmount', 0 );
     $tradesSum = array_reduce( $trades, 'sumOfAmount', 0 );
-    $netBalanceDiff = $tradeableDifference - $finishedDepositSum;
+    $netBalanceDiff = $tradeableDifference - $finishedDepositSum + $finishedWithdrawalSum;
 
     logg( sprintf( "Received %.8f %s from the exchange while our wallets show a " .
-                   "balance difference of %.8f (%.8f - %.8f finished deposits)",
+                   "balance difference of %.8f (%.8f - %.8f finished deposits " .
+                   "%.8f finished withdrawals)",
                    formatBTC( $tradesSum ), $tradeable, formatBTC( $netBalanceDiff ),
-                   formatBTC( $tradeableDifference ), formatBTC( $finishedDepositSum )
+                   formatBTC( $tradeableDifference ), formatBTC( $finishedDepositSum ),
+                   formatBTC( $finishedWithdrawals )
     ) );
 
     return $tradesSum == 0 ||
@@ -239,10 +287,12 @@ class TradeMatcher {
         }
         return true;
       } );
-      $matched = $tradeMatcher->matchTradesConsideringPendingDeposits( $trades, $coin, $type, $exchange,
-                                                                       $arbitrator->getLastRecentDeposits()[ $exchange->getID() ],
-                                                                       $newPendingDeposits,
-                                                                       $tradeableDifference );
+      $matched = $tradeMatcher->matchTradesConsideringPendingTransfers( $trades, $coin, $type, $exchange,
+                                                                        $arbitrator->getLastRecentDeposits()[ $exchange->getID() ],
+                                                                        $arbitrator->getLastRecentWithdrawals()[ $exchange->getID() ],
+                                                                        $newPendingDeposits,
+                                                                        $newPendingWithdrawals,
+                                                                        $tradeableDifference );
       if ( $matched ) {
         break;
       }

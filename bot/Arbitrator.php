@@ -15,6 +15,7 @@ class Arbitrator {
   private $tradeHappened = false;
   //
   private $lastRecentDeposits = [ ];
+  private $lastRecentWithdrawals = [ ];
 
   function __construct( $exchanges, &$tradeMatcher ) {
     $this->exchanges = &$exchanges;
@@ -26,6 +27,7 @@ class Arbitrator {
         $this->exchangePairs[] = [$exchanges[ $i ], $exchanges[ $j ] ];
       }
       $this->lastRecentDeposits[ $exchanges[ $i ]->getID() ] = array( );
+      $this->lastRecentWithdrawals[ $exchanges[ $i ]->getID() ] = array( );
     }
 
     $this->coinManager = new CoinManager( $exchanges );
@@ -461,6 +463,7 @@ class Arbitrator {
       $exchange->refreshWallets();
       if ($this->walletsRefreshed) {
         $this->lastRecentDeposits[ $exchange->getID() ] = $exchange->queryRecentDeposits();
+        $this->lastRecentWithdrawals[ $exchange->getID() ] = $exchange->queryRecentWithdrawals();
       }
     }
 
@@ -490,6 +493,12 @@ class Arbitrator {
   public function getLastRecentDeposits() {
 
     return $this->lastRecentDeposits;
+
+  }
+
+  public function getLastRecentWithdrawals() {
+
+    return $this->lastRecentWithdrawals;
 
   }
 
