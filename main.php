@@ -6,6 +6,10 @@ require_once 'bot/Exchange.php';
 require_once 'bot/Arbitrator.php';
 require_once 'bot/TradeMatcher.php';
 
+require_once 'lib/composer/vendor/autoload.php';
+
+use React\EventLoop;
+
 $gVerbose = true;
 
 date_default_timezone_set( "UTC" );
@@ -49,6 +53,8 @@ if ( !Database::profitLossTableExists() ) {
 // Configure exchanges...
 $exchanges = [ ];
 $msg = '';
+
+$gEventLoop = EventLoop\Factory::create();
 
 foreach ( glob( 'bot/xchange/*.php' ) as $filename ) {
   $name = basename( $filename, '.php' );
@@ -118,7 +124,7 @@ foreach ( $exchanges as $exchange ) {
 
 }
 
-$arbitrator = new Arbitrator( $exchanges, $tradeMatcher );
+$arbitrator = new Arbitrator( $gEventLoop, $exchanges, $tradeMatcher );
 $arbitrator->run();
 
 function sendmail( $title, $message ) {

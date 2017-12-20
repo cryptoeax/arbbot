@@ -4,6 +4,8 @@ require_once __DIR__ . '/CoinManager.php';
 
 class Arbitrator {
 
+  private $eventLoop;
+  private $errorCounter;
   private $exchanges;
   private $exchangePairs = [ ];
   //
@@ -17,7 +19,13 @@ class Arbitrator {
   private $lastRecentDeposits = [ ];
   private $lastRecentWithdrawals = [ ];
 
-  function __construct( $exchanges, &$tradeMatcher ) {
+  function __construct( $loop, $exchanges, &$tradeMatcher ) {
+    $this->eventLoop = $loop;
+    $self = $this;
+    $this->eventLoop->addTimer( 1, function() use($self) {
+      $self->innerRun();
+    } );
+
     $this->exchanges = &$exchanges;
     $this->tradeMatcher = &$tradeMatcher;
 
@@ -31,6 +39,12 @@ class Arbitrator {
     }
 
     $this->coinManager = new CoinManager( $exchanges );
+
+  }
+
+  public function getEventLoop() {
+
+    return $this->eventLoop;
 
   }
 
@@ -476,20 +490,27 @@ class Arbitrator {
 
   public function run() {
 
-    $errorCounter = 0;
+    $this->errorCounter = 0;
 
-    while ( true ) {
+    $this->eventLoop->run();
 
-      try {
-        $this->loop();
-        $errorCounter = 0;
-      }
-      catch ( Exception $ex ) {
-        $errorCounter++;
-        logg( "Error during main loop: " . $ex->getMessage() . "\n" . $ex->getTraceAsString(), $errorCounter == 10 );
-        sleep( 1 );
-      }
+  }
+
+  private function innerRun() {
+
+    try {
+      $this->loop();
+      $this->errorCounter = 0;
     }
+    catch ( Exception $ex ) {
+      $this->errorCounter++;
+      logg( "Error during main loop: " . $ex->getMessage() . "\n" . $ex->getTraceAsString(), $this->errorCounter == 10 );
+    }
+
+    $self = $this;
+    $this->eventLoop->addTimer( 1, function() use($self) {
+      $self->innerRun();
+    } );
 
   }
 
