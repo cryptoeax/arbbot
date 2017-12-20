@@ -240,6 +240,29 @@ class Bittrex extends Exchange {
 
   }
 
+  public function queryRecentWithdrawals( $currency = null ) {
+
+    $history = $this->queryAPI( 'account/getwithdrawalhistory',
+                                $currency ? array ( 'currency' => $currency ) : array( ) );
+
+    $result = array();
+    foreach ( $history as $row ) {
+      $result[] = array(
+        'currency' => $row[ 'Currency' ],
+        'amount' => $row[ 'Amount' ],
+        'txid' => $row[ 'TxId' ],
+        'address' => $row[ 'Address' ],
+        'time' => strtotime( $row[ 'Opened' ] ),
+        'pending' => $row[ 'PendingPayment' ] === true,
+      );
+    }
+
+    usort( $result, 'compareByTime' );
+
+    return $result;
+
+  }
+
   protected function fetchOrderbook( $tradeable, $currency ) {
 
     $orderbook = $this->queryOrderbook( $tradeable, $currency );

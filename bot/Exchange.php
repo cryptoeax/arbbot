@@ -170,6 +170,8 @@ abstract class Exchange {
 
   public abstract function queryRecentDeposits( $currency = null );
 
+  public abstract function queryRecentWithdrawals( $currency = null );
+
   public abstract function cancelAllOrders();
 
   public abstract function refreshExchangeData();

@@ -236,7 +236,7 @@ class Poloniex extends Exchange {
     return $results;
   }
 
-  public function queryRecentDeposits( $currency = null ) {
+  private function queryRecentTransfers( $type, $currency ) {
 
     $now = time();
     $history = $this->queryAPI( 'returnDepositsWithdrawals', array(
@@ -245,7 +245,7 @@ class Poloniex extends Exchange {
     ) );
 
     $result = array();
-    foreach ( $history[ 'deposits' ] as $row ) {
+    foreach ( $history[ "${type}s" ] as $row ) {
       if ( !is_null( $currency ) && $currency != $row[ 'currency' ] ) {
         continue;
       }
@@ -253,16 +253,29 @@ class Poloniex extends Exchange {
       $result[] = array(
         'currency' => $row[ 'currency' ],
         'amount' => $row[ 'amount' ],
-        'txid' => $row[ 'txid' ],
+        // deposits have txid, withdrawals have withdrawalNumber
+        'txid' => isset( $row[ 'txid' ] ) ? $row[ 'txid' ] : $row[ 'withdrawalNumber' ],
         'address' => $row[ 'address' ],
         'time' => $row[ 'timestamp' ],
-        'pending' => $row[ 'status' ] != 'COMPLETE',
+        'pending' => strpos( $row[ 'status' ], 'COMPLETE' ) !== false,
       );
     }
 
     usort( $result, 'compareByTime' );
 
     return $result;
+
+  }
+
+  public function queryRecentDeposits( $currency = null ) {
+
+    return $this->queryRecentTransfers( 'deposit', $currency );
+
+  }
+
+  public function queryRecentWithdrawals( $currency = null ) {
+
+    return $this->queryRecentTransfers( 'withdrawal', $currency );
 
   }
 
