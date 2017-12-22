@@ -280,9 +280,15 @@ class CoinManager {
       $safetyFactor /= Config::get( Config::BTC_XFER_SAFETY_FACTOR,
                                     Config::DEFAULT_BTC_XFER_SAFETY_FACTOR );
     }
+    $oneIsZero = false;
     foreach ( $exchanges as $exchange ) {
       // Allow max 1% of coin amount to be transfer fee:
       $minXFER = max( $minXFER, $this->getSafeTxFee( $exchange, $coin, $averageCoins ) / $safetyFactor );
+
+      $wallets = $exchange->getWallets();
+      if ( $wallets[ $coin ] == 0 ) {
+        $oneIsZero = true;
+      }
     }
     logg( "XFER THRES.: $minXFER $coin" );
 
@@ -292,6 +298,14 @@ class CoinManager {
 
       $wallets = $exchange->getWallets();
       $difference = formatBTC( $wallets[ $coin ] - ($opportunityCount < $requiredOpportunities ? 0 : $averageCoins) );
+
+      if ( $oneIsZero && $wallets[ $coin ] > 2 * $minXFER &&
+           $difference == 0 ) {
+        // If the other exchange has run out of balance, send a minimum transfer to
+        // the other side to unblock it.
+        $difference = $minXFER;
+      }
+
       if ( abs( $difference ) < $minXFER ) {
         logg( $exchange->getName() . " diff $difference $coin below xfer threshold!" );
         continue;

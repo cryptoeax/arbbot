@@ -177,6 +177,14 @@ You will notice some messages like `TRADE IS NOT PROFITABLE WITH AVAILABLE FUNDS
 that the bot has noted in its database that this coin can be traded with. During the next buying cycle, it
 will consider buying this coin.
 
+## Supporting Future Development
+If you are running this bot and are making profits from it, please consider contributing towards future development of the project, either by contributing code or donating cryptocurrencies.  PR/BTC/ETH contributions are welcome:
+
+* BTC address: `3PUsQxePwa5ck93DaSBy5i9YmGU9kKa9YG`
+* ETH address: `0x2e732524459601546a93ee0307e1533bE69762d9`
+
+Funding this project would allow me to spend time on things like adding support for new exchanges.
+
 ## Release History
 * 2.0
     * Improved the web-based UI, charts, tooltips to help new users, legends
