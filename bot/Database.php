@@ -530,9 +530,9 @@ class Database {
                                             $rate, $amount, $fee, $total ) {
 
     $link = self::connect();
-    $query = sprintf( "INSERT IGNORE INTO exchange_trades (created, ID_exchange, coin, currency, " .
-                      "                             raw_trade_ID, trade_ID, rate, amount, " .
-                      "                             fee, total, type) VALUES " .
+    $query = sprintf( "REPLACE INTO exchange_trades (created, ID_exchange, coin, currency, " .
+                      "                              raw_trade_ID, trade_ID, rate, amount, " .
+                      "                              fee, total, type) VALUES " .
                       "  (%d, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');",
              $time, $exchangeID, $coin, $currency, $rawTradeID, $tradeID, formatBTC( $rate ), 
              formatBTC( $amount ), formatBTC( $fee ), formatBTC( $total ), $type );
