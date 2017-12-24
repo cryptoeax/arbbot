@@ -337,9 +337,9 @@ class Arbitrator {
 
       // handlePostTradeTasks will call refreshWallets for us.
       $buyTrades = $this->tradeMatcher->handlePostTradeTasks( $this, $source, $tradeable, 'buy',
-                                                              $sourceTradeableBefore );
+                                                              $tradeAmount );
       $sellTrades = $this->tradeMatcher->handlePostTradeTasks( $this, $target, $tradeable, 'sell',
-                                                               $targetTradeableBefore );
+                                                               $sellAmount );
 
       $totalCost = is_null( $buyOrderID ) ? 0 :
                      $source->getFilledOrderPrice( 'buy', $tradeable, $currency, $buyOrderID );
