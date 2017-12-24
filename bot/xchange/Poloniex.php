@@ -67,6 +67,13 @@ class Poloniex extends Exchange {
         logg( $this->prefix() . "Withdrawals for $amount are frozen, retrying later..." );
         return false;
       }
+      if ( strpos( $ex->getMessage(), 'daily withdrawal limit' ) !== false ) {
+        $alert = str_replace( 'API error response: ', '', $ex->getMessage() );
+        $alert .= sprintf( "\nHappened while withdrawing %s %s to the following address: %s.",
+                           formatBTC( $amount ), $coin, $address );
+        alert( 'poloniex-withdrawal-limit', $alert );
+        return false;
+      }
       throw $ex;
     }
 
