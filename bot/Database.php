@@ -113,6 +113,20 @@ class Database {
 
   }
 
+  public static function insertAlert( $type, $message ) {
+
+    $link = self::connect();
+
+    if ( !mysql_query( sprintf( "INSERT INTO alerts (type, message, created) VALUES ('%s', '%s', %d);",
+                                mysql_escape_string( $type ),
+                                mysql_escape_string( strip_tags( $message ) ), time() ), $link ) ) {
+      throw new Exception( "database insertion error: " . mysql_error( $link ) );
+    }
+
+    mysql_close( $link );
+
+  }
+
   public static function log( $message ) {
 
     $link = self::connect();
@@ -431,6 +445,87 @@ class Database {
     mysql_close( $link );
 
     return $results;
+
+  }
+
+  public static function alertsTableExists() {
+
+    $link = self::connect();
+
+    if ( !mysql_query( sprintf( "SELECT * FROM information_schema.tables WHERE table_schema = '%s' " .
+                                "AND table_name = 'alerts' LIMIT 1;",
+                                mysql_escape_string( Config::get( Config::DB_NAME, null ) ) ), $link ) ) {
+      throw new Exception( "database selection error: " . mysql_error( $link ) );
+    }
+
+    $rows = mysql_affected_rows( $link );
+    $result = $rows > 0;
+
+    mysql_close( $link );
+
+    return $result;
+
+  }
+
+  public static function createAlertsTable() {
+
+    $link = self::connect();
+
+    $query = file_get_contents( __DIR__ . '/../alerts.sql' );
+
+    foreach ( explode( ';', $query ) as $q ) {
+      $q = trim( $q );
+      if ( !strlen( $q ) ) {
+        continue;
+      }
+      if ( !mysql_query( $q, $link ) ) {
+        throw new Exception( "database insertion error: " . mysql_error( $link ) );
+      }
+    }
+
+    mysql_close( $link );
+
+    return true;
+
+  }
+
+  public static function importAlerts() {
+
+    $link = self::connect();
+
+    $result = mysql_query( "SELECT ID, created FROM log WHERE message = 'stuckDetection()' ORDER BY created ASC", $link );
+    if ( !$result ) {
+      throw new Exception( "database selection error: " . mysql_error( $link ) );
+    }
+
+    while ( $row = mysql_fetch_assoc( $result ) ) {
+      $id = $row[ 'ID' ];
+      // Poor man's progress bar
+      print strftime( "\rLooking at stuck withdrawal check performed on %Y-%m-%d %H:%M:%S", $row[ 'created' ] );
+
+      $result2 = mysql_query( "SELECT created, message FROM log WHERE ID > $id ORDER BY ID ASC", $link );
+      if ( !$result2 ) {
+	throw new Exception( "database selection error: " . mysql_error( $link ) );
+      }
+
+      while ( $row = mysql_fetch_assoc( $result2 ) ) {
+	if (!preg_match( '/Please investigate and open support ticket if neccessary/', $row[ 'message' ] )) {
+	  break;
+	}
+	$result3 = mysql_query( sprintf( "INSERT INTO alerts(type, created, message) " .
+                                         "VALUES ('stuck-transfer', %d, '%s');",
+                                         $row[ 'created' ],
+                                         mysql_escape_string( $row[ 'message' ] ) ),
+                                $link );
+	if ( !$result3 ) {
+	  throw new Exception( "database selection error: " . mysql_error( $link ) );
+	}
+      }
+    }
+
+    print "\n";
+
+    mysql_close( $link );
 
   }
 

@@ -32,6 +32,14 @@ logg( "Loading config..." );
 
 Database::handleAddressUpgrade();
 
+if ( !Database::alertsTableExists() ) {
+  logg( "Upgrading the database to create the separate alerts table" );
+  logg( "This is a one time operation which may be really slow, please wait..." );
+
+  Database::createAlertsTable();
+  Database::importAlerts();
+}
+
 // Configure exchanges...
 $exchanges = [ ];
 $msg = '';
