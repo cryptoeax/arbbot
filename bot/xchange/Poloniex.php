@@ -69,6 +69,13 @@ class Poloniex extends Exchange {
         logg( $this->prefix() . "Withdrawals for $amount are frozen, retrying later..." );
         return false;
       }
+      if ( strpos( $ex->getMessage(), 'daily withdrawal limit' ) !== false ) {
+        $alert = str_replace( 'API error response: ', '', $ex->getMessage() );
+        $alert .= sprintf( "\nHappened while withdrawing %s %s to the following address: %s.",
+                           formatBTC( $amount ), $coin, $address );
+        alert( 'poloniex-withdrawal-limit', $alert );
+        return false;
+      }
       throw $ex;
     }
 
@@ -459,7 +466,7 @@ class Poloniex extends Exchange {
         $status = strtoupper( $entry[ 'status' ] );
 
         if ( $timestamp < time() - 12 * 3600 && (substr( $status, 0, 8 ) != 'COMPLETE' || strpos( $status, 'ERROR' ) !== false) ) {
-          logg( $this->prefix() . "Stuck $key! Please investigate and open support ticket if neccessary!\n\n" . print_r( $entry, true ), true );
+          alert( 'stuck-transfer', $this->prefix() . "Stuck $key! Please investigate and open support ticket if neccessary!\n\n" . print_r( $entry, true ), true );
           $this->lastStuckReportTime[ $key ] = $timestamp;
         }
       }

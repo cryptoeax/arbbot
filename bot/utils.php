@@ -33,9 +33,15 @@ function endsWith( $haystack, $needle ) {
 
 }
 
-function logg( $message, $mail = false ) {
+function alert( $type, $message ) {
 
-  Database::log( $message );
+  database::insertAlert( $type, $message );
+
+}
+
+function logg( $message ) {
+
+  database::log( $message );
 
   global $gVerbose;
 

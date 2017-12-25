@@ -33,10 +33,19 @@ logg( "Loading config..." );
 
 Database::handleAddressUpgrade();
 
+if ( !Database::alertsTableExists() ) {
+  logg( "Upgrading the database to create the separate alerts table" );
+  logg( "This is a one time operation which may be really slow, please wait..." );
+
+  Database::createAlertsTable();
+  Database::importAlerts();
+}
+
 if ( !Database::profitLossTableExists() ) {
   require_once __DIR__ . '/import-profit-loss.php';
   importProfitLoss();
 }
+
 // Configure exchanges...
 $exchanges = [ ];
 $msg = '';

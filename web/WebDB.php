@@ -65,9 +65,7 @@ class WebDB {
   public static function getAlerts() {
     $link = self::connect();
 
-    $query = "SELECT created, message FROM log WHERE ID > " .
-               "(SELECT ID FROM log WHERE message = 'stuckDetection()' ORDER BY created DESC LIMIT 1) " .
-             "ORDER BY ID ASC";
+    $query = "SELECT created, message FROM alerts WHERE created >= UNIX_TIMESTAMP() - 24 * 3600 ORDER BY ID ASC";
     $result = mysql_query( $query, $link );
     if ( !$result ) {
       throw new Exception( "database selection error: " . mysql_error( $link ) );
@@ -75,9 +73,6 @@ class WebDB {
 
     $results = [ ];
     while ( $row = mysql_fetch_assoc( $result ) ) {
-      if (!preg_match( '/Please investigate and open support ticket if neccessary/', $row[ 'message' ] )) {
-        break;
-      }
       $results[] = ['message' => $row[ 'message' ], 'time' => $row[ 'created' ] ];
     }
 
