@@ -296,6 +296,7 @@ class Arbitrator {
     logg( $orderInfo );
 
     $sellOrderID = $target->sell( $tradeable, $currency, $reducedSellRate, $sellAmount );
+    $buyOrderID = null;
     if ( is_null( $sellOrderID ) ) {
       logg( "Sell order failed, we will not attempt a buy order to avoid incurring a loss." );
       $buyOrderID = null;
@@ -335,11 +336,13 @@ class Arbitrator {
 
       logg( "Checking trade results ($i)..." );
 
-      // handlePostTradeTasks will call refreshWallets for us.
-      $buyTrades = $this->tradeMatcher->handlePostTradeTasks( $this, $source, $tradeable, 'buy',
-                                                              $tradeAmount );
-      $sellTrades = $this->tradeMatcher->handlePostTradeTasks( $this, $target, $tradeable, 'sell',
-                                                               $sellAmount );
+      $source->refreshWallets();
+      $target->refreshWallets();
+
+      $buyTrades = $this->tradeMatcher->handlePostTradeTasks( $this, $source, $tradeable, $currency, 'buy',
+                                                              $buyOrderID, $tradeAmount );
+      $sellTrades = $this->tradeMatcher->handlePostTradeTasks( $this, $target, $tradeable, $currency, 'sell',
+                                                               $sellOrderID, $sellAmount );
 
       $totalCost = is_null( $buyOrderID ) ? 0 :
                      $source->getFilledOrderPrice( 'buy', $tradeable, $currency, $buyOrderID );

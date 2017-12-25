@@ -152,6 +152,40 @@ abstract class Exchange {
 
   }
 
+  public function getRecentOrderTrades( &$arbitrator, $coin, $currency, $type, $orderID, $tradeAmount ) {
+
+    $trades = array( );
+    for ( $i = 0; $i < 20; ++ $i ) {
+      $tradeMatcher = &$arbitrator->getTradeMatcher();
+      $trades = $tradeMatcher->getExchangeNewTrades( $this->getID() );
+      $trades = array_filter( $trades, function( $trade ) use ( $coin, $type ) {
+        if ( $trade[ 'tradeable' ] != $coin ) {
+          logg( sprintf( "WARNING: Got an unrelated trade while trying to perfrom post-trade tasks: %s of %.8f %s at %.8f, saved but will ignore",
+                         $type, formatBTC( $trade[ 'amount' ] ),
+                         $trade[ 'tradeable' ], $trade[ 'rate' ] ) );
+          return false;
+        }
+        return true;
+      } );
+      $matched = $tradeMatcher->matchTradesConsideringPendingTransfers( $trades, $coin, $this, $tradeAmount );
+      if ( $matched ) {
+        break;
+      }
+      if ( $i == 19 ) {
+        logg( "WARNING: waited for a while without finding all expected trades, so taking what we have for now..." );
+      } else {
+        logg( "WARNING: not reciving all $type trades from the exchange in time, waiting a bit and retrying..." );
+        usleep( 500000 );
+      }
+    }
+
+    if ( !count( $trades ) ) {
+      logg( "WARNING: how have we not found any matches so far?" );
+    }
+
+    return $trades;
+  }
+
   public abstract function getTickers( $currency );
 
   public abstract function withdraw( $coin, $amount, $address );

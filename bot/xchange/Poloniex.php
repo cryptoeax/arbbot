@@ -236,6 +236,37 @@ class Poloniex extends Exchange {
     return $results;
   }
 
+  public function getRecentOrderTrades( &$arbitrator, $tradeable, $currency, $type, $orderID, $tradeAmount ) {
+
+    if (!preg_match( '/^[A-Z0-9_]+:(.*)$/', $orderID, $matches )) {
+      throw new Exception( $this->prefix() . "Invalid order id: " . $orderID );
+    }
+    $rawOrderID = $matches[ 1 ];
+    $results = $this->queryAPI( 'returnOrderTrades', array(
+      'orderNumber' => $rawOrderID,
+    ) );
+
+    $trades = array( );
+    $feeFactor = ($type == 'sell') ? -1 : 1;
+    foreach ( $results as $row ) {
+      $trades[] = array(
+        'rawID' => $rawOrderID . '/' . $row[ 'globalTradeID' ] . '/' . $row[ 'tradeID' ],
+        'id' => $orderID,
+        'currency' => $currency,
+        'tradeable' => $tradeable,
+        'type' => $type,
+        'time' => strtotime( $row[ 'date' ] ),
+        'rate' => floatval( $row[ 'rate' ] ),
+        'amount' => floatval( $row[ 'amount' ] ),
+        'fee' => floatval( $row[ 'total' ] ) * ($feeFactor * floatval( $row[ 'fee' ] )),
+        'total' => floatval( $row[ 'total' ] ),
+      );
+    }
+
+    return $trades;
+
+  }
+
   private function queryRecentTransfers( $type, $currency ) {
 
     $now = time();
