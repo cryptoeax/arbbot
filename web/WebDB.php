@@ -120,19 +120,19 @@ class WebDB {
     while ( $row = mysql_fetch_assoc( $result ) ) {
 
       $value = floatval( $row[ 'data' ] );
-      $exchange = $row[ 'ID_exchange' ];
+      $ex = $row[ 'ID_exchange' ];
 
-      if (!in_array( $exchange, $ma )) {
-        $ma[$exchange] = [ ];
+      if (!in_array( $ex, array_keys( $ma ) )) {
+        $ma[$ex] = [ ];
       }
-      $ma[$exchange][] = $value;
-      while ( count( $ma[$exchange] ) > 4 ) {
-        array_shift( $ma[$exchange] );
+      $ma[$ex][] = $value;
+      while ( count( $ma[$ex] ) > 4 ) {
+        array_shift( $ma[$ex] );
       }
 
-      $sma = array_sum( $ma[$exchange] ) / count( $ma[$exchange] );
+      $sma = array_sum( $ma[$ex] ) / count( $ma[$ex] );
       $data[] = ['time' => $row[ 'created' ], 'value' => $sma , 'raw' => $value,
-                 'exchange' => $exchange ];
+                 'exchange' => $ex ];
     }
 
     mysql_close( $link );
@@ -153,6 +153,9 @@ class WebDB {
         // Will be 0 if $coin doesn't exist in our wallets!
         $balance = @floatval( $wallets[ $coin ] );
 
+	if (!in_array( $id, array_keys( $ma ) )) {
+	  $ma[$id] = [ ];
+	}
 	$ma[$id][] = $balance;
 	while ( count( $ma[$id] ) > 4 ) {
 	  array_shift( $ma[$id] );
