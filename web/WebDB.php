@@ -122,7 +122,7 @@ class WebDB {
       $value = floatval( $row[ 'data' ] );
       $ex = $row[ 'ID_exchange' ];
 
-      if (!in_array( $ex, $ma )) {
+      if (!in_array( $ex, array_keys( $ma ) )) {
         $ma[$ex] = [ ];
       }
       $ma[$ex][] = $value;
@@ -153,6 +153,9 @@ class WebDB {
         // Will be 0 if $coin doesn't exist in our wallets!
         $balance = @floatval( $wallets[ $coin ] );
 
+	if (!in_array( $id, array_keys( $ma ) )) {
+	  $ma[$id] = [ ];
+	}
 	$ma[$id][] = $balance;
 	while ( count( $ma[$id] ) > 4 ) {
 	  array_shift( $ma[$id] );
