@@ -619,6 +619,14 @@ class Bittrex extends Exchange {
           throw new Exception( "HTTP ${code} received from server" );
         }
         //
+
+	if ( $data === false ) {
+	  $error = $this->prefix() . "Could not get reply: " . curl_error( $ch );
+	  logg( $error );
+	  continue;
+	}
+
+	return $this->xtractResponse( $data );
       }
       catch ( Exception $ex ) {
         $error = $ex->getMessage();
@@ -633,14 +641,6 @@ class Bittrex extends Exchange {
         curl_setopt( $ch, CURLOPT_HTTPHEADER, ["apisign: $sign" ] );
         continue;
       }
-
-      if ( $data === false ) {
-        $error = $this->prefix() . "Could not get reply: " . curl_error( $ch );
-        logg( $error );
-        continue;
-      }
-
-      return $this->xtractResponse( $data );
     }
     throw new Exception( $error );
 
