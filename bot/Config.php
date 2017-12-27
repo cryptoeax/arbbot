@@ -106,6 +106,12 @@ class Config {
   const TAKE_PROFIT_AMOUNT = 'takeprofit.profit-limit';
   const DEFAULT_TAKE_PROFIT_AMOUNT = null;
   //
+  const TAKE_PROFIT_MIN_RESTOCK_CASH = 'takeprofit.min-restock-cash';
+  const DEFAULT_TAKE_PROFIT_MIN_RESTOCK_CASH = 0.1;
+  //
+  const TAKE_PROFIT_RESTOCK_CASH_PERCENTAGE = 'takeprofit.restock-cash-percentage';
+  const DEFAULT_TAKE_PROFIT_RESTOCK_CASH_PERCENTAGE = 0.33;
+  //
   // AUTOBUY
   const MAX_BUY = 'autobuy.max-buy';
   const DEFAULT_MAX_BUY = 0.005;
@@ -245,6 +251,8 @@ class Config {
       self::MAX_BUY,
       self::TAKE_PROFIT_ADDRESS,
       self::TAKE_PROFIT_AMOUNT,
+      self::TAKE_PROFIT_MIN_RESTOCK_CASH,
+      self::TAKE_PROFIT_RESTOCK_CASH_PERCENTAGE,
       self::MAX_TRADE_SIZE,
       self::MIN_PROFIT,
       self::BUY_RATE_FACTOR,
@@ -329,6 +337,8 @@ class Config {
       self::MAX_BUY,
       self::TAKE_PROFIT_ADDRESS,
       self::TAKE_PROFIT_AMOUNT,
+      self::TAKE_PROFIT_MIN_RESTOCK_CASH,
+      self::TAKE_PROFIT_RESTOCK_CASH_PERCENTAGE,
       self::MAX_TRADE_SIZE,
       self::MIN_PROFIT,
       self::BUY_RATE_FACTOR,

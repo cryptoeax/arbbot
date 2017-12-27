@@ -84,6 +84,13 @@ profit-limit = 1.0
 ; All funds above 'profit-limit' are sent to this address
 profit-address = 1XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
+; Minimum BTC amount of cash being restocked into autobuy funds when withdrawing profits.
+min-restock-cash = 0.1
+
+; Percentage of the withdrawn profits that are being restocked into autobuy funds when
+; withdrawing profits.
+restock-cash-percentage = 0.33
+
 [trade]
 ; TRADE MODULE CONFIGURATION
 ; Settings for the trade module

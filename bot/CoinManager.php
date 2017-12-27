@@ -473,7 +473,10 @@ class CoinManager {
 
     $profit = formatBTC( $totalBTC - $profitLimit );
     logg( "Profit: " . $profit );
-    $restockCash = formatBTC( min( 0.1, $profit * 0.33 ) );
+    $restockCash = formatBTC( min( Config::get( Config::TAKE_PROFIT_MIN_RESTOCK_CASH,
+                                                Config::DEFAULT_TAKE_PROFIT_MIN_RESTOCK_CASH ),
+                                   $profit * Config::get( Config::TAKE_PROFIT_RESTOCK_CASH_PERCENTAGE,
+                                                          Config::DEFAULT_TAKE_PROFIT_RESTOCK_CASH_PERCENTAGE ) ) );
 
     $minXFER = Config::get( Config::MIN_BTC_XFER, Config::DEFAULT_MIN_BTC_XFER );
     // Be a bit more conservative with BTC, since it's our profits after all!
@@ -490,18 +493,18 @@ class CoinManager {
       return;
     }
 
-    // -------------------------------------------------------------------------
-    $restockFunds = $this->stats[ self::STAT_AUTOBUY_FUNDS ];
-    logg( "Overwriting restock funds..." );
-    logg( "Restock cash before: $restockFunds BTC" );
-    $this->stats[ self::STAT_AUTOBUY_FUNDS ] = $restockCash;
-    logg( " Restock cash after: $restockCash BTC" );
-    logg( "   Remaining profit: $remainingProfit BTC" );
-    // -------------------------------------------------------------------------
-
     logg( "Withdrawing profit: $remainingProfit BTC to $profitAddress", true );
     if ( $highestExchange->withdraw( 'BTC', $remainingProfit, $profitAddress ) ) {
       Database::saveWithdrawal( 'BTC', $remainingProfit, $profitAddress, $highestExchange->getID(), 0 );
+
+      // -------------------------------------------------------------------------
+      $restockFunds = $this->stats[ self::STAT_AUTOBUY_FUNDS ];
+      logg( "Overwriting restock funds..." );
+      logg( "Restock cash before: $restockFunds BTC" );
+      $this->stats[ self::STAT_AUTOBUY_FUNDS ] = $restockCash;
+      logg( " Restock cash after: $restockCash BTC" );
+      logg( "   Remaining profit: $remainingProfit BTC" );
+      // -------------------------------------------------------------------------
     }
 
   }

@@ -632,6 +632,11 @@ class Bittrex extends Exchange {
         $error = $ex->getMessage();
         logg( $this->prefix() . $error );
 
+        if ( strpos( $error, 'ORDER_NOT_OPEN' ) !== false ) {
+          // Real error, don't attempt to retry needlessly.
+          break;
+        }
+
         // Refresh request parameters
         $nonce = $this->nonce();
         $req[ 'nonce' ] = sprintf( "%ld", $nonce );
