@@ -199,6 +199,8 @@ $(function() {
                     },
                     xaxis: {
                         mode: "time",
+                        timeformat: "%b %e\n%H:%M",
+                        timezone: "browser",
                         min: startDate.getTime(),
                         max: endDate.getTime()
                     }
