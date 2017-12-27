@@ -156,10 +156,7 @@ class TradeMatcher {
     return $currencyProfitLoss;
   }
 
-  public function matchTradesConsideringPendingTransfers( $trades, $tradeable, $type, $exchange,
-                                                          $depositsBefore, $withdrawalsBefore,
-                                                          $depositsAfter, $withdrawalsAfter,
-                                                          $tradeAmount ) {
+  public function matchTradesConsideringPendingTransfers( $trades, $tradeable, $exchange, $tradeAmount ) {
 
     $tradesSum = array_reduce( $trades, 'sumOfAmount', 0 );
 
