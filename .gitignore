@@ -1,2 +1,3 @@
 config.ini
+config.ini.[0-9]*
 web/config.inc.php
