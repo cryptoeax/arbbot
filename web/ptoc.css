@@ -266,3 +266,10 @@ p {
 #wallets.hide-zero .zero {
     display: none;
 }
+
+.smooth {
+    float: right;
+    margin-top: -1em;
+    margin-right: 1em;
+    font-size: small;
+}
