@@ -96,7 +96,6 @@ class TradeMatcher {
 
       $rateTimesAmountBuy += $trade[ 'rate' ] * $trade[ 'amount' ];
       $tradeableBought += $trade[ 'amount' ];
-      $currencyBought += $trade[ 'total' ];
       // Fee is positive for "buy" trades.
       $buyFee = -$trade[ 'fee' ];
 
@@ -123,7 +122,6 @@ class TradeMatcher {
 
       $rateTimesAmountSell += $trade[ 'rate' ] * $trade[ 'amount' ];
       $tradeableSold += $trade[ 'amount' ];
-      $currencySold += $trade[ 'total' ];
       // Fee is negative for "buy" trades.
       $sellFee = $trade[ 'fee' ];
 
@@ -131,6 +129,9 @@ class TradeMatcher {
       $txFee = $cm->getSafeTxFee( $target, $trade[ 'tradeable' ], $soldAmount );
       $tradeableTransferFee = max( $tradeableTransferFee, $txFee );
     }
+
+    $currencyBought = $rateTimesAmountBuy;
+    $currencySold = $rateTimesAmountSell;
 
     $time = time();
     $rawTradeIDsBuy = implode( ',', $rawTradeIDsBuy );
