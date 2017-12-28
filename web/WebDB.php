@@ -525,10 +525,20 @@ class WebDB {
     $row = mysql_fetch_assoc( $result );
     $total_pl = $row[ 'total_pl' ];
 
+    $result = mysql_query( "SELECT SUM(amount) AS realized_pl " .
+                           "FROM profits;", $link );
+    if ( !$result ) {
+      throw new Exception( "database selection error: " . mysql_error( $link ) );
+    }
+
+    $row = mysql_fetch_assoc( $result );
+    $realized_pl = $row[ 'realized_pl' ];
+
     mysql_close( $link );
 
     $results = [
       'pl' => $total_pl,
+      'realized_pl' => $realized_pl,
       'pl_currency' => $pl_currency,
       'efficiency' => count( $data ) ? 100 * $profitables / count( $data ) : 0,
       'data' => $data,
