@@ -295,7 +295,6 @@ class Bittrex extends Exchange {
 
   public function cancelOrder( $orderID ) {
 
-    logg( $this->prefix() . "Cancelling order $orderID" );
     try {
       $this->queryCancelOrder( $orderID );
       return true;
