@@ -6,3 +6,8 @@ This file needs to be placed next to config.ini, and its name is case sensitive.
 Please download this file from Bittrex and place it in the installation
 directory and place Enter when ready.
 
+This file can be downloaded after logging in to your account from the following
+address by pressing the "Load All" button and then pressing Submit.
+
+  * https://bittrex.com/History
+
