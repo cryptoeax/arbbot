@@ -155,7 +155,7 @@ abstract class Exchange {
   public function getRecentOrderTrades( &$arbitrator, $coin, $currency, $type, $orderID, $tradeAmount ) {
 
     $trades = array( );
-    $tradeMatcher = &$arbitrator->getTradeMatcher();
+    $tradeMatcher = $arbitrator->getTradeMatcher();
     for ( $i = 0; $i < 20; ++ $i ) {
       $trades = $tradeMatcher->getExchangeNewTrades( $this->getID() );
       $trades = array_filter( $trades, function( $trade ) use ( $coin, $type ) {
