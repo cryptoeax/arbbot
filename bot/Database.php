@@ -687,11 +687,11 @@ class Database {
       return array( );
     }
 
-    $arg = implode( ", ", array_map( 'quoteStr',
+    $arg = implode( " OR ", array_map( 'generateNewTradesLikeClause',
                             array_map( 'mysql_escape_string', $recentTradeIDs ) ) );
 
     if ( !$result = mysql_query( sprintf( "SELECT raw_trade_ID " .
-                                          "FROM exchange_trades WHERE raw_trade_ID IN ( %s );",
+                                          "FROM exchange_trades WHERE %s;",
                                           $arg ) ) ) {
       throw new Exception( "database insertion error: " . mysql_error( $link ) );
     }
@@ -705,7 +705,18 @@ class Database {
 
     $result = array( );
     foreach ( $recentTradeIDs as $id ) {
-      if ( !isset( $return[ $id ] ) ) {
+      if ( isset( $return[ $id ] ) ) {
+        continue;
+      }
+      // If we don't find an exact match, look for a partial match.
+      $add = true;
+      foreach ( array_keys( $return ) as $candidate ) {
+        if ( strpos( $candidate, $id ) !== false ) {
+          $add = false;
+          break;
+        }
+      }
+      if ( $add ) {
         $result[] = $id;
       }
     }

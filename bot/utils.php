@@ -51,8 +51,8 @@ function logg( $message ) {
 
 }
 
-function quoteStr( $str ) {
-  return "\"$str\"";
+function generateNewTradesLikeClause( $str ) {
+  return "raw_trade_ID LIKE \"%$str%\"";
 }
 
 function compareByTime( $row1, $row2 ) {
