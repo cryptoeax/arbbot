@@ -495,6 +495,7 @@ class CoinManager {
 
     logg( "Withdrawing profit: $remainingProfit BTC to $profitAddress", true );
     if ( $highestExchange->withdraw( 'BTC', $remainingProfit, $profitAddress ) ) {
+      Database::recordProfit( $remainingProfit, 'BTC', $profitAddress, time() );
       Database::saveWithdrawal( 'BTC', $remainingProfit, $profitAddress, $highestExchange->getID(), 0 );
 
       // -------------------------------------------------------------------------

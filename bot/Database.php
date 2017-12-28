@@ -638,6 +638,90 @@ class Database {
 
   }
 
+  public static function profitsTableExists() {
+
+    $link = self::connect();
+
+    if ( !mysql_query( sprintf( "SELECT * FROM information_schema.tables WHERE table_schema = '%s' " .
+                                "AND table_name = 'profits' LIMIT 1;",
+                                mysql_escape_string( Config::get( Config::DB_NAME, null ) ) ), $link ) ) {
+      throw new Exception( "database selection error: " . mysql_error( $link ) );
+    }
+
+    $rows = mysql_affected_rows( $link );
+    $result = $rows > 0;
+
+    mysql_close( $link );
+
+    return $result;
+
+  }
+
+  public static function createProfitsTable() {
+
+    $link = self::connect();
+
+    $query = file_get_contents( __DIR__ . '/../profits.sql' );
+
+    foreach ( explode( ';', $query ) as $q ) {
+      $q = trim( $q );
+      if ( !strlen( $q ) ) {
+        continue;
+      }
+      if ( !mysql_query( $q, $link ) ) {
+        throw new Exception( "database insertion error: " . mysql_error( $link ) );
+      }
+    }
+
+    mysql_close( $link );
+
+    return true;
+
+  }
+
+  public static function importProfits() {
+
+    $link = self::connect();
+
+    $result = mysql_query( "SELECT message, created FROM log WHERE message LIKE 'Withdrawing profit: %' ORDER BY created ASC", $link );
+    if ( !$result ) {
+      throw new Exception( "database selection error: " . mysql_error( $link ) );
+    }
+
+    while ( $row = mysql_fetch_assoc( $result ) ) {
+      if (!preg_match( '/^Withdrawing profit: ([0-9\.]+) BTC to (.*)$/',
+                       $row[ 'message' ], $matches )) {
+        break;
+      }
+      Database::recordProfit( $matches[ 1 ], 'BTC', $matches[ 2 ], $row[ 'created' ] );
+    }
+
+    mysql_close( $link );
+
+  }
+
+  public static function recordProfit( $amount, $currency, $address, $created ) {
+
+    $link = self::connect();
+    $percentRestock = Config::get( Config::TAKE_PROFIT_MIN_RESTOCK_CASH,
+                                   Config::DEFAULT_TAKE_PROFIT_MIN_RESTOCK_CASH );
+
+    if ( !mysql_query( sprintf( "INSERT INTO profits (created, currency, amount, cash_restock_percent, " .
+                                                      "cash_restock_amount, address) VALUES (%d, '%s', " .
+                                                      "'%s', '%s', '%s', '%s');",
+                                $created, mysql_escape_string( $currency ),
+                                formatBTC( $amount ),
+                                formatBTC( $percentRestock ),
+                                formatBTC( $percentRestock * $amount ),
+                                mysql_escape_string( $address ) ),
+                        $link ) ) {
+      throw new Exception( "database insertion error: " . mysql_error( $link ) );
+    }
+
+    mysql_close( $link );
+
+  }
+
   public static function profitLossTableExists() {
 
     $link = self::connect();
