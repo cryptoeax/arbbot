@@ -21,8 +21,7 @@ class Bittrex extends Exchange {
   }
 
   public function deductFeeFromAmountBuy( $amount ) {
-
-    return parent::deductFeeFromAmountBuy( $amount );
+    return $amount * 0.9975;
 
   }
 

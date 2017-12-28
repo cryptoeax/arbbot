@@ -28,7 +28,7 @@ class Poloniex extends Exchange {
 
   public function deductFeeFromAmountBuy( $amount ) {
 
-    return parent::deductFeeFromAmountBuy( $amount );
+    return $amount * (1 - $this->tradeFee);
 
   }
 
