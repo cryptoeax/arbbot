@@ -295,6 +295,13 @@ class WebDB {
       $wallets[ $coin ][ $exid ][ 'opportunities' ] = intval( $row[ 'uses' ] );
       $wallets[ $coin ][ $exid ][ 'change' ] = floatval( $balance  - self::getHistoricBalance( $coin, $exid ) );
       $wallets[ $coin ][ $exid ][ 'trades' ] = intval( $row[ 'trades' ] );
+      if ($coin=="BTC") {
+        $wallets[ $coin ][ $exid ][ 'balance_BTC' ] = floatval(formatBTC($balance));
+        $wallets[ $coin ][ $exid ][ 'change_BTC' ] = floatval( ($balance  - self::getHistoricBalance( $coin, $exid)));
+      } else {
+        $wallets[ $coin ][ $exid ][ 'change_BTC' ] = floatval( ($balance  - self::getHistoricBalance( $coin, $exid)) * $row['rate']);
+        $wallets[ $coin ][ $exid ][ 'balance_BTC' ] = floatval(formatBTC($balance * $row['rate']));
+      }
     }
 
     mysql_close( $link );
