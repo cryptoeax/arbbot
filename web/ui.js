@@ -84,14 +84,12 @@ $(function() {
 
     function no2e(x) {
 
-        if (x === "1" || x === 1)
-            return "P";
-        else if (x === "2" || x === 3)
-            return "BL";
-        else if (x === "3" || x === 4)
-            return "B";
-        else
-            return "?";
+        var num = parseInt(x);
+        if (num <= 3 && num >= 1) {
+            return '<img src="xchange/' + num + '.ico" width="14" height="14">';
+        }
+
+        return "?";
 
     }
 
