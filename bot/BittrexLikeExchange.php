@@ -257,7 +257,7 @@ abstract class BittrexLikeExchange extends Exchange {
     $wallets = [ ];
 
     // Create artifical wallet balances for all traded coins:
-    $currencies = $this->transferFees;
+    $currencies = $this->getTradeables();
     if (!count( $currencies )) {
       // If this is the first call to refreshWallets(), $this->transferFees isn't
       // initialized yet.

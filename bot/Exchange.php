@@ -15,6 +15,7 @@ abstract class Exchange {
   protected $names = [ ];
   protected $pairs = [ ];
   protected $tradeablePairs = [ ];
+  protected $tradeables = [ ];
 
   function __construct( $apiKey, $apiSecret ) {
 
@@ -49,6 +50,7 @@ abstract class Exchange {
     // Never consider pairs that have a confirmation time that exceeds
     // max-min-confirmations-allowed for trading.
     $pairs = array( );
+    $tradeables = array( );
     foreach ( $this->pairs as $pair ) {
       $arr = explode( '_', $pair );
       $tradeable = $arr[ 0 ];
@@ -69,15 +71,26 @@ abstract class Exchange {
       }
 
       $pairs[] = $pair;
+      $tradeables[] = $tradeable;
     }
 
     $this->tradeablePairs = $pairs;
+    $this->tradeables[] = array(
+      'CoinType' => 'BITCOIN',
+      'Currency' => $tradeable,
+    );
 
   }
 
   public function getTradeablePairs() {
 
     return $this->tradeablePairs;
+
+  }
+
+  public function getTradeables() {
+
+    return $this->tradeables;
 
   }
 
