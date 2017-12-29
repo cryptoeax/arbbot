@@ -8,8 +8,9 @@ You can see the bot running on a cheap [linode](https://www.linode.com) here.  C
 
 ## Supported Exchanges
 
-  * Poloniex (all BTC markets)
   * Bittrex (all BTC markets)
+  * Bleutrade (all BTC markets)
+  * Poloniex (all BTC markets)
 
 ## Installation on Debian 9.0+ / Ubuntu 16.04+
 
