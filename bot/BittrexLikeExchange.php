@@ -30,12 +30,12 @@ abstract class BittrexLikeExchange extends Exchange {
 
     foreach ( $markets as $market ) {
 
-      $split = explode( $this->marketOptions[ 'separator' ], $market[ 'MarketName' ] );
-      if ( $split[ $this->marketOptions[ 'offsetCurrency' ] ] != $currency ) {
+      $name = $this->parseMarketName( $market[ 'MarketName' ] );
+      if ( $name[ 'currency' ] != $currency ) {
         continue;
       }
 
-      $ticker[ $split[ $this->marketOptions[ 'offsetTradeable' ] ] ] = $market[ 'Last' ];
+      $ticker[ $name[ 'tradeable' ] ] = $market[ 'Last' ];
     }
 
     return $ticker;
@@ -343,10 +343,20 @@ abstract class BittrexLikeExchange extends Exchange {
 
   }
 
-  private function makeMarketName( $currency, $tradeable ) {
+  protected function makeMarketName( $currency, $tradeable ) {
 
     $arr = [ $currency, $tradeable ];
     return $arr[ $this->marketOptions[ 'offsetCurrency' ] ] . $this->marketOptions[ 'separator' ] . $arr[ $this->marketOptions[ 'offsetTradeable' ] ];
+
+  }
+
+  protected function parseMarketName( $name ) {
+
+    $split = explode( $this->marketOptions[ 'separator' ], $name );
+    return array(
+      'tradeable' => $split[ $this->marketOptions[ 'offsetTradeable' ] ],
+      'currency' => $split[ $this->marketOptions[ 'offsetCurrency' ] ],
+    );
 
   }
 
