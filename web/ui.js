@@ -739,7 +739,65 @@ $(function() {
                 var tradeCounts = data['trades'];
                 var useCounts = data['uses'];
 
-                var htmlData = "---------- <span title=\"Currency\">BTC</span> -----------\n";
+                var htmlData = "----- <span title=\"Total Portfolio\">TOTAL PORTFOLIO</span> -----\n";
+
+                // sum up altcoin totals
+                var altcoinTotals = {};
+                Object.keys(wallets).forEach(function(coin) {
+                    Object.keys(wallets[coin]).forEach(function(xid) {
+                        if (xid in altcoinTotals) {
+                            altcoinTotals[xid]['balance'] += wallets[coin][xid]['balance_BTC'];
+                            altcoinTotals[xid]['change'] += wallets[coin][xid]['change_BTC'];
+                        } else {
+                            altcoinTotals[xid] = {}
+                            altcoinTotals[xid]['balance'] = wallets[coin][xid]['balance_BTC'];
+                            altcoinTotals[xid]['change'] = wallets[coin][xid]['change_BTC'];
+                        }
+                    });
+                }); 
+                var altcoinBalance = 0;
+                var altcoinChange = 0;
+                Object.keys(altcoinTotals).forEach(function(xid) {
+                    var exname = no2el(xid);
+                    while (exname.length < 5) {
+                        exname = " " + exname;
+                    }
+                    
+                    htmlData += exname;
+                    htmlData += ": ";
+                    htmlData += "<a href=\"#\" coin=\"alt_btc\" exchange=\"" + xid + "\" mode=\"0\" class=\"showGraph\" title=\"Total balance (BTC + Altcoins)\">";
+                    htmlData += rnd4(altcoinTotals[xid]['balance']);
+                    htmlData += "</a>";
+                    htmlData += " T:";
+                    htmlData += "<span title=\"Trade counts\">";
+                    htmlData += fmt5(tradeCounts[xid]);
+                    htmlData += "</span>|O:";
+                    htmlData += "<span title=\"Opportunity counts\">";
+                    htmlData += fmt5(useCounts[xid]);
+                    htmlData += "</span>\n";
+                    altcoinBalance += parseFloat(altcoinTotals[xid]['balance']);
+                    altcoinChange += parseFloat(altcoinTotals[xid]['change']);
+                });
+
+                console.log(altcoinTotals);
+                htmlData += "TOTAL: ";
+                htmlData += "<a href=\"#\" coin=\"alt_btc\" exchange=\"0\" mode=\"0\" class=\"showGraph\" title=\"Total balance (BTC + Altcoins)\">";
+                htmlData += rnd4(altcoinBalance);
+                htmlData += "</a>";
+
+                htmlData += " <span title=\"Total balance change (BTC + Altcoins)\">";
+                htmlData += altcoinChange > 0 ? "+" : "";
+                htmlData += rnd4(altcoinChange);
+                htmlData += "</span>\n";
+
+                htmlData += "--------------------------\n";
+                htmlData += "\n";
+
+                /*
+                    Strats: For each coin, add XID to totals DB
+                     
+                */
+                htmlData += "---------- <span title=\"Currency\">BTC</span> -----------\n";
 
                 var btcData = wallets['BTC'];
                 var total = 0;
