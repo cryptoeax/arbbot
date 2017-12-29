@@ -108,6 +108,21 @@ $(function() {
 
     }
 
+    function no2ell(x) {
+
+        if (x === "0" || x === 0)
+            return "Total";
+        else if (x === "1" || x === 1)
+            return "Poloniex";
+        else if (x === "2" || x === 2)
+            return "Bleutrade";
+        else if (x === "3" || x === 3)
+            return "Bittrex";
+        else
+            return "?";
+
+    }
+
     function rnd1(x) {
         return Math.round(x * 10) / 10;
     }
@@ -643,9 +658,12 @@ $(function() {
                     }
 
                     var direction = "";
+                    direction += "<span title=\"" + no2ell(data[i].exchange_source) + "\">";
                     direction += no2e(data[i].exchange_source);
-                    direction += " -> ";
+                    direction += "</span> -> ";
+                    direction += "<span title=\"" + no2ell(data[i].exchange_target) + "\">";
                     direction += no2e(data[i].exchange_target);
+                    direction += "</span>";
 
                     htmlData += amount + " " + coin + " " + direction + "\n";
                 }
@@ -818,7 +836,7 @@ $(function() {
                         var balance = formatBalance(dat.balance);
                         var balws = genWhitespace(balance, 6);
 
-                        htmlData += "<a href=\"#\" coin=\"" + coin + "\" exchange=\"" + xid + "\" mode=\"1\" class=\"showGraph\" title=\"Exchange\">";
+                        htmlData += "<a href=\"#\" coin=\"" + coin + "\" exchange=\"" + xid + "\" mode=\"1\" class=\"showGraph\" title=\"" + no2ell(xid) + "\">";
                         htmlData += no2e(xid);
                         htmlData += "</a>";
                         htmlData += " = ";
