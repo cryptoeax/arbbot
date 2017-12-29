@@ -86,16 +86,10 @@ $(function() {
 
         if (x === "1" || x === 1)
             return "P";
-        else if (x === "2" || x === 2)
-            return "C";
-        else if (x === "3" || x === 3)
+        else if (x === "2" || x === 3)
+            return "BL";
+        else if (x === "3" || x === 4)
             return "B";
-        else if (x === "4" || x === 4)
-            return "A";
-        else if (x === "5" || x === 5)
-            return "L";
-        else if (x === "6" || x === 6)
-            return "K";
         else
             return "?";
 
@@ -108,15 +102,9 @@ $(function() {
         else if (x === "1" || x === 1)
             return "PLNX";
         else if (x === "2" || x === 2)
-            return "CRYPTSY";
+            return "BLTRD";
         else if (x === "3" || x === 3)
             return "BTTRX";
-        else if (x === "4" || x === 4)
-            return "LLCN";
-        else if (x === "5" || x === 5)
-            return "BLTRD";
-        else if (x === "6" || x === 6)
-            return "CMKRT";
         else
             return "?";
 

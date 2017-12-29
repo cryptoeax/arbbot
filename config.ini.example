@@ -138,6 +138,16 @@ key =
 ; API secret for Bittrex
 secret =
 
+[bleutrade]
+
+; Bleutrade API keys can be generated on https://bleutrade.com/member/api_keys.
+
+; API key for Bleutrade
+key =
+
+; API secret for Bleutrade
+secret =
+
 [poloniex]
 
 ; Remember to enable withdrawals for POLONIEX!
