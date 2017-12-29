@@ -121,13 +121,8 @@ class Bleutrade extends BittrexLikeExchange {
       }
 
       // Label is in the following format:
-      // "Deposit in address Youraddress"
-      if ( !preg_match( '/address ([^;]+);/', $row[ 'Label' ], $matches ) ) {
-        logg( $this->prefix() . sprintf( "WARNING: Received unexpected `Label' in the deposit history: \"%s\"",
-                                         $row[ 'Label' ] ) );
-        continue;
-      }
-      $address = $matches[ 1 ];
+      // "Youraddress"
+      $address = $row[ 'Label' ];
 
       $result[] = array(
         'currency' => $row[ 'Coin' ],
@@ -156,8 +151,8 @@ class Bleutrade extends BittrexLikeExchange {
       }
 
       // Label is in the following format:
-      // "Withdraw: 0.99000000 to address Anotheraddress; fee 0.01000000"
-      if ( !preg_match( '/address ([^;]+);/', $row[ 'Label' ], $matches ) ) {
+      // "amount;address;fee"
+      if ( !preg_match( '/;([^;]+);/', $row[ 'Label' ], $matches ) ) {
         logg( $this->prefix() . sprintf( "WARNING: Received unexpected `Label' in the withdrawal history: \"%s\"",
                                          $row[ 'Label' ] ) );
         continue;
