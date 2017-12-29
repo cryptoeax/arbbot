@@ -12,18 +12,22 @@ class Bleutrade extends Exchange {
   
   function __construct() {
     parent::__construct( Config::get( "bleutrade.key" ), Config::get( "bleutrade.secret" ) );
+
   }
 
   public function addFeeToPrice( $price ) {
     return $price * 1.0025;
+
   }
 
   public function deductFeeFromAmountBuy( $amount ) {
     return $amount * 0.9975;
+
   }
 
   public function deductFeeFromAmountSell( $amount ) {
     return $amount * 0.9975;
+
   }
 
   public function getTickers( $currency ) {
@@ -54,15 +58,19 @@ class Bleutrade extends Exchange {
       echo( $this->prefix() . "Withdrawal error: " . $ex->getMessage() );
       return false;
     }
+
   }
 
   public function getDepositAddress( $coin ) {
+
     return $this->queryDepositAddress( $coin );
+
   }
 
   public function buy( $tradeable, $currency, $rate, $amount ) {
+
     try {
-  return $this->queryOrder( $tradeable, $currency, 'buy', $rate, $amount );
+      return $this->queryOrder( $tradeable, $currency, 'buy', $rate, $amount );
     }
     catch ( Exception $ex ) {
       if ( strpos( $ex->getMessage(), 'MARKET_OFFLINE' ) !== false ) {
@@ -71,8 +79,11 @@ class Bleutrade extends Exchange {
       logg( $this->prefix() . "Got an exception in buy(): " . $ex->getMessage() );
       return null;
     }
+
   }
+
   public function sell( $tradeable, $currency, $rate, $amount ) {
+
    try {
       return $this->queryOrder( $tradeable, $currency, 'sell', $rate, $amount );
     }
@@ -107,6 +118,7 @@ class Bleutrade extends Exchange {
     }
     return null;
   }
+
   public function queryTradeHistory( $options = array( ), $recentOnly = false ) {
     $results = array( );
 
@@ -355,22 +367,32 @@ class Bleutrade extends Exchange {
   }
 
   public function detectStuckTransfers() {
+
     // TODO: Detect stuck transfers!
+
   }
   public function getWalletsConsideringPendingDeposits() {
+
     $result = [ ];
     foreach ( $this->wallets as $coin => $balance ) {
       $result[ $coin ] = $balance;
     }
+
     $balances = $this->queryBalances();
     foreach ( $balances as $balance ) {
       $result[ strtoupper( $balance[ 'Currency' ] ) ] = $balance[ 'Balance' ] + $balance[ 'Pending' ];
     }
+
     return $result;
+
   }
+
   public function dumpWallets() {
+
     logg( $this->prefix() . print_r( $this->queryBalances(), true ) );
+
   }
+
   public function refreshWallets() {
     
     $wallets = [ ];
@@ -386,24 +408,42 @@ class Bleutrade extends Exchange {
     foreach ( array_keys( $currencies ) as $coin ) {
       $wallets[ $coin ] = 0;
     }
+
     $balances = $this->queryBalances();
     foreach ( $balances as $balance ) {
       $wallets[ strtoupper( $balance[ 'Currency' ] ) ] = $balance[ 'Balance' ];
     }
+
     $this->wallets = $wallets;
+
   }
   public function testAccess() {
+
     $this->queryBalances();
+
   }
   public function getSmallestOrderSize() {
+
     return '0.00050000';
+
   }
   public function getID() {
+
     return Bleutrade::ID;
+
   }
   public function getName() {
+
     return "BLEUTRADE";
+
   }
+
+  public function getTradeHistoryCSVName() {
+
+    return null;
+
+  }
+
   // Internal functions for querying the exchange
 
    private function queryDepositAddress( $coin ) {
