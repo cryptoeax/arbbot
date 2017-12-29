@@ -167,18 +167,30 @@ class Bleutrade extends BittrexLikeExchange {
 
   public function queryRecentDeposits( $currency = null ) {
 
-    $history = $this->queryAPI( 'account/getdeposithistory',
-                                $currency ? array ( 'currency' => $currency ) : array( ) );
+    $history = $this->queryAPI( 'account/getdeposithistory' );
 
     $result = array();
     foreach ( $history as $row ) {
+      if ( !is_null( $currency ) && $currency != $row[ 'currency' ] ) {
+        continue;
+      }
+
+      // Label is in the following format:
+      // "Deposit in address Youraddress"
+      if ( !preg_match( '/address ([^;]+);/', $row[ 'Label' ], $matches ) ) {
+        logg( $this->prefix() . sprintf( "WARNING: Received unexpected `Label' in the deposit history: \"%s\"",
+                                         $row[ 'Label' ] ) );
+        continue;
+      }
+      $address = $matches[ 1 ];
+
       $result[] = array(
-        'currency' => $row[ 'Currency' ],
+        'currency' => $row[ 'Coin' ],
         'amount' => $row[ 'Amount' ],
-        'txid' => $row[ 'TxId' ],
-        'address' => $row[ 'CryptoAddress' ],
-        'time' => strtotime( $row[ 'LastUpdated' ] ),
-        'pending' => ( $row[ 'Confirmations' ] < $this->getConfirmationTime( $row[ 'Currency' ] ) ),
+        'txid' => '', // transaction id not exposed
+        'address' => $address,
+        'time' => strtotime( $row[ 'TimeStamp' ] ),
+        'pending' => false, // assume anything that shows up here is finished
       );
     }
 
@@ -190,18 +202,30 @@ class Bleutrade extends BittrexLikeExchange {
 
   public function queryRecentWithdrawals( $currency = null ) {
 
-    $history = $this->queryAPI( 'account/getwithdrawalhistory',
-                                $currency ? array ( 'currency' => $currency ) : array( ) );
+    $history = $this->queryAPI( 'account/getwithdrawhistory' );
 
     $result = array();
     foreach ( $history as $row ) {
+      if ( !is_null( $currency ) && $currency != $row[ 'currency' ] ) {
+        continue;
+      }
+
+      // Label is in the following format:
+      // "Withdraw: 0.99000000 to address Anotheraddress; fee 0.01000000"
+      if ( !preg_match( '/address ([^;]+);/', $row[ 'Label' ], $matches ) ) {
+        logg( $this->prefix() . sprintf( "WARNING: Received unexpected `Label' in the withdrawal history: \"%s\"",
+                                         $row[ 'Label' ] ) );
+        continue;
+      }
+      $address = $matches[ 1 ];
+
       $result[] = array(
-        'currency' => $row[ 'Currency' ],
+        'currency' => $row[ 'Coin' ],
         'amount' => $row[ 'Amount' ],
-        'txid' => $row[ 'TxId' ],
-        'address' => $row[ 'Address' ],
-        'time' => strtotime( $row[ 'Opened' ] ),
-        'pending' => $row[ 'PendingPayment' ] === true,
+        'txid' => $row[ 'TransactionId' ],
+        'address' => $address,
+        'time' => strtotime( $row[ 'TimeStamp' ] ),
+        'pending' => false, // assume anything that shows up here is finished
       );
     }
 
