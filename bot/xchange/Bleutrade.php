@@ -36,25 +36,32 @@ class Bleutrade extends BittrexLikeExchange {
   }
 
   public function getFilledOrderPrice( $type, $tradeable, $currency, $id ) {
-    $market = $tradeable . '_' . $currency;
-    $orderstatus = 'ALL';
-    $ordertype = 'ALL';
-    $result = $this->queryAPI( 'account/getorders', 
-    [ 
-    'market' => $market,
-    'orderstatus' => $orderstatus,
-    'ordertype' => $ordertype, 
-    ]  );
-    $id = trim( $id, '{}' );
-    foreach ($result as $order) {
-  if ($order[ 'OrderId' ]  == $id) {
-    if ($order[ 'QuantityRemaining' ] != 0) {
-              logg( $this->prefix() . "Order " . $id . " assumed to be filled but " . $order[ 'QuantityRemaining' ] . " still remaining" );
-          }
-  return $order[ 'Price' ];
-      }
+
+    $order = $this->queryAPI( 'account/getorder', array( 'orderid' => $id ) );
+    if ( !$order ) {
+      logg( $this->prefix() . "Order " . $id . " asssumed to be filled but not found on exchange" );
+      return null;
     }
-    return null;
+
+    if ( $order[ 'OrderId' ] != $id ) {
+      logg( $this->prefix() . "Exchange is drunk(), returned " . $order[ 'OrderId' ] . " when we asked for " . $id );
+      return null;
+    }
+
+    $market = $this->parseMarketName( $order[ 'Exchange' ] );
+
+    if ( $market[ 'tradeable' ] != $tradeable ||
+         $market[ 'currency' ] != $currency ) {
+      logg( $this->prefix() . "Exchange is drunk(), returned " . $order[ 'Exchange' ] . " when we asked for " . $this->makeMarketName( $currency, $tradeable ) );
+      return null;
+    }
+
+    $amount = $order[ 'Quantity' ] - $order[ 'QuantityRemaining' ];
+    $feeFactor = ($order[ 'Type' ] == 'SELL') ? -1 : 1;
+    $fee = $feeFactor * ( $this->addFeeToPrice( $order[ 'Price' ] ) - $order[ 'Price' ] );
+    $total = $amount * $order[ 'Price' ];
+    return $total + $fee;
+
   }
 
   public function queryTradeHistory( $options = array( ), $recentOnly = false ) {
