@@ -10,8 +10,6 @@ class Bleutrade extends BittrexLikeExchange {
   const PUBLIC_URL = 'https://bleutrade.com/api/v2/public/';
   const PRIVATE_URL = 'https://bleutrade.com/api/v2/';
   
-  private $fullOrderHistory = null;
-  
   function __construct() {
     parent::__construct( Config::get( "bleutrade.key" ), Config::get( "bleutrade.secret" ),
                          array(
@@ -62,99 +60,39 @@ class Bleutrade extends BittrexLikeExchange {
   public function queryTradeHistory( $options = array( ), $recentOnly = false ) {
     $results = array( );
 
-    $type_map = array(
-      'LIMIT_BUY' => 'buy',
-      'LIMIT_SELL' => 'sell',
+    // Since this exchange was added after merging of the pl-rewrite branch, we don't
+    // need the full trade history for the initial import, so we can ignore $recentOnly!
+
+    $options = array(
+      'market' => 'ALL',
+      'orderstatus' => 'ALL',
+      'ordertype' => 'ALL',
+      'depth' => 20000, // max!
     );
-
-    if (!$recentOnly && $this->fullOrderHistory !== null) {
-      $results = $this->fullOrderHistory;
-    } else if (!$recentOnly && !$this->fullOrderHistory &&
-               file_exists( __DIR__ . '/../../bleutrade-fullOrders.csv' )) {
-      $file = file_get_contents( __DIR__ . '/../../bleutrade-fullOrders.csv' );
-      $file = iconv( 'utf-16', 'utf-8', $file );
-      $lines = explode( "\r\n", $file );
-      $first = true;
-      foreach ($lines as $line) {
-        if ($first) {
-          // Ignore the first line.
-          $first = false;
-          continue;
-        }
-        $data = str_getcsv( $line );
-        if (count( $data ) != 9) {
-          continue;
-        }
-  $market = $data[ 1 ];
-  $arr = explode( '-', $market );
-  $currency = $arr[ 0 ];
-  $tradeable = $arr[ 1 ];
-  $market = "${currency}_${tradeable}";
-  $amount = $data[ 3 ];
-  $feeFactor = ($data[ 2 ] == 'LIMIT_SELL') ? -1 : 1;
-  $results[ $market ][] = array(
-    'rawID' => $data[ 0 ],
-    'id' => $data[ 0 ],
-    'currency' => $currency,
-    'tradeable' => $tradeable,
-    'type' => $type_map[ $data[ 2 ] ],
-    'time' => strtotime( $data[ 7 ] ),
-    'rate' => $data[ 6 ] / $amount,
-    'amount' => $amount,
-    'fee' => $feeFactor * $data[ 5 ],
-    'total' => $data[ 6 ],
-  );
-      }
-      $this->fullOrderHistory = $results;
-    }
-
-    $result = $this->queryAPI( 'account/getorderhistory' );
-
-    $checkArray = !empty( $results );
+    $result = $this->queryAPI( 'account/getorders', $options );
 
     foreach ($result as $row) {
-      $market = $row[ 'Exchange' ];
-      $arr = explode( '-', $market );
-      $currency = $arr[ 0 ];
-      $tradeable = $arr[ 1 ];
-      $market = "${currency}_${tradeable}";
+      $market = $this->parseMarketName( $row[ 'Exchange' ] );
+      $currency = $market[ 'currency' ];
+      $tradeable = $market[ 'tradeable' ];
+      $market = $this->makeMarketName( $currency, $tradeable );
       if (!in_array( $market, array_keys( $results ) )) {
         $results[ $market ] = array();
       }
       $amount = $row[ 'Quantity' ] - $row[ 'QuantityRemaining' ];
-      $feeFactor = ($row[ 'OrderType' ] == 'LIMIT_SELL') ? -1 : 1;
-
-      if ($checkArray) {
-        $seen = false;
-        foreach ($results[ $market ] as $item) {
-
-///// TODO: Check "OrderUuid", it's probably OrderId...
-
-          if ($item[ 'rawID' ] == $row[ 'OrderUuid' ]) {
-            // We have already recorder this ID.
-            $seen = true;
-            break;
-          }
-        }
-        if ($seen) {
-          continue;
-        }
-      }
+      $feeFactor = ($row[ 'Type' ] == 'SELL') ? -1 : 1;
 
       $results[ $market ][] = array(
-
-///// TODO: Check "OrderUuid", it's probably OrderId...
-
-        'rawID' => $row[ 'OrderUuid' ],
-        'id' => $row[ 'OrderUuid' ],
+        'rawID' => $row[ 'OrderId' ],
+        'id' => $row[ 'OrderId' ],
         'currency' => $currency,
         'tradeable' => $tradeable,
-        'type' => $type_map[ $row[ 'OrderType' ] ],
-        'time' => strtotime( $row[ 'TimeStamp' ] ),
-        'rate' => $row[ 'PricePerUnit' ],
+        'type' => strtolower( $row[ 'Type' ] ),
+        'time' => strtotime( $row[ 'Created' ] ),
+        'rate' => $row[ 'Price' ],
         'amount' => $amount,
-        'fee' => $feeFactor * $row[ 'Commission' ],
-        'total' => $row[ 'Price' ],
+        'fee' => $feeFactor * ( $this->addFeeToPrice( $row[ 'Price' ] ) - $row[ 'Price' ] ),
+        'total' => $amount * $row[ 'Price' ],
       );
     }
 
@@ -253,6 +191,7 @@ class Bleutrade extends BittrexLikeExchange {
 
   public function getTradeHistoryCSVName() {
 
+    // See the comment in queryTradeHistory().
     return null;
 
   }
