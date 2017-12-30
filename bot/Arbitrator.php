@@ -8,6 +8,7 @@ class Arbitrator {
   private $errorCounter;
   private $exchanges;
   private $exchangePairs = [ ];
+  private $profitablePairsOfTheDay = [ ];
   //
   private $coinManager;
   private $tradeMatcher;
@@ -117,6 +118,8 @@ class Arbitrator {
     shuffle( $pairs );
     $slicedPairs = array_slice( $pairs, 0, Config::get( Config::MAX_PAIRS_PER_RUN, Config::DEFAULT_MAX_PAIRS_PER_RUN ) );
 
+    $this->beGreedyOnProfitablePairsOfTheDay( $x1, $x2, $slicedPairs );
+
     logg( "Checking " . count( $slicedPairs ) . " random pairs..." );
 
     foreach ( $slicedPairs as $pair ) {
@@ -127,6 +130,44 @@ class Arbitrator {
     }
 
     return false;
+
+  }
+
+  private function refreshProfitablePairsOfTheDay() {
+
+    $results = Database::getTop5ProfitableCoinsOfTheDay();
+    foreach ( $results as $row ) {
+      $arr = explode( '-', $row[ 'exchange' ] );
+      $src = $arr[ 0 ];
+      $dest = $arr[ 1 ];
+      if ( !isset( $results[ $src ] ) ) {
+        $results[ $src ] = [ ];
+      }
+      if ( !isset( $results[ $src ][ $dest ] ) ) {
+        $results[ $src ][ $dest ] = [ ];
+      }
+      $results[ $src ][ $dest ][] = array(
+        'currency' => $row[ 'currency' ],
+        'tradeable' => $row[ 'coin' ],
+      );
+    }
+    $this->profitablePairsOfTheDay = $results;
+
+  }
+
+  private function beGreedyOnProfitablePairsOfTheDay( $x1, $x2, &$pairs ) {
+
+    if ( isset( $this->profitablePairsOfTheDay[ $x1->getID() ][ $x2->getID() ] ) ) {
+      // If we have any profitable coins on this exchange pair today, make sure to
+      // greedily check them every time.
+      $index = 0;
+      foreach ( $this->profitablePairsOfTheDay[ $x1->getID() ][ $x2->getID() ] as $arr ) {
+        $candidate = $arr[ 'tradeable' ] . '_' . $arr[ 'currency' ];
+        if ( !in_array( $candidate, $pairs ) ) {
+          $pairs[ $index++ ] = $candidate;
+        }
+      }
+    }
 
   }
 
@@ -476,6 +517,8 @@ class Arbitrator {
 
       logg( count( $exchange->getTradeablePairs() ) . " tradeable pairs @ " . $exchange->getName() );
     }
+
+    $this->refreshProfitablePairsOfTheDay();
 
   }
 
