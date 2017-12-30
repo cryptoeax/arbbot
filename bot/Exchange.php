@@ -71,14 +71,14 @@ abstract class Exchange {
       }
 
       $pairs[] = $pair;
-      $tradeables[] = $tradeable;
+      $tradeables[] = array(
+	'CoinType' => 'BITCOIN',
+	'Currency' => $tradeable,
+      );
     }
 
     $this->tradeablePairs = $pairs;
-    $this->tradeables[] = array(
-      'CoinType' => 'BITCOIN',
-      'Currency' => $tradeable,
-    );
+    $this->tradeables = $tradeables;
 
   }
 
