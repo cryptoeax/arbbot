@@ -161,7 +161,7 @@ class Bleutrade extends BittrexLikeExchange {
 
       $result[] = array(
         'currency' => $row[ 'Coin' ],
-        'amount' => $row[ 'Amount' ],
+        'amount' => abs( floatval( $row[ 'Amount' ] ) ),
         'txid' => $row[ 'TransactionId' ],
         'address' => $address,
         'time' => strtotime( $row[ 'TimeStamp' ] ),
