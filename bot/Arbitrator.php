@@ -14,11 +14,7 @@ class Arbitrator {
   private $tradeMatcher;
   //
   private $nextCoinUpdate = 0;
-  private $walletsRefreshed = false;
   private $tradeHappened = false;
-  //
-  private $lastRecentDeposits = [ ];
-  private $lastRecentWithdrawals = [ ];
 
   function __construct( $loop, $exchanges, &$tradeMatcher ) {
     $this->eventLoop = $loop;
@@ -35,8 +31,6 @@ class Arbitrator {
       for ( $j = $i + 1; $j < count( $exchanges ); $j++ ) {
         $this->exchangePairs[] = [$exchanges[ $i ], $exchanges[ $j ] ];
       }
-      $this->lastRecentDeposits[ $exchanges[ $i ]->getID() ] = array( );
-      $this->lastRecentWithdrawals[ $exchanges[ $i ]->getID() ] = array( );
     }
 
     $this->coinManager = new CoinManager( $exchanges );
@@ -54,9 +48,6 @@ class Arbitrator {
     Config::refresh();
 
     if ( time() > $this->nextCoinUpdate ) {
-      if (!$this->walletsRefreshed) {
-        $this->refreshWallets();
-      }
       $this->refreshCoinPairs();
       $this->nextCoinUpdate = time() + 3600;
     }
@@ -527,13 +518,7 @@ class Arbitrator {
     logg( "Refreshing wallets..." );
     foreach ( $this->exchanges as $exchange ) {
       $exchange->refreshWallets();
-      if ($this->walletsRefreshed) {
-        $this->lastRecentDeposits[ $exchange->getID() ] = $exchange->queryRecentDeposits();
-        $this->lastRecentWithdrawals[ $exchange->getID() ] = $exchange->queryRecentWithdrawals();
-      }
     }
-
-    $this->walletsRefreshed = true;
 
   }
 
@@ -560,18 +545,6 @@ class Arbitrator {
     $this->eventLoop->addTimer( 1, function() use($self) {
       $self->innerRun();
     } );
-
-  }
-
-  public function getLastRecentDeposits() {
-
-    return $this->lastRecentDeposits;
-
-  }
-
-  public function getLastRecentWithdrawals() {
-
-    return $this->lastRecentWithdrawals;
 
   }
 
