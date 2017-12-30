@@ -168,8 +168,7 @@ abstract class BittrexLikeExchange extends Exchange {
       $currency = $market[ 'BaseCurrency' ];
 
       if ( !Config::isCurrency( $currency ) ||
-           Config::isBlocked( $tradeable ) ||
-           !in_array( $tradeable, array_keys( $this->wallets ) ) ) {
+           Config::isBlocked( $tradeable ) ) {
         continue;
       }
 
