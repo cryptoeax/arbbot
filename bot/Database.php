@@ -540,6 +540,31 @@ class Database {
 
   }
 
+  public static function getTop5ProfitableCoinsOfTheDay() {
+
+    $link = self::connect();
+
+    $query = "SELECT CONCAT(ID_exchange_source, '-', ID_exchange_target) AS exchange, coin, currency, SUM(currency_pl) AS pl " .
+             "FROM profit_loss " .
+             "WHERE DATE_FORMAT(FROM_UNIXTIME(created), GET_FORMAT(DATE,'ISO')) = DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP()), GET_FORMAT(DATE,'ISO')) AND currency_pl > 0 " .
+             "GROUP BY DATE_FORMAT(FROM_UNIXTIME(created), GET_FORMAT(DATE,'ISO')), exchange, coin, currency " .
+             "ORDER BY pl DESC LIMIT 5";
+    $result = mysql_query( $query, $link );
+    if ( !$result ) {
+      throw new Exception( "database selection error: " . mysql_error( $link ) );
+    }
+
+    $results = array();
+    while ( $row = mysql_fetch_assoc( $result ) ) {
+      $results[] = $row;
+    }
+
+    mysql_close( $link );
+
+    return $results;
+
+  }
+
   public static function saveExchangeTrade( $exchangeID, $type, $coin, $currency, $time, $rawTradeID, $tradeID,
                                             $rate, $amount, $fee, $total ) {
 
