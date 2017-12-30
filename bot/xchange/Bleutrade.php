@@ -99,7 +99,7 @@ class Bleutrade extends BittrexLikeExchange {
         'rate' => $row[ 'Price' ],
         'amount' => $amount,
         'fee' => $feeFactor * ( $this->addFeeToPrice( $row[ 'Price' ] ) - $row[ 'Price' ] ),
-        'total' => $amount * $row[ 'Price' ],
+        'total' => $row[ 'QuantityBaseTraded' ],
       );
     }
 
