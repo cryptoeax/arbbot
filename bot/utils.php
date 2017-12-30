@@ -63,6 +63,10 @@ function sumOfAmount( $carry, $item ) {
   return $carry + $item[ 'amount' ];
 }
 
+function getCurrency( $item ) {
+  return $item[ 'Currency' ];
+}
+
 function installDirectoryDirty() {
 
   $installDir = __DIR__ . '/../';
