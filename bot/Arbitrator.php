@@ -173,15 +173,21 @@ class Arbitrator {
 
   private function checkAndTrade( $sourceOrderbook, $targetOrderbook ) {
 
+    $currency = $sourceOrderbook->getCurrency();
+    $tradeable = $sourceOrderbook->getTradeable();
+    if ( ! in_array( $tradeable,
+                     array_map( 'getCurrency',
+                                $targetOrderbook->getSource()->getTradeables()
+                              ) ) ) {
+      return false;
+    }
+
     $sourceAsk = $sourceOrderbook->getBestAsk();
     $targetBid = $targetOrderbook->getBestBid();
 
     if ( $targetBid->getPrice() <= $sourceAsk->getPrice() ) {
       return false;
     }
-
-    $currency = $sourceOrderbook->getCurrency();
-    $tradeable = $sourceOrderbook->getTradeable();
 
     $targetPrice = $targetBid->getPrice();
     $sourcePrice = $targetBid->getPrice();
