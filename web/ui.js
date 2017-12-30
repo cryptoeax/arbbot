@@ -85,7 +85,7 @@ $(function() {
     function no2e(x) {
 
         var num = parseInt(x);
-        if (num <= 3 && num >= 1) {
+        if (num <= 3 && num >= 0) {
             return '<img src="xchange/' + num + '.ico" width="14" height="14">';
         }
 
@@ -106,6 +106,13 @@ $(function() {
         else
             return "?";
 
+    }
+
+    function no2ell_xfer(x) {
+        // For transfers, an exchange ID of 0 denotes a profit withdrawal.
+        if (x === "0" || x === 0)
+            return "Profit Withdrawal";
+        return no2ell(x);
     }
 
     function no2ell(x) {
@@ -658,10 +665,10 @@ $(function() {
                     }
 
                     var direction = "";
-                    direction += "<span title=\"" + no2ell(data[i].exchange_source) + "\">";
+                    direction += "<span title=\"" + no2ell_xfer(data[i].exchange_source) + "\">";
                     direction += no2e(data[i].exchange_source);
                     direction += "</span> -> ";
-                    direction += "<span title=\"" + no2ell(data[i].exchange_target) + "\">";
+                    direction += "<span title=\"" + no2ell_xfer(data[i].exchange_target) + "\">";
                     direction += no2e(data[i].exchange_target);
                     direction += "</span>";
 
