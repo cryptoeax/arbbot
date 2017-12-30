@@ -57,7 +57,7 @@ class Bleutrade extends BittrexLikeExchange {
     }
 
     $feeFactor = ($order[ 'Type' ] == 'SELL') ? -1 : 1;
-    $fee = $feeFactor * ( $this->addFeeToPrice( $order[ 'Price' ] ) - $order[ 'Price' ] );
+    $fee = $feeFactor * ( $this->addFeeToPrice( $order[ 'QuantityBaseTraded' ] ) - $order[ 'QuantityBaseTraded' ] );
     $total = $order[ 'QuantityBaseTraded' ];
     return $total + $fee;
 
@@ -97,7 +97,7 @@ class Bleutrade extends BittrexLikeExchange {
         'time' => strtotime( $row[ 'Created' ] ),
         'rate' => $row[ 'Price' ],
         'amount' => $amount,
-        'fee' => $feeFactor * ( $this->addFeeToPrice( $row[ 'Price' ] ) - $row[ 'Price' ] ),
+        'fee' => $feeFactor * ( $this->addFeeToPrice( $row[ 'QuantityBaseTraded' ] ) - $row[ 'QuantityBaseTraded' ] ),
         'total' => $row[ 'QuantityBaseTraded' ],
       );
     }
