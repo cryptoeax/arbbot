@@ -746,16 +746,12 @@ $(function() {
                 // sum up altcoin totals
                 var altcoinTotals = {};
                 Object.keys(wallets).forEach(function(coin) {
-                    Object.keys(wallets[coin]).forEach(function(xid) {
-                        if (xid in altcoinTotals) {
-                            altcoinTotals[xid]['balance'] += wallets[coin][xid]['balance_BTC'];
-                            altcoinTotals[xid]['change'] += wallets[coin][xid]['change_BTC'];
-                        } else {
-                            altcoinTotals[xid] = {}
-                            altcoinTotals[xid]['balance'] = wallets[coin][xid]['balance_BTC'];
-                            altcoinTotals[xid]['change'] = wallets[coin][xid]['change_BTC'];
-                        }
-                    });
+                    if (xid in altcoinTotals) {
+                        altcoinTotals[xid] += wallets[coin][xid]['balance_BTC'];
+                    } else {
+                        altcoinTotals[xid] = {}
+                        altcoinTotals[xid] = wallets[coin][xid]['balance_BTC'];
+                    }
                 }); 
                 var altcoinBalance = 0;
                 var altcoinChange = 0;
@@ -781,7 +777,6 @@ $(function() {
                     altcoinChange += parseFloat(altcoinTotals[xid]['change']);
                 });
 
-                console.log(altcoinTotals);
                 htmlData += "TOTAL: ";
                 htmlData += "<a href=\"#\" coin=\"alt_btc\" exchange=\"0\" mode=\"0\" class=\"showGraph\" title=\"Total balance (BTC + Altcoins)\">";
                 htmlData += rnd4(altcoinBalance);
@@ -795,10 +790,6 @@ $(function() {
                 htmlData += "--------------------------\n";
                 htmlData += "\n";
 
-                /*
-                    Strats: For each coin, add XID to totals DB
-                     
-                */
                 htmlData += "---------- <span title=\"Currency\">BTC</span> -----------\n";
 
                 var btcData = wallets['BTC'];
