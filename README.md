@@ -20,17 +20,17 @@ sudo apt-get install php-cli php-curl php-mysqlnd mysql-server nginx-full php-fp
 sudo ntpdate ntp.ubuntu.com
 ```
 
-Download the archive to the server and extract it:
+Clone the repository on the server.  Note that installation from ZIP archives isn't supported any more.
 
 ```
 cd /var/www
-wget https://github.com/cryptoeax/arbbot/archive/production.zip && unzip production.zip
+git clone --recursive https://github.com/cryptoeax/arbbot.git
 ```
 
 cd into the directory:
 
 ```
-cd production
+cd arbbot
 ```
 
 Prepare the MySQL database:
@@ -82,7 +82,7 @@ The NGINX configuration file should look like this:
 server {
 
         listen 80;
-        root /var/www/arbbot-production/web;
+        root /var/www/arbbot/web;
         index index.html;
         server_name localhost;
 
@@ -189,7 +189,9 @@ Funding this project would allow me to spend time on things like adding support 
 * 2.0
     * Improved the web-based UI, charts, tooltips to help new users, legends
     * Added a P&L section in the UI to display detailed information about the incurred profits and losses as a result of trades, including daily and per-coin charts with filtering options.
-    * Added an Alerts section in the UI to display the stuck withdrawal alerts in the UI.
+    * Added precise accounting of unrealized profits/losses, taking all trade and transfer fees into account as reported by the exchanges.
+    * Added accounting of realized (withdrawn) profits.
+    * Added an Alerts section in the UI to display the stuck withdrawal and daily withdrawal limit alerts in the UI.
     * Add a "Hide zero balances" checkbox to the Wallets section
     * Added an admin UI for controlling the bot's settings from the web UI.
     * Optimized the bot to enable it to make up to 4 times more trades.

@@ -495,6 +495,8 @@ class CoinManager {
 
     logg( "Withdrawing profit: $remainingProfit BTC to $profitAddress", true );
     if ( $highestExchange->withdraw( 'BTC', $remainingProfit, $profitAddress ) ) {
+      $txFee = $this->getSafeTxFee( $highestExchange, 'BTC', $averageBTC );
+      Database::recordProfit( $remainingProfit - $txFee, 'BTC', $profitAddress, time() );
       Database::saveWithdrawal( 'BTC', $remainingProfit, $profitAddress, $highestExchange->getID(), 0 );
 
       // -------------------------------------------------------------------------

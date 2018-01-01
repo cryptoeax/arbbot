@@ -147,11 +147,16 @@ class WebDB {
         return $carry;
       }, [] );
       foreach ( $ids as $id ) {
-        $ex = Exchange::createFromID( $id );
-        $ex->refreshWallets();
-        $wallets = $ex->getWalletsConsideringPendingDeposits();
-        // Will be 0 if $coin doesn't exist in our wallets!
-        $balance = @floatval( $wallets[ $coin ] );
+        $balance = 0;
+        try {
+          $ex = Exchange::createFromID( $id );
+          $ex->refreshWallets();
+          $wallets = $ex->getWalletsConsideringPendingDeposits();
+          // Will be 0 if $coin doesn't exist in our wallets!
+          $balance = @floatval( $wallets[ $coin ] );
+        } catch ( Exception $ex ) {
+          // Ignore
+        }
 
 	if (!in_array( $id, array_keys( $ma ) )) {
 	  $ma[$id] = [ ];
@@ -220,11 +225,16 @@ class WebDB {
       // Append an entry for the current balances
       $sum = 0;
       foreach ( $ids as $id ) {
-        $ex = Exchange::createFromID( $id );
-        $ex->refreshWallets();
-        $wallets = $ex->getWalletsConsideringPendingDeposits();
-        // Will be 0 if $coin doesn't exist in our wallets!
-        $balance = @floatval( $wallets[ $coin ] );
+	$balance = 0;
+	try {
+	  $ex = Exchange::createFromID( $id );
+	  $ex->refreshWallets();
+	  $wallets = $ex->getWalletsConsideringPendingDeposits();
+	  // Will be 0 if $coin doesn't exist in our wallets!
+	  $balance = @floatval( $wallets[ $coin ] );
+	} catch ( Exception $ex ) {
+	  // Ignore
+	}
         $sum += $balance;
       }
       $values[] = [ 'sum' => $sum, 'time' => time() ];
@@ -532,10 +542,20 @@ class WebDB {
     $row = mysql_fetch_assoc( $result );
     $total_pl = $row[ 'total_pl' ];
 
+    $result = mysql_query( "SELECT SUM(amount) AS realized_pl " .
+                           "FROM profits;", $link );
+    if ( !$result ) {
+      throw new Exception( "database selection error: " . mysql_error( $link ) );
+    }
+
+    $row = mysql_fetch_assoc( $result );
+    $realized_pl = $row[ 'realized_pl' ];
+
     mysql_close( $link );
 
     $results = [
       'pl' => $total_pl,
+      'realized_pl' => $realized_pl,
       'pl_currency' => $pl_currency,
       'efficiency' => count( $data ) ? 100 * $profitables / count( $data ) : 0,
       'data' => $data,

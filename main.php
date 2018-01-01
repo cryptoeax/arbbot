@@ -45,6 +45,11 @@ if ( !Database::alertsTableExists() ) {
   Database::importAlerts();
 }
 
+if ( !Database::profitsTableExists() ) {
+  Database::createProfitsTable();
+  Database::importProfits();
+}
+
 if ( !Database::profitLossTableExists() ) {
   require_once __DIR__ . '/import-profit-loss.php';
   importProfitLoss();

@@ -8,16 +8,13 @@ class Arbitrator {
   private $errorCounter;
   private $exchanges;
   private $exchangePairs = [ ];
+  private $profitablePairsOfTheDay = [ ];
   //
   private $coinManager;
   private $tradeMatcher;
   //
   private $nextCoinUpdate = 0;
-  private $walletsRefreshed = false;
   private $tradeHappened = false;
-  //
-  private $lastRecentDeposits = [ ];
-  private $lastRecentWithdrawals = [ ];
 
   function __construct( $loop, $exchanges, &$tradeMatcher ) {
     $this->eventLoop = $loop;
@@ -34,8 +31,6 @@ class Arbitrator {
       for ( $j = $i + 1; $j < count( $exchanges ); $j++ ) {
         $this->exchangePairs[] = [$exchanges[ $i ], $exchanges[ $j ] ];
       }
-      $this->lastRecentDeposits[ $exchanges[ $i ]->getID() ] = array( );
-      $this->lastRecentWithdrawals[ $exchanges[ $i ]->getID() ] = array( );
     }
 
     $this->coinManager = new CoinManager( $exchanges );
@@ -53,9 +48,6 @@ class Arbitrator {
     Config::refresh();
 
     if ( time() > $this->nextCoinUpdate ) {
-      if (!$this->walletsRefreshed) {
-        $this->refreshWallets();
-      }
       $this->refreshCoinPairs();
       $this->nextCoinUpdate = time() + 3600;
     }
@@ -117,6 +109,8 @@ class Arbitrator {
     shuffle( $pairs );
     $slicedPairs = array_slice( $pairs, 0, Config::get( Config::MAX_PAIRS_PER_RUN, Config::DEFAULT_MAX_PAIRS_PER_RUN ) );
 
+    $this->beGreedyOnProfitablePairsOfTheDay( $x1, $x2, $slicedPairs );
+
     logg( "Checking " . count( $slicedPairs ) . " random pairs..." );
 
     foreach ( $slicedPairs as $pair ) {
@@ -127,6 +121,44 @@ class Arbitrator {
     }
 
     return false;
+
+  }
+
+  private function refreshProfitablePairsOfTheDay() {
+
+    $results = Database::getTop5ProfitableCoinsOfTheDay();
+    foreach ( $results as $row ) {
+      $arr = explode( '-', $row[ 'exchange' ] );
+      $src = $arr[ 0 ];
+      $dest = $arr[ 1 ];
+      if ( !isset( $results[ $src ] ) ) {
+        $results[ $src ] = [ ];
+      }
+      if ( !isset( $results[ $src ][ $dest ] ) ) {
+        $results[ $src ][ $dest ] = [ ];
+      }
+      $results[ $src ][ $dest ][] = array(
+        'currency' => $row[ 'currency' ],
+        'tradeable' => $row[ 'coin' ],
+      );
+    }
+    $this->profitablePairsOfTheDay = $results;
+
+  }
+
+  private function beGreedyOnProfitablePairsOfTheDay( $x1, $x2, &$pairs ) {
+
+    if ( isset( $this->profitablePairsOfTheDay[ $x1->getID() ][ $x2->getID() ] ) ) {
+      // If we have any profitable coins on this exchange pair today, make sure to
+      // greedily check them every time.
+      $index = 0;
+      foreach ( $this->profitablePairsOfTheDay[ $x1->getID() ][ $x2->getID() ] as $arr ) {
+        $candidate = $arr[ 'tradeable' ] . '_' . $arr[ 'currency' ];
+        if ( !in_array( $candidate, $pairs ) ) {
+          $pairs[ $index++ ] = $candidate;
+        }
+      }
+    }
 
   }
 
@@ -471,6 +503,8 @@ class Arbitrator {
       logg( count( $exchange->getTradeablePairs() ) . " tradeable pairs @ " . $exchange->getName() );
     }
 
+    $this->refreshProfitablePairsOfTheDay();
+
   }
 
   private function refreshWallets() {
@@ -478,13 +512,7 @@ class Arbitrator {
     logg( "Refreshing wallets..." );
     foreach ( $this->exchanges as $exchange ) {
       $exchange->refreshWallets();
-      if ($this->walletsRefreshed) {
-        $this->lastRecentDeposits[ $exchange->getID() ] = $exchange->queryRecentDeposits();
-        $this->lastRecentWithdrawals[ $exchange->getID() ] = $exchange->queryRecentWithdrawals();
-      }
     }
-
-    $this->walletsRefreshed = true;
 
   }
 
@@ -511,18 +539,6 @@ class Arbitrator {
     $this->eventLoop->addTimer( 1, function() use($self) {
       $self->innerRun();
     } );
-
-  }
-
-  public function getLastRecentDeposits() {
-
-    return $this->lastRecentDeposits;
-
-  }
-
-  public function getLastRecentWithdrawals() {
-
-    return $this->lastRecentWithdrawals;
 
   }
 
