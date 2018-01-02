@@ -147,11 +147,16 @@ class WebDB {
         return $carry;
       }, [] );
       foreach ( $ids as $id ) {
-        $ex = Exchange::createFromID( $id );
-        $ex->refreshWallets();
-        $wallets = $ex->getWalletsConsideringPendingDeposits();
-        // Will be 0 if $coin doesn't exist in our wallets!
-        $balance = @floatval( $wallets[ $coin ] );
+        $balance = 0;
+        try {
+          $ex = Exchange::createFromID( $id );
+          $ex->refreshWallets();
+          $wallets = $ex->getWalletsConsideringPendingDeposits();
+          // Will be 0 if $coin doesn't exist in our wallets!
+          $balance = @floatval( $wallets[ $coin ] );
+        } catch ( Exception $ex ) {
+          // Ignore
+        }
 
 	if (!in_array( $id, array_keys( $ma ) )) {
 	  $ma[$id] = [ ];
@@ -220,11 +225,16 @@ class WebDB {
       // Append an entry for the current balances
       $sum = 0;
       foreach ( $ids as $id ) {
-        $ex = Exchange::createFromID( $id );
-        $ex->refreshWallets();
-        $wallets = $ex->getWalletsConsideringPendingDeposits();
-        // Will be 0 if $coin doesn't exist in our wallets!
-        $balance = @floatval( $wallets[ $coin ] );
+	$balance = 0;
+	try {
+	  $ex = Exchange::createFromID( $id );
+	  $ex->refreshWallets();
+	  $wallets = $ex->getWalletsConsideringPendingDeposits();
+	  // Will be 0 if $coin doesn't exist in our wallets!
+	  $balance = @floatval( $wallets[ $coin ] );
+	} catch ( Exception $ex ) {
+	  // Ignore
+	}
         $sum += $balance;
       }
       $values[] = [ 'sum' => $sum, 'time' => time() ];
@@ -295,6 +305,11 @@ class WebDB {
       $wallets[ $coin ][ $exid ][ 'opportunities' ] = intval( $row[ 'uses' ] );
       $wallets[ $coin ][ $exid ][ 'change' ] = floatval( $balance  - self::getHistoricBalance( $coin, $exid ) );
       $wallets[ $coin ][ $exid ][ 'trades' ] = intval( $row[ 'trades' ] );
+      if ($coin=="BTC") {
+        $wallets[ $coin ][ $exid ][ 'balance_BTC' ] = floatval(formatBTC($balance));
+      } else {
+        $wallets[ $coin ][ $exid ][ 'balance_BTC' ] = floatval(formatBTC($balance * $row['rate']));
+      }
     }
 
     mysql_close( $link );
