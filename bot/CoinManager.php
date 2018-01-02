@@ -531,6 +531,10 @@ class CoinManager {
     }
 
     $needs = [ ];
+    $allWallets = [ ];
+    foreach ( $this->exchanges as $exchange ) {
+      $allWallets[ $exchange->getID() ] = $exchange->getWalletsConsideringPendingDeposits();
+    }
 
     logg( "Getting need..." );
 
@@ -545,8 +549,7 @@ class CoinManager {
       foreach ( $data as $exchangeID => $stat ) {
 
         $exchange = $this->exchangesID[ $exchangeID ];
-        $wallets = $exchange->getWalletsConsideringPendingDeposits();
-        $balance = $wallets[ $coin ];
+        $balance = $allWallets[ $exchangeID ][ $coin ];
         $desiredBalance = $stat[ 'desired_balance' ];
 
         $diff = formatBTC( $desiredBalance - $balance );
