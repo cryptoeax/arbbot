@@ -681,7 +681,7 @@ class CoinManager {
       foreach ( $data as $exchangeID => $stat ) {
 
         $exchange = $this->exchangesID[ $exchangeID ];
-        $wallets = $exchange->getWalletsConsideringPendingDeposits();
+        $wallets = $exchange->getWallets();
         $balance = $wallets[ $coin ];
         $desiredBalance = $stat[ 'desired_balance' ];
 
