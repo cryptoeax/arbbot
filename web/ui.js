@@ -765,14 +765,7 @@ $(function() {
                     htmlData += ": ";
                     htmlData += "<a href=\"#\" coin=\"alt_btc\" exchange=\"" + xid + "\" mode=\"0\" class=\"showGraph\" title=\"Total balance (BTC + Altcoins)\">";
                     htmlData += rnd4(altcoinTotals[xid]);
-                    htmlData += "</a>";
-                    htmlData += " T:";
-                    htmlData += "<span title=\"Trade counts\">";
-                    htmlData += fmt5(tradeCounts[xid]);
-                    htmlData += "</span>|O:";
-                    htmlData += "<span title=\"Opportunity counts\">";
-                    htmlData += fmt5(useCounts[xid]);
-                    htmlData += "</span>\n";
+                    htmlData += "</a>\n";
                     altcoinBalance += parseFloat(altcoinTotals[xid]);
                 });
 
