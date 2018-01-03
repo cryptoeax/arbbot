@@ -444,7 +444,11 @@ class Database {
 
     if ( mysql_num_rows( $result ) === 0 ) {
       // Old database format, need to upgrade first.
-      $result = mysql_query( "ALTER TABLE track ADD currency CHAR(5) NOT NULL DEFAULT 'BTC' AFTER coin;", $link );
+      $result = mysql_query( "ALTER TABLE track ADD currency CHAR(5) NOT NULL AFTER coin;", $link );
+      if ( !$result ) {
+        throw new Exception( "database selection error: " . mysql_error( $link ) );
+      }
+      $result = mysql_query( "UPDATE track SET currency = 'BTC';", $link );
       if ( !$result ) {
         throw new Exception( "database selection error: " . mysql_error( $link ) );
       }
