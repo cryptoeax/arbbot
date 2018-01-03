@@ -182,7 +182,7 @@ class Database {
     $sourceID = $source->getID();
     $targetID = $target->getID();
 
-    $lastTrackTime = self::getLastTrackTime( $coin, $targetID );
+    $lastTrackTime = self::getLastTrackTime( $coin, $sourceID, $targetID );
     if ( $lastTrackTime > time() - Config::get( Config::OPPORTUNITY_SAVE_INTERVAL, Config::DEFAULT_OPPORTUNITY_SAVE_INTERVAL ) * 60 ) {
       $targetName = $target->getName();
       logg( "[DB] Omitting track $amount $coin @ $targetName as previous entry is too young" );
@@ -205,13 +205,15 @@ class Database {
 
   }
 
-  public static function getLastTrackTime( $coin, $exchangeID ) {
+  public static function getLastTrackTime( $coin, $sourceID, $targetID ) {
 
     $link = self::connect();
 
-    $query = sprintf( "SELECT MAX(created) AS created FROM track WHERE coin = '%s' AND ID_exchange_target = %d;", //
+    $query = sprintf( "SELECT MAX(created) AS created FROM track WHERE coin = '%s' AND " .
+                      "ID_exchange_source = %d AND ID_exchange_target = %d;", //
             $coin, //
-            $exchangeID
+            $sourceID,
+            $targetID
     );
 
     $result = mysql_query( $query, $link );
