@@ -175,7 +175,7 @@ class Database {
 
   }
 
-  public static function saveTrack( $coin, $amount, $profit, $exchange ) {
+  public static function saveTrack( $coin, $currency, $amount, $profit, $exchange ) {
 
     $link = self::connect();
 
@@ -188,9 +188,9 @@ class Database {
       return;
     }
 
-    $query = sprintf( "INSERT INTO track (amount, coin, profit, ID_exchange, created) VALUES ('%s', '%s', '%s', %d, %d);", //
+    $query = sprintf( "INSERT INTO track (amount, coin, currency, profit, ID_exchange, created) VALUES ('%s', '%s', '%s', %d, %d);", //
             formatBTC( $amount ), //
-            $coin, //
+            $coin, $currency, //
             formatBTC( $profit ), //
             $exchangeID, //
             time() //
@@ -428,6 +428,29 @@ class Database {
 
   }
 
+  public static function handleTrackUpgrade() {
+
+    $link = self::connect();
+
+    $result = mysql_query( "SHOW COLUMNS FROM track LIKE 'currency';", $link );
+    if ( !$result ) {
+      throw new Exception( "database selection error: " . mysql_error( $link ) );
+    }
+
+    if ( mysql_num_rows( $result ) === 0 ) {
+      // Old database format, need to upgrade first.
+      $result = mysql_query( "ALTER TABLE track ADD currency AFTER coin CHAR(5) NOT NULL DEFAULT 'BTC';", $link );
+      if ( !$result ) {
+        throw new Exception( "database selection error: " . mysql_error( $link ) );
+      }
+    }
+
+    mysql_close( $link );
+
+    return $results;
+
+  }
+
   public static function getStats() {
 
     $link = self::connect();
@@ -477,7 +500,8 @@ class Database {
                        $message, $matches )) {
         throw new Exception( "invalid log message encountered: " . $message );
       }
-      $exchange = Exchange::createFromID( $row[ 'target' ] );
+      $exchange = Exchange::createFromID( $row[ 'target' ] );
+
       $price_sold = $matches[ 2 ] / $exchange->deductFeeFromAmountSell( $row[ 'amount' ] );
       $tx_fee = $matches[ 6 ] * $price_sold;
       $pl = $matches[ 4 ] - $tx_fee;

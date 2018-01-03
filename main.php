@@ -37,6 +37,8 @@ logg( "Loading config..." );
 
 Database::handleAddressUpgrade();
 
+Database::handleTrackUpgrade();
+
 if ( !Database::alertsTableExists() ) {
   logg( "Upgrading the database to create the separate alerts table" );
   logg( "This is a one time operation which may be really slow, please wait..." );
