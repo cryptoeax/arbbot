@@ -53,7 +53,7 @@ class Database {
     $created = $row[ 'created' ];
 
     if ( !array_key_exists( $coin, $opb ) ) {
-    $opb[ $coin ] = self::getOpportunityCount( $coin, 0 );
+    $opb[ $coin ] = self::getOpportunityCount( $coin, $currency, 0 );
     }
 
     if ( !array_key_exists( $xid, $tracks ) ) {
@@ -80,7 +80,7 @@ class Database {
 
     echo "\n\nSUMMARY:\n";
     foreach ( $deletions as $coin => $value ) {
-    $opa = self::getOpportunityCount( $coin, 0 );
+    $opa = self::getOpportunityCount( $coin, $currency, 0 );
     echo "$coin has $value deletions | ";
     echo $opb[ $coin ] . " uses before | ";
     echo "$opa uses after!";
@@ -146,7 +146,7 @@ class Database {
             $coin, //
             formatBTC( $balance ), //
             formatBTC( $desiredBalance ), //
-            self::getOpportunityCount( $coin, $exchangeID ), //
+            self::getOpportunityCount( $coin, $currency, $exchangeID ), //
             self::getTradeCount( $coin, $exchangeID ), //
             formatBTC( $rate ), //
             $exchangeID, //
@@ -318,14 +318,15 @@ class Database {
 
   }
 
-  public static function getOpportunityCount( $coin, $exchangeID ) {
+  public static function getOpportunityCount( $coin, $currency, $exchangeID ) {
 
     $maxAge = time() - Config::get( Config::OPPORTUNITY_COUNT_AGE, Config::DEFAULT_OPPORTUNITY_COUNT_AGE ) * 3600;
 
     $link = self::connect();
 
-    $query = sprintf( "SELECT COUNT(ID) AS CNT FROM track WHERE coin = '%s' %s AND created >= %d", //
+    $query = sprintf( "SELECT COUNT(ID) AS CNT FROM track WHERE coin = '%s' AND currency = '%s' %s AND created >= %d", //
             mysql_escape_string( $coin ), //
+            mysql_escape_string( $currency ), //
             $exchangeID > 0 ? sprintf( "AND ID_exchange_target = %d", $exchangeID ) : "", //
             $maxAge //
     );
