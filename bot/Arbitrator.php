@@ -302,7 +302,7 @@ class Arbitrator {
       return false;
     }
 
-    if ( $profit < Config::get( Config::MIN_PROFIT, Config::DEFAULT_MIN_PROFIT ) * 0.5 ) {
+    if ( $profit < Config::get( Config::MIN_PROFIT, Config::DEFAULT_MIN_PROFIT ) ) {
       logg( $orderInfo . "NOT ENTERING TRADE: REQUIRING MORE $tradeable\n" );
       return false;
     }
