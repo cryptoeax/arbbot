@@ -278,7 +278,8 @@ class Arbitrator {
     $bestSellRate = $targetOrderbook->getBestBid()->getPrice();
     $bestSellAmount = $targetOrderbook->getBestBid()->getAmount();
 
-    $maxSourceAmount = min( min( $maxTradeSize, $sourceCurrencyBefore ) / $bestBuyRate, $bestBuyAmount );
+    $maxSourceAmount = min( $sourceTradeableBefore,
+                            min( min( $maxTradeSize, $sourceCurrencyBefore ) / $bestBuyRate, $bestBuyAmount ) );
     $maxTargetAmount = min( $targetTradeableBefore, $bestSellAmount );
     $tradeAmount = formatBTC( min( $maxSourceAmount, $maxTargetAmount ) );
 
