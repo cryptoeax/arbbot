@@ -251,7 +251,9 @@ class Arbitrator {
       return false;
     }
 
-    Database::saveTrack( $tradeable, $amount, $profit, $targetOrderbook->getSource() );
+    Database::saveTrack( $tradeable, $currency, $amount, $profit,
+                         $sourceOrderbook->getSource(),
+                         $targetOrderbook->getSource() );
 
     if ( Config::get( Config::MODULE_TRADE, Config::DEFAULT_MODULE_TRADE ) ) {
       return $this->trade( $sourceOrderbook, $targetOrderbook, $tradeable, $currency );

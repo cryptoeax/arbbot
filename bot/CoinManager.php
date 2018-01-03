@@ -168,7 +168,7 @@ class CoinManager {
         // Calculate desired balance:
         $desiredBalance = 0;
         $averageRate = 0;
-        $uses = Database::getOpportunityCount( $coin, $exid );
+        $uses = Database::getOpportunityCount( $coin, 'BTC', $exid );
         // Desired balance can only raise above zero if the coin is required at this exchange
         if ( $uses >= Config::get( Config::REQUIRED_OPPORTUNITIES, Config::DEFAULT_REQUIRED_OPPORTUNITIES ) ) {
 
@@ -246,7 +246,7 @@ class CoinManager {
 
       $wallets = $exchangeWallets[ $exchange->getName() ];
       $balance = $wallets[ $coin ];
-      $opportunityCount = Database::getOpportunityCount( $coin, $exchange->getID() );
+      $opportunityCount = Database::getOpportunityCount( $coin, 'BTC', $exchange->getID() );
 
       logg( str_pad( $exchange->getName(), 10, ' ', STR_PAD_LEFT ) . ": $balance $coin ($opportunityCount usages)" );
 
@@ -294,7 +294,7 @@ class CoinManager {
 
     foreach ( $exchanges as $exchange ) {
 
-      $opportunityCount = Database::getOpportunityCount( $coin, $exchange->getID() );
+      $opportunityCount = Database::getOpportunityCount( $coin, 'BTC', $exchange->getID() );
 
       $wallets = $exchange->getWallets();
       $difference = formatBTC( $wallets[ $coin ] - ($opportunityCount < $requiredOpportunities ? 0 : $averageCoins) );

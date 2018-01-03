@@ -53,7 +53,7 @@ class Database {
     $created = $row[ 'created' ];
 
     if ( !array_key_exists( $coin, $opb ) ) {
-    $opb[ $coin ] = self::getOpportunityCount( $coin, 0 );
+    $opb[ $coin ] = self::getOpportunityCount( $coin, $currency, 0 );
     }
 
     if ( !array_key_exists( $xid, $tracks ) ) {
@@ -80,7 +80,7 @@ class Database {
 
     echo "\n\nSUMMARY:\n";
     foreach ( $deletions as $coin => $value ) {
-    $opa = self::getOpportunityCount( $coin, 0 );
+    $opa = self::getOpportunityCount( $coin, $currency, 0 );
     echo "$coin has $value deletions | ";
     echo $opb[ $coin ] . " uses before | ";
     echo "$opa uses after!";
@@ -146,7 +146,7 @@ class Database {
             $coin, //
             formatBTC( $balance ), //
             formatBTC( $desiredBalance ), //
-            self::getOpportunityCount( $coin, $exchangeID ), //
+            self::getOpportunityCount( $coin, $currency, $exchangeID ), //
             self::getTradeCount( $coin, $exchangeID ), //
             formatBTC( $rate ), //
             $exchangeID, //
@@ -175,24 +175,25 @@ class Database {
 
   }
 
-  public static function saveTrack( $coin, $amount, $profit, $exchange ) {
+  public static function saveTrack( $coin, $currency, $amount, $profit, $source, $target ) {
 
     $link = self::connect();
 
-    $exchangeID = $exchange->getID();
-    $exchangeName = $exchange->getName();
+    $sourceID = $source->getID();
+    $targetID = $target->getID();
 
-    $lastTrackTime = self::getLastTrackTime( $coin, $exchangeID );
+    $lastTrackTime = self::getLastTrackTime( $coin, $currency, $sourceID, $targetID );
     if ( $lastTrackTime > time() - Config::get( Config::OPPORTUNITY_SAVE_INTERVAL, Config::DEFAULT_OPPORTUNITY_SAVE_INTERVAL ) * 60 ) {
-      logg( "[DB] Omitting track $amount $coin @ $exchangeName as previous entry is too young" );
+      $targetName = $target->getName();
+      logg( "[DB] Omitting track $amount $coin @ $targetName as previous entry is too young" );
       return;
     }
 
-    $query = sprintf( "INSERT INTO track (amount, coin, profit, ID_exchange, created) VALUES ('%s', '%s', '%s', %d, %d);", //
+    $query = sprintf( "INSERT INTO track (amount, coin, currency, profit, ID_exchange_source, ID_exchange_target, created) VALUES ('%s', '%s', '%s', '%s', %d, %d, %d);", //
             formatBTC( $amount ), //
-            $coin, //
+            $coin, $currency, //
             formatBTC( $profit ), //
-            $exchangeID, //
+            $sourceID, $targetID, //
             time() //
     );
 
@@ -204,13 +205,16 @@ class Database {
 
   }
 
-  public static function getLastTrackTime( $coin, $exchangeID ) {
+  public static function getLastTrackTime( $coin, $currency, $sourceID, $targetID ) {
 
     $link = self::connect();
 
-    $query = sprintf( "SELECT MAX(created) AS created FROM track WHERE coin = '%s' AND ID_exchange = %d;", //
+    $query = sprintf( "SELECT MAX(created) AS created FROM track WHERE coin = '%s' AND " .
+                      "currency = '%s' AND ID_exchange_source = %d AND ID_exchange_target = %d;", //
             $coin, //
-            $exchangeID
+            $currency, //
+            $sourceID,
+            $targetID
     );
 
     $result = mysql_query( $query, $link );
@@ -315,15 +319,16 @@ class Database {
 
   }
 
-  public static function getOpportunityCount( $coin, $exchangeID ) {
+  public static function getOpportunityCount( $coin, $currency, $exchangeID ) {
 
     $maxAge = time() - Config::get( Config::OPPORTUNITY_COUNT_AGE, Config::DEFAULT_OPPORTUNITY_COUNT_AGE ) * 3600;
 
     $link = self::connect();
 
-    $query = sprintf( "SELECT COUNT(ID) AS CNT FROM track WHERE coin = '%s' %s AND created >= %d", //
+    $query = sprintf( "SELECT COUNT(ID) AS CNT FROM track WHERE coin = '%s' AND currency = '%s' %s AND created >= %d", //
             mysql_escape_string( $coin ), //
-            $exchangeID > 0 ? sprintf( "AND ID_exchange = %d", $exchangeID ) : "", //
+            mysql_escape_string( $currency ), //
+            $exchangeID > 0 ? sprintf( "AND ID_exchange_target = %d", $exchangeID ) : "", //
             $maxAge //
     );
 
@@ -428,6 +433,53 @@ class Database {
 
   }
 
+  public static function handleTrackUpgrade() {
+
+    $link = self::connect();
+
+    $result = mysql_query( "SHOW COLUMNS FROM track LIKE 'currency';", $link );
+    if ( !$result ) {
+      throw new Exception( "database selection error: " . mysql_error( $link ) );
+    }
+
+    if ( mysql_num_rows( $result ) === 0 ) {
+      // Old database format, need to upgrade first.
+      $result = mysql_query( "ALTER TABLE track ADD currency CHAR(5) NOT NULL DEFAULT 'BTC' AFTER coin;", $link );
+      if ( !$result ) {
+        throw new Exception( "database selection error: " . mysql_error( $link ) );
+      }
+    }
+
+    $result = mysql_query( "SHOW COLUMNS FROM track LIKE 'ID_exchange_source';", $link );
+    if ( !$result ) {
+      throw new Exception( "database selection error: " . mysql_error( $link ) );
+    }
+
+    if ( mysql_num_rows( $result ) === 0 ) {
+      // Old database format, need to upgrade first.
+      $result = mysql_query( "ALTER TABLE track ADD ID_exchange_source INT(11) NOT NULL AFTER profit;", $link );
+      if ( !$result ) {
+        throw new Exception( "database selection error: " . mysql_error( $link ) );
+      }
+      $result = mysql_query( "ALTER TABLE track CHANGE ID_exchange ID_exchange_target INT(11) NOT NULL;", $link );
+      if ( !$result ) {
+        throw new Exception( "database selection error: " . mysql_error( $link ) );
+      }
+      // We don't know exactly how to fill in the new column, so let's just hope the user hasn't used a third exchange yet.
+      $result = mysql_query( "UPDATE track SET ID_exchange_source = 1 WHERE ID_exchange_target = 3;", $link );
+      if ( !$result ) {
+        throw new Exception( "database selection error: " . mysql_error( $link ) );
+      }
+      $result = mysql_query( "UPDATE track SET ID_exchange_source = 3 WHERE ID_exchange_target = 1;", $link );
+      if ( !$result ) {
+        throw new Exception( "database selection error: " . mysql_error( $link ) );
+      }
+    }
+
+    mysql_close( $link );
+
+  }
+
   public static function getStats() {
 
     $link = self::connect();
@@ -477,7 +529,8 @@ class Database {
                        $message, $matches )) {
         throw new Exception( "invalid log message encountered: " . $message );
       }
-      $exchange = Exchange::createFromID( $row[ 'target' ] );
+      $exchange = Exchange::createFromID( $row[ 'target' ] );
+
       $price_sold = $matches[ 2 ] / $exchange->deductFeeFromAmountSell( $row[ 'amount' ] );
       $tx_fee = $matches[ 6 ] * $price_sold;
       $pl = $matches[ 4 ] - $tx_fee;

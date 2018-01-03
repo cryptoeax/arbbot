@@ -296,7 +296,7 @@ class WebDB {
 
       if ( key_exists( $exid, $extc ) === false ) {
         $extc[ $exid ] = intval( self::getTradeCount( $exid ) );
-        $exoc[ $exid ] = intval( self::getOpportunityCount( $exid ) );
+        $exoc[ $exid ] = intval( self::getOpportunityCount( $exid, 'BTC' ) );
       }
 
       $age = time() - $row[ 'created' ];
@@ -448,12 +448,13 @@ class WebDB {
 
   }
 
-  public static function getOpportunityCount( $xid ) {
+  public static function getOpportunityCount( $xid, $currency ) {
 
     $link = self::connect();
 
-    $query = sprintf( "SELECT COUNT(*) AS CNT FROM track %s;", //
-            $xid == 0 ? "" : sprintf( "WHERE ID_exchange = %d", $xid )
+    $query = sprintf( "SELECT COUNT(*) AS CNT FROM track WHERE currency = '%s' %s;", //
+            mysql_escape_string( $currency ),
+            $xid == 0 ? "" : sprintf( "AND ID_exchange_target = %d", $xid )
     );
 
     $result = mysql_query( $query, $link );
