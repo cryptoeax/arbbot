@@ -444,7 +444,7 @@ class Database {
 
     if ( mysql_num_rows( $result ) === 0 ) {
       // Old database format, need to upgrade first.
-      $result = mysql_query( "ALTER TABLE track ADD currency AFTER coin CHAR(5) NOT NULL DEFAULT 'BTC';", $link );
+      $result = mysql_query( "ALTER TABLE track ADD currency CHAR(5) NOT NULL DEFAULT 'BTC' AFTER coin;", $link );
       if ( !$result ) {
         throw new Exception( "database selection error: " . mysql_error( $link ) );
       }
@@ -457,11 +457,11 @@ class Database {
 
     if ( mysql_num_rows( $result ) === 0 ) {
       // Old database format, need to upgrade first.
-      $result = mysql_query( "ALTER TABLE track ADD ID_exchange_source AFTER profit INT(11) NOT NULL;", $link );
+      $result = mysql_query( "ALTER TABLE track ADD ID_exchange_source INT(11) NOT NULL AFTER profit;", $link );
       if ( !$result ) {
         throw new Exception( "database selection error: " . mysql_error( $link ) );
       }
-      $result = mysql_query( "ALTER TABLE track CHANGE ID_exchange ID_exchange_target;", $link );
+      $result = mysql_query( "ALTER TABLE track CHANGE ID_exchange ID_exchange_target INT(11) NOT NULL;", $link );
       if ( !$result ) {
         throw new Exception( "database selection error: " . mysql_error( $link ) );
       }
