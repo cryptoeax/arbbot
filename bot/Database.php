@@ -478,8 +478,6 @@ class Database {
 
     mysql_close( $link );
 
-    return $results;
-
   }
 
   public static function getStats() {
