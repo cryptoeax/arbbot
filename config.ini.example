@@ -179,9 +179,6 @@ order-check-delay = 60
 ; Smoothing altcoin exchange rates to calculate desired coin balances
 rate-ema-period = 5
 
-; Notify of suspicious price differences if rates differ more than [%] between exchanges
-suspicious-price-difference = 33
-
 ; Intervals for internal management tasks [h]
 interval-management = 1
 interval-take-profit = 12

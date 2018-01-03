@@ -45,9 +45,6 @@ class Config {
   const MAX_PAIRS_PER_RUN = 'expert.max-pairs-per-run';
   const DEFAULT_MAX_PAIRS_PER_RUN = 10;
   //
-  const SUSPICIOUS_PRICE_DIFFERENCE = 'expert.suspicious-price-difference';
-  const DEFAULT_SUSPICIOUS_PRICE_DIFFERENCE = 33;
-  //
   const INTERVAL_MANAGEMENT = 'expert.interval-management';
   const DEFAULT_INTERVAL_MANAGEMENT = 1;
   //

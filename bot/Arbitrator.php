@@ -201,8 +201,6 @@ class Arbitrator {
 
   }
 
-  private $priceDiffNotifications = [ ];
-
   private function checkAndTrade( $sourceOrderbook, $targetOrderbook ) {
 
     $sourceAsk = $sourceOrderbook->getBestAsk();
@@ -214,19 +212,6 @@ class Arbitrator {
 
     $currency = $sourceOrderbook->getCurrency();
     $tradeable = $sourceOrderbook->getTradeable();
-
-    $targetPrice = $targetBid->getPrice();
-    $sourcePrice = $targetBid->getPrice();
-
-    if ( array_search( $tradeable, $this->priceDiffNotifications ) === false && abs( $targetPrice - $sourcePrice ) > 0.00000002 && $targetPrice > $sourcePrice + $sourcePrice() * (Config::get( Config::SUSPICIOUS_PRICE_DIFFERENCE, Config::DEFAULT_SUSPICIOUS_PRICE_DIFFERENCE ) / 100) ) {
-
-      $sourceXname = $sourceOrderbook->getSource()->getName();
-      $targetXname = $targetOrderbook->getSource()->getName();
-
-      logg( "Detected suspiciously large price difference (over " . Config::get( Config::SUSPICIOUS_PRICE_DIFFERENCE, Config::DEFAULT_SUSPICIOUS_PRICE_DIFFERENCE ) . "%) - please check if this is legitimate (Check if coins are the same / markets aren't down / exchange hacked / etc)!\n\nMarket: $tradeable vs $currency\nExchange 1: $sourceXname\nExchange 2: $targetXname\n", true );
-
-      $this->priceDiffNotifications[] = $tradeable;
-    }
 
     /*
       Check for arbitrage opportunities. If the bid is higher than the ask
