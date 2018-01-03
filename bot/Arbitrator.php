@@ -334,6 +334,12 @@ class Arbitrator {
     $increasedBuyRate = formatBTC( $bestBuyRate * Config::get( Config::BUY_RATE_FACTOR, Config::DEFAULT_BUY_RATE_FACTOR ) );
     $reducedSellRate = formatBTC( $bestSellRate * Config::get( Config::SELL_RATE_FACTOR, Config::DEFAULT_SELL_RATE_FACTOR ) );
 
+    if ( $reducedSellRate <= $increasedBuyRate ) {
+      logg( $orderInfo . sprintf( "NOT ENTERING TRADE: REDUCED SELL RATE %s IS BELOW INCREASED BUY RATE %s",
+                                  formatBTC( $reducedSellRate ), formatBTC( $increasedBuyRate ) ) );
+      return false;
+    }
+
     if ( $reducedSellRate * $sellAmount < $target->getSmallestOrderSize() ) {
       $reducedSellRate = formatBTC( $target->getSmallestOrderSize() / $sellAmount + 0.00000001 );
     }
