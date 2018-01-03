@@ -146,7 +146,7 @@ class Database {
             $coin, //
             formatBTC( $balance ), //
             formatBTC( $desiredBalance ), //
-            self::getOpportunityCount( $coin, $currency, $exchangeID ), //
+            self::getOpportunityCount( $coin, $exchangeID ), //
             self::getTradeCount( $coin, $exchangeID ), //
             formatBTC( $rate ), //
             $exchangeID, //
