@@ -189,7 +189,7 @@ class Database {
       return;
     }
 
-    $query = sprintf( "INSERT INTO track (amount, coin, currency, profit, ID_exchange_source, ID_exchange_target, created) VALUES ('%s', '%s', '%s', %d, %d);", //
+    $query = sprintf( "INSERT INTO track (amount, coin, currency, profit, ID_exchange_source, ID_exchange_target, created) VALUES ('%s', '%s', '%s', '%s', %d, %d, %d);", //
             formatBTC( $amount ), //
             $coin, $currency, //
             formatBTC( $profit ), //
