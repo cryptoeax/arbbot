@@ -342,6 +342,19 @@ class Arbitrator {
       $buyOrderID = null;
     } else {
       logg( "Placed sell order (" . $target->getName() . " ID: $sellOrderID)" );
+      $target->refreshWallets();
+
+      $sellTrades = $this->tradeMatcher->handlePostTradeTasks( $this, $target, $tradeable, $currency, 'sell',
+                                                               $sellOrderID, $sellAmount );
+      $tradesSum = array_reduce( $trades, 'sumOfAmount', 0 );
+
+      if ( $tradesSum != $sellAmount ) {
+        logg( sprintf( "Warning: Meant to sell %s but managed to only sell %s", formatBTC( $sellAmount, $tradesSum ) ) );
+
+        // Adjust $tradeAmount according to how much we managed to sell.
+        $tradeAmount = $tradesSum + $txFee;
+      }
+
       for ( $i = 0; $i < 5; ++ $i ) {
         $buyOrderID = $source->buy( $tradeable, $currency, $increasedBuyRate, $tradeAmount );
         if ( is_null( $buyOrderID ) ) {
@@ -377,12 +390,16 @@ class Arbitrator {
       logg( "Checking trade results ($i)..." );
 
       $source->refreshWallets();
-      $target->refreshWallets();
+      if ( $i != 1 ) {
+        $target->refreshWallets();
+      }
 
       $buyTrades = $this->tradeMatcher->handlePostTradeTasks( $this, $source, $tradeable, $currency, 'buy',
                                                               $buyOrderID, $tradeAmount );
-      $sellTrades = $this->tradeMatcher->handlePostTradeTasks( $this, $target, $tradeable, $currency, 'sell',
-                                                               $sellOrderID, $sellAmount );
+      if ( $i != 1 ) {
+        $sellTrades = $this->tradeMatcher->handlePostTradeTasks( $this, $target, $tradeable, $currency, 'sell',
+                                                                 $sellOrderID, $sellAmount );
+      }
 
       $totalCost = is_null( $buyOrderID ) ? 0 :
                      $source->getFilledOrderPrice( 'buy', $tradeable, $currency, $buyOrderID );
