@@ -349,7 +349,8 @@ class Arbitrator {
       $tradesSum = array_reduce( $sellTrades, 'sumOfAmount', 0 );
 
       if ( $tradesSum != $sellAmount ) {
-        logg( sprintf( "Warning: Meant to sell %s but managed to only sell %s", formatBTC( $sellAmount, $tradesSum ) ) );
+        logg( sprintf( "Warning: Meant to sell %s but managed to only sell %s",
+                       formatBTC( $sellAmount ), formatBTC( $tradesSum ) ) );
 
         // Adjust $tradeAmount according to how much we managed to sell.
         $tradeAmount = $tradesSum + $txFee;
