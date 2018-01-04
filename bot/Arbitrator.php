@@ -201,8 +201,6 @@ class Arbitrator {
 
   }
 
-  private $priceDiffNotifications = [ ];
-
   private function checkAndTrade( $sourceOrderbook, $targetOrderbook ) {
 
     $currency = $sourceOrderbook->getCurrency();
@@ -219,19 +217,6 @@ class Arbitrator {
 
     if ( $targetBid->getPrice() <= $sourceAsk->getPrice() ) {
       return false;
-    }
-
-    $targetPrice = $targetBid->getPrice();
-    $sourcePrice = $targetBid->getPrice();
-
-    if ( array_search( $tradeable, $this->priceDiffNotifications ) === false && abs( $targetPrice - $sourcePrice ) > 0.00000002 && $targetPrice > $sourcePrice + $sourcePrice() * (Config::get( Config::SUSPICIOUS_PRICE_DIFFERENCE, Config::DEFAULT_SUSPICIOUS_PRICE_DIFFERENCE ) / 100) ) {
-
-      $sourceXname = $sourceOrderbook->getSource()->getName();
-      $targetXname = $targetOrderbook->getSource()->getName();
-
-      logg( "Detected suspiciously large price difference (over " . Config::get( Config::SUSPICIOUS_PRICE_DIFFERENCE, Config::DEFAULT_SUSPICIOUS_PRICE_DIFFERENCE ) . "%) - please check if this is legitimate (Check if coins are the same / markets aren't down / exchange hacked / etc)!\n\nMarket: $tradeable vs $currency\nExchange 1: $sourceXname\nExchange 2: $targetXname\n", true );
-
-      $this->priceDiffNotifications[] = $tradeable;
     }
 
     /*
@@ -284,7 +269,8 @@ class Arbitrator {
     $bestSellRate = $targetOrderbook->getBestBid()->getPrice();
     $bestSellAmount = $targetOrderbook->getBestBid()->getAmount();
 
-    $maxSourceAmount = min( min( $maxTradeSize, $sourceCurrencyBefore ) / $bestBuyRate, $bestBuyAmount );
+    $maxSourceAmount = min( $sourceTradeableBefore,
+                            min( min( $maxTradeSize, $sourceCurrencyBefore ) / $bestBuyRate, $bestBuyAmount ) );
     $maxTargetAmount = min( $targetTradeableBefore, $bestSellAmount );
     $tradeAmount = formatBTC( min( $maxSourceAmount, $maxTargetAmount ) );
 
@@ -341,6 +327,12 @@ class Arbitrator {
 
     if ( $reducedSellRate * $sellAmount < $target->getSmallestOrderSize() ) {
       $reducedSellRate = formatBTC( $target->getSmallestOrderSize() / $sellAmount + 0.00000001 );
+    }
+
+    if ( $reducedSellRate <= $increasedBuyRate ) {
+      logg( $orderInfo . sprintf( "NOT ENTERING TRADE: REDUCED SELL RATE %s IS BELOW INCREASED BUY RATE %s",
+                                  formatBTC( $reducedSellRate ), formatBTC( $increasedBuyRate ) ) );
+      return false;
     }
 
     $orderInfo .= "= TRADE ============================================\n";
