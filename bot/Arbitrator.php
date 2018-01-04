@@ -348,36 +348,41 @@ class Arbitrator {
                                                                $sellOrderID, $sellAmount );
       $tradesSum = array_reduce( $sellTrades, 'sumOfAmount', 0 );
 
-      if ( $tradesSum != $sellAmount ) {
-        logg( sprintf( "Warning: Meant to sell %s but managed to only sell %s",
-                       formatBTC( $sellAmount ), formatBTC( $tradesSum ) ) );
+      if ( floatval( $tradesSum ) == 0 ) {
+        logg( "Sell order not fullfilled, we will not attempt a buy order to avoid incurring a loss." );
+        $buyOrderID = null;
+      } else {
+        if ( $tradesSum != $sellAmount ) {
+          logg( sprintf( "Warning: Meant to sell %s but managed to only sell %s",
+                         formatBTC( $sellAmount ), formatBTC( $tradesSum ) ) );
 
-        // Adjust $tradeAmount according to how much we managed to sell.
-        $tradeAmount = $tradesSum + $txFee;
-      }
-
-      for ( $i = 0; $i < 5; ++ $i ) {
-        $buyOrderID = $source->buy( $tradeable, $currency, $increasedBuyRate, $tradeAmount );
-        if ( is_null( $buyOrderID ) ) {
-          if ( $i < 4 ) {
-            logg( "Buy order failed, we will probably incur a profit (but we have really sold off our altcoin), so let's retry..." );
-          }
-          continue;
+          // Adjust $tradeAmount according to how much we managed to sell.
+          $tradeAmount = $tradesSum + $txFee;
         }
-        logg( "Placed buy order (" . $source->getName() .  " ID: $buyOrderID)" );
 
-        logg( "Waiting for order execution..." );
-        sleep( Config::get( Config::ORDER_CHECK_DELAY, Config::DEFAULT_ORDER_CHECK_DELAY ) );
-        break;
-      }
+        for ( $i = 0; $i < 5; ++ $i ) {
+          $buyOrderID = $source->buy( $tradeable, $currency, $increasedBuyRate, $tradeAmount );
+          if ( is_null( $buyOrderID ) ) {
+            if ( $i < 4 ) {
+              logg( "Buy order failed, we will probably incur a profit (but we have really sold off our altcoin), so let's retry..." );
+            }
+            continue;
+          }
+          logg( "Placed buy order (" . $source->getName() .  " ID: $buyOrderID)" );
 
-      if ( !is_null( $sellOrderID ) &&
-           $target->cancelOrder( $sellOrderID ) ) {
-        logg( "A sell order hasn't been filled. If this happens regulary you should increase the " . Config::ORDER_CHECK_DELAY . " setting!", true );
-      }
-      if ( !is_null( $buyOrderID ) &&
-           $source->cancelOrder( $buyOrderID ) ) {
-        logg( "A buy order hasn't been filled. If this happens regulary you should increase the " . Config::ORDER_CHECK_DELAY . " setting!", true );
+          logg( "Waiting for order execution..." );
+          sleep( Config::get( Config::ORDER_CHECK_DELAY, Config::DEFAULT_ORDER_CHECK_DELAY ) );
+          break;
+        }
+
+        if ( !is_null( $sellOrderID ) &&
+             $target->cancelOrder( $sellOrderID ) ) {
+          logg( "A sell order hasn't been filled. If this happens regulary you should increase the " . Config::ORDER_CHECK_DELAY . " setting!", true );
+        }
+        if ( !is_null( $buyOrderID ) &&
+             $source->cancelOrder( $buyOrderID ) ) {
+          logg( "A buy order hasn't been filled. If this happens regulary you should increase the " . Config::ORDER_CHECK_DELAY . " setting!", true );
+        }
       }
     }
 
