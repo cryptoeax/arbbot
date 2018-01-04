@@ -1,0 +1,65 @@
+version: '3'
+
+services:
+  db:
+    image: mysql:5.7
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./docker/db/config/my.cnf:/etc/mysql/conf.d/arbbot.cnf
+      - ./docker/db-data:/var/lib/mysql
+    networks:
+      backend:
+        aliases:
+          - database
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=changeme
+      - MYSQL_DATABASE=arbitrage
+      - MYSQL_USER=arbitrage
+      - MYSQL_PASSWORD=changeme
+  db_seed:
+    depends_on:
+      - db
+    build: docker/db-seed
+    networks:
+      - backend
+  bot:
+    depends_on:
+      - db_seed
+    build: docker/bot
+    volumes:
+      - .:/home/arbbot
+    restart: always
+    networks:
+      - backend
+  web:
+    depends_on:
+      - db_seed
+      - php
+    image: nginx:1.13
+    ports:
+      - "80:80"
+    volumes:
+      - ./web:/usr/share/nginx/html
+      - ./docker/web/config/default:/etc/nginx/sites-available/default
+      - ./docker/web/config/default:/etc/nginx/sites-enabled/default
+
+      - ./docker/web/logs/access.log:/var/log/nginx/access.log
+      - ./docker/web/logs/error.log:/var/log/nginx/error.log
+    networks:
+      - frontend
+    restart: always
+  php:
+    image: php:7.2-fpm
+    ports:
+      - "9000:9000"
+    restart: always
+    volumes:
+      - ./web:/usr/share/nginx/html
+    networks:
+      - frontend
+      - backend
+networks:
+  frontend:
+  backend:
