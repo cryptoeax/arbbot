@@ -4,6 +4,8 @@ class Database {
 
   const STATISTICS_MAX_AGE = 432000;
 
+  private static $trades = [ ];
+
   private static function connect() {
 
     $dbHost = Config::get( Config::DB_HOST, null );
@@ -626,6 +628,9 @@ class Database {
                                             $rate, $amount, $fee, $total ) {
 
     $link = self::connect();
+    self::ensureTradesUpdated( $link );
+    self::$trades[ $rawTradeID ] = true;
+
     $query = sprintf( "REPLACE INTO exchange_trades (created, ID_exchange, coin, currency, " .
                       "                              raw_trade_ID, trade_ID, rate, amount, " .
                       "                              fee, total, type) VALUES " .
@@ -845,6 +850,23 @@ class Database {
 
   }
 
+  private static function ensureTradesUpdated( $link ) {
+
+    if ( !is_null( self::$trades ) ) {
+      return;
+    }
+    self::$trades = array( );
+
+    if ( !$result = mysql_query( "SELECT raw_trade_ID FROM exchange_trades ", $link ) ) {
+      throw new Exception( "database selection error: " . mysql_error( $link ) );
+    }
+
+    while ( $row = mysql_fetch_assoc( $result ) ) {
+      self::$trades[ $row[ 'raw_trade_ID' ] ] = true;
+    }
+
+  }
+
   public static function getNewTrades( $recentTradeIDs ) {
 
     $link = self::connect();
@@ -853,30 +875,18 @@ class Database {
       return array( );
     }
 
-    $arg = implode( " OR ", array_map( 'generateNewTradesLikeClause',
-                            array_map( 'mysql_escape_string', $recentTradeIDs ) ) );
-
-    if ( !$result = mysql_query( sprintf( "SELECT raw_trade_ID " .
-                                          "FROM exchange_trades WHERE %s;",
-                                          $arg ) ) ) {
-      throw new Exception( "database insertion error: " . mysql_error( $link ) );
-    }
-
-    $return = array( );
-    while ( $row = mysql_fetch_assoc( $result ) ) {
-      $return[ $row[ 'raw_trade_ID' ] ] = true;
-    }
+    self::ensureTradesUpdated( $link );
 
     mysql_close( $link );
 
     $result = array( );
     foreach ( $recentTradeIDs as $id ) {
-      if ( isset( $return[ $id ] ) ) {
+      if ( isset( self::$trades[ $id ] ) ) {
         continue;
       }
       // If we don't find an exact match, look for a partial match.
       $add = true;
-      foreach ( array_keys( $return ) as $candidate ) {
+      foreach ( array_keys( self::$trades ) as $candidate ) {
         if ( strpos( $candidate, $id ) !== false ) {
           $add = false;
           break;

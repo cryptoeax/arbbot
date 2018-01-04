@@ -481,7 +481,8 @@ class Bittrex extends Exchange {
       }
       catch ( Exception $ex ) {
         $info = json_decode($ex->getTrace()[ 0 ][ 'args' ][ 0 ]);
-        if ($info->success === false &&
+        if (is_object( $info ) &&
+            $info->success === false &&
             $info->message === 'ADDRESS_GENERATING') {
           // Wait while the address is being generated.
           sleep( 30 );
