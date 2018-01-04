@@ -346,7 +346,7 @@ class Arbitrator {
 
       $sellTrades = $this->tradeMatcher->handlePostTradeTasks( $this, $target, $tradeable, $currency, 'sell',
                                                                $sellOrderID, $sellAmount );
-      $tradesSum = array_reduce( $trades, 'sumOfAmount', 0 );
+      $tradesSum = array_reduce( $sellTrades, 'sumOfAmount', 0 );
 
       if ( $tradesSum != $sellAmount ) {
         logg( sprintf( "Warning: Meant to sell %s but managed to only sell %s", formatBTC( $sellAmount, $tradesSum ) ) );
