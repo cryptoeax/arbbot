@@ -157,7 +157,7 @@ class Database {
 
   }
 
-  public static function saveBalance( $coin, $balance, $exchangeID, $time, $link ) {
+  public static function queryBalanceMovingAverage( $coin, $balance, $exchangeID, $link ) {
 
     // Read the three most recent balances for this coin on this exchange.
     $result = mysql_query( sprintf( "SELECT SUM(balance) AS amount FROM snapshot WHERE coin = '%s' %s GROUP BY created, ID_exchange ORDER BY created DESC LIMIT 3",
@@ -172,8 +172,13 @@ class Database {
       $data[] = $row;
     }
     $prevBalanceSum = array_reduce( $data, 'sumOfAmount', 0 );
-    $sma = ($prevBalanceSum + $balance) / (1 + count( $data ));
+    return ($prevBalanceSum + $balance) / (1 + count( $data ));
 
+  }
+
+  public static function saveBalance( $coin, $balance, $exchangeID, $time, $link ) {
+
+    $sma = self::queryBalanceMovingAverage( $coin, $balance, $exchangeID, $link );
     self::recordBalance( $coin, $sma, $balance, $exchangeID, $time, $link );
 
   }
