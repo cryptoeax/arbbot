@@ -7,7 +7,7 @@ var statsTimeout = null;
 var totalPL = null;
 var realizedPL = null;
 var profitableTrades = null;
-var plMode = "details";
+var plMode = "summary";
 var uiDisabled = false;
 var adminUIReady = false;
 
@@ -35,6 +35,12 @@ $(function() {
         Cookies.set('smooth', smooth);
 
         updateGraph();
+        return false;
+    });
+
+    $(".showPLSummary").click(function() {
+        plMode = "summary";
+        updatePL();
         return false;
     });
 
@@ -305,6 +311,9 @@ $(function() {
             url: "ajax.php?func=pl",
             type: "GET",
             cache: false,
+            data: {
+                mode: plMode,
+            },
             success: function(data) {
 
                 totalPL = rnd4(data.pl) + data.pl_currency;
@@ -313,7 +322,7 @@ $(function() {
 
                 var arr = data.data;
 
-                if (plMode == "details") {
+                if (plMode == "summary" || plMode == "details") {
     	        $("#filterbox").remove();
 
                     var htmlData = "";

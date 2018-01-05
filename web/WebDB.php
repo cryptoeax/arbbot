@@ -493,16 +493,19 @@ class WebDB {
 
   }
 
-  public static function getPL() {
+  public static function getPL( $mode ) {
 
     $link = self::connect();
 
-    $result = mysql_query( "SELECT created, coin, currency, tradeable_sold AS amount, currency_bought, " .
-                           "       currency_sold, currency_revenue, currency_pl, currency_tx_fee, " .
-                           "       tradeable_tx_fee, ID_exchange_source AS source, " .
-                           "       ID_exchange_target AS target " .
-                           "FROM profit_loss " .
-                           "ORDER BY created DESC", $link );
+    $result = mysql_query( sprintf( "SELECT created, coin, currency, tradeable_sold AS amount, currency_bought, " .
+                                    "       currency_sold, currency_revenue, currency_pl, currency_tx_fee, " .
+                                    "       tradeable_tx_fee, ID_exchange_source AS source, " .
+                                    "       ID_exchange_target AS target " .
+                                    "FROM profit_loss %s" .
+                                    "ORDER BY created DESC",
+                                    // "summary" returns transactions in the past 24 hours
+                                    ( $mode == "summary" ) ? 'WHERE UNIX_TIMESTAMP() - created < 24 * 60 * 60' : ''
+                           ), $link );
     if ( !$result ) {
       throw new Exception( "database selection error: " . mysql_error( $link ) );
     }
