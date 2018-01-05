@@ -688,13 +688,13 @@ class Database {
 
   public static function alertsTableExists() {
 
-    return tableExistsHelper( 'alerts' );
+    return self::tableExistsHelper( 'alerts' );
 
   }
 
   public static function createAlertsTable() {
 
-    return createTableHelper( 'alerts' );
+    return self::createTableHelper( 'alerts' );
 
   }
 
@@ -740,13 +740,13 @@ class Database {
 
   public static function profitsTableExists() {
 
-    return tableExistsHelper( 'profits' );
+    return self::tableExistsHelper( 'profits' );
 
   }
 
   public static function createProfitsTable() {
 
-    return createTableHelper( 'profits' );
+    return self::createTableHelper( 'profits' );
 
   }
 
@@ -795,13 +795,13 @@ class Database {
 
   public static function profitLossTableExists() {
 
-    return tableExistsHelper( 'profit_loss' );
+    return self::tableExistsHelper( 'profit_loss' );
 
   }
 
   public static function createProfitLossTable() {
 
-    return createTableHelper( 'profit_loss' );
+    return self::createTableHelper( 'profit_loss' );
 
   }
 
