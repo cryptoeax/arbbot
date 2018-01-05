@@ -141,9 +141,55 @@ class Database {
 
   }
 
+  private static function recordBalance( $coin, $sma, $balance, $exchangeID, $time, $link ) {
+
+    // Record the balance entry.
+    $query = sprintf( "INSERT INTO balances (coin, `value`, `raw`, ID_exchange, created) VALUES ('%s', '%s', '%s', %d, %d);", //
+            $coin, //
+            formatBTC( $sma ), //
+            formatBTC( $balance ), //
+            $exchangeID, //
+            $time //
+    );
+    if ( !mysql_query( $query, $link ) ) {
+      throw new Exception( "database insertion error: " . mysql_error( $link ) );
+    }
+
+  }
+
+  private static function saveBalance( $coin, $balance, $exchangeID, $time, $link ) {
+
+    // Read the three most recent balances for this coin on this exchange.
+    $result = mysql_query( sprintf( "SELECT balance AS amount FROM snapshot WHERE coin = '%s' %s ORDER BY created DESC LIMIT 3",
+                                    $coin, 
+                                    $exchangeID == '0' ? '' : ( 'AND ID_exchange = ' . $exchangeID ) ), $link );
+    if ( !$result ) {
+      throw new Exception( "database selection error: " . mysql_error( $link ) );
+    }
+
+    $data = [];
+    while ( $row = mysql_fetch_assoc( $result ) ) {
+      $data[] = $row;
+    }
+    $prevBalanceSum = array_reduce( $data, 'sumOfAmount', 0 );
+    $sma = ($prevBalanceSum + $balance) / (1 + count( $data ));
+
+    self::recordBalance( $coin, $sma, $balance, $exchangeID, $time, $link );
+
+  }
+
   public static function saveSnapshot( $coin, $balance, $desiredBalance, $rate, $exchangeID, $time ) {
 
     $link = self::connect();
+
+    self::saveBalance( $coin, $balance, $exchangeID, $time, $link );
+
+    if ( $rate == 0 ) {
+      // This means we're saving a currency, so save a special exchange ID 0 for the total graph too.
+      self::saveBalance( $coin, $balance, '0', $time, $link );
+    }
+
+    // Record the snapshot entry.
     $query = sprintf( "INSERT INTO snapshot (coin, balance, desired_balance, uses, trades, rate, ID_exchange, created) VALUES ('%s', '%s', '%s', %d, %d, '%s', %d, %d);", //
             $coin, //
             formatBTC( $balance ), //
@@ -733,6 +779,90 @@ class Database {
     }
 
     print "\n";
+
+    mysql_close( $link );
+
+ }
+ 
+  public static function balancesTableExists() {
+
+    return self::tableExistsHelper( 'balances' );
+
+  }
+
+  public static function createBalancesTable() {
+
+    return self::createTableHelper( 'balances' );
+
+  }
+  
+  public static function getSmoothedResultsForGraph( $result ) {
+  
+    $ma = [ ];
+  
+    $data = [ ];
+    while ( $row = mysql_fetch_assoc( $result ) ) {
+  
+      $value = floatval( $row[ 'data' ] );
+      $ex = $row[ 'ID_exchange' ];
+  
+      if (!in_array( $ex, array_keys( $ma ) )) {
+        $ma[$ex] = [ ];
+      }
+      $ma[$ex][] = $value;
+      while ( count( $ma[$ex] ) > 4 ) {
+        array_shift( $ma[$ex] );
+      }
+  
+      $sma = array_sum( $ma[$ex] ) / count( $ma[$ex] );
+      $data[] = ['time' => $row[ 'created' ], 'value' => $sma , 'raw' => $value,
+                 'exchange' => $ex ];
+    }
+  
+    return $data;
+  
+  }
+
+  private static function importBalancesHelper( $coin, $exchange, $link ) {
+
+    $query = sprintf( "SELECT SUM(balance) AS data, created, ID_exchange FROM snapshot WHERE coin = '%s' %s GROUP BY created, ID_exchange;", //
+            mysql_escape_string( $coin ), //
+            $exchange === "0" ? "" : sprintf( " AND ID_exchange = %d", mysql_escape_string( $exchange ) )
+    );
+   
+    $result = mysql_query( $query, $link );
+    if ( !$result ) {
+      throw new Exception( "database selection error: " . mysql_error( $link ) );
+    }
+
+    $data = self::getSmoothedResultsForGraph( $result );
+
+    foreach ( $data as $row ) {
+      self::recordBalance( $coin, $row[ 'value' ], $row[ 'raw' ], $exchange, 
+                           $row[ 'time' ], $link );
+    }
+
+  }
+
+  public static function importBalances() {
+
+    $link = self::connect();
+
+    // We want to iterate over all unique pairs (coin, exchange)
+    $result = mysql_query( "SELECT DISTINCT coin, ID_exchange AS exchange FROM snapshot;", $link );
+    if ( !$result ) {
+      throw new Exception( "database selection error: " . mysql_error( $link ) );
+    }
+
+    while ( $row = mysql_fetch_assoc( $result ) ) {
+      $coin = $row[ 'coin' ];
+      $exchange = $row[ 'ID_exchange' ];
+
+      self::importBalancesHelper( $coin, $exchange, $link );
+      if ( Config::isCurrency( $coin ) ) {
+        self::importBalancesHelper( $coin, '0', $link );
+      }
+    }
 
     mysql_close( $link );
 

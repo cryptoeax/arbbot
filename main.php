@@ -47,6 +47,11 @@ if ( !Database::alertsTableExists() ) {
   Database::importAlerts();
 }
 
+if ( !Database::balancesTableExists() ) {
+  Database::createBalancesTable();
+  Database::importBalances();
+}
+
 if ( !Database::profitsTableExists() ) {
   Database::createProfitsTable();
   Database::importProfits();

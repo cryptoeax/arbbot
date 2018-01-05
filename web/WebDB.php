@@ -88,7 +88,7 @@ class WebDB {
 
     $query = null;
     if ( $mode == 0 ) {
-      $query = sprintf( "SELECT SUM(balance) AS data, created, ID_exchange FROM snapshot WHERE coin = '%s' %s GROUP BY created, ID_exchange;", //
+      $query = sprintf( "SELECT value AS data, raw, created, ID_exchange FROM balances WHERE coin = '%s' %s GROUP BY created, ID_exchange;", //
               mysql_escape_string( $coin ), //
               $exchange === "0" ? "" : sprintf( " AND ID_exchange = %d", mysql_escape_string( $exchange ) )
       );
@@ -114,7 +114,16 @@ class WebDB {
       throw new Exception( "database selection error: " . mysql_error( $link ) );
     }
 
-    $data = getSmoothedResultsForGraph( $result );
+    $data = [ ];
+    if ( $mode == 0 ) {
+      // We have a fast path for this case.
+      while ( $row = mysql_fetch_assoc( $result ) ) {
+        $data[] = [ 'time' => $row[ 'created' ], 'value' => $row[ 'value' ],
+                    'raw' => $row[ 'raw' ], 'exchange' => $row[ 'ID_exchange' ] ];
+      }
+    } else {
+      $data = Database::getSmoothedResultsForGraph( $result );
+    }
 
     mysql_close( $link );
 
