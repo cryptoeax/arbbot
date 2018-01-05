@@ -857,9 +857,14 @@ class Database {
     while ( $row = mysql_fetch_assoc( $result ) ) {
       $coin = $row[ 'coin' ];
       $exchange = $row[ 'exchange' ];
+      $name = 'unknown';
+      try {
+        $name = Exchange::getExchangeName( $exchange );
+      }
+      catch ( Exception $ex ) {
+      }
       // Poor man's progress bar
-      printf( "\rImporting balances for %s on %s",
-              $coin, Exchange::getExchangeName( $exchange ) );
+      printf( "\rImporting balances for %s on %s", $coin, $name );
 
       self::importBalancesHelper( $coin, $exchange, $link );
       if ( Config::isCurrency( $coin ) ) {
