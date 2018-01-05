@@ -201,7 +201,7 @@ class WebDB {
     }
     $values[] = ['sum' => array_sum( $temp ), 'time' => $created ];
 
-    mysql_close( $link );
+    $data = [ ];
 
     if ( $mode == 0 ) {
       // Append an entry for the current balances
@@ -219,25 +219,11 @@ class WebDB {
         }
         $sum += $balance;
       }
-      $values[] = [ 'sum' => $sum, 'time' => time() ];
+      $sma = Database::queryBalanceMovingAverage( $coin, $sum, '0', $link );
+      $data[] = ['time' => $row[ 'created' ], 'value' => $sma, 'raw' => $sum, 'exchange' => '0' ];
     }
 
-    $ma = [ ];
-
-    $data = [ ];
-    foreach ( $values as $value ) {
-
-      if (!in_array( $exchange, $ma )) {
-        $ma[$exchange] = [ ];
-      }
-      $ma[$exchange][] = $value[ 'sum' ];
-      while ( count( $ma[$exchange] ) > 4 ) {
-        array_shift( $ma[$exchange] );
-      }
-
-      $sma = array_sum( $ma[$exchange] ) / count( $ma[$exchange] );
-      $data[] = ['time' => $value[ 'time' ], 'value' => $sma, 'raw' => $value[ 'sum' ] ];
-    }
+    mysql_close( $link );
 
     return $data;
 
