@@ -644,13 +644,14 @@ class Database {
 
   }
 
-  public static function alertsTableExists() {
+  private static function tableExistsHelper( $name ) {
 
     $link = self::connect();
 
     if ( !mysql_query( sprintf( "SELECT * FROM information_schema.tables WHERE table_schema = '%s' " .
-                                "AND table_name = 'alerts' LIMIT 1;",
-                                mysql_escape_string( Config::get( Config::DB_NAME, null ) ) ), $link ) ) {
+                                "AND table_name = '%s' LIMIT 1;",
+                                mysql_escape_string( Config::get( Config::DB_NAME, null ) ),
+                                mysql_escape_string( $name ) ), $link ) ) {
       throw new Exception( "database selection error: " . mysql_error( $link ) );
     }
 
@@ -663,11 +664,11 @@ class Database {
 
   }
 
-  public static function createAlertsTable() {
+  public static function createTableHelper( $name ) {
 
     $link = self::connect();
 
-    $query = file_get_contents( __DIR__ . '/../alerts.sql' );
+    $query = file_get_contents( __DIR__ . sprintf( '/../%s.sql', $name ) );
 
     foreach ( explode( ';', $query ) as $q ) {
       $q = trim( $q );
@@ -682,6 +683,18 @@ class Database {
     mysql_close( $link );
 
     return true;
+
+  }
+
+  public static function alertsTableExists() {
+
+    return tableExistsHelper( 'alerts' );
+
+  }
+
+  public static function createAlertsTable() {
+
+    return createTableHelper( 'alerts' );
 
   }
 
@@ -727,42 +740,13 @@ class Database {
 
   public static function profitsTableExists() {
 
-    $link = self::connect();
-
-    if ( !mysql_query( sprintf( "SELECT * FROM information_schema.tables WHERE table_schema = '%s' " .
-                                "AND table_name = 'profits' LIMIT 1;",
-                                mysql_escape_string( Config::get( Config::DB_NAME, null ) ) ), $link ) ) {
-      throw new Exception( "database selection error: " . mysql_error( $link ) );
-    }
-
-    $rows = mysql_affected_rows( $link );
-    $result = $rows > 0;
-
-    mysql_close( $link );
-
-    return $result;
+    return tableExistsHelper( 'profits' );
 
   }
 
   public static function createProfitsTable() {
 
-    $link = self::connect();
-
-    $query = file_get_contents( __DIR__ . '/../profits.sql' );
-
-    foreach ( explode( ';', $query ) as $q ) {
-      $q = trim( $q );
-      if ( !strlen( $q ) ) {
-        continue;
-      }
-      if ( !mysql_query( $q, $link ) ) {
-        throw new Exception( "database insertion error: " . mysql_error( $link ) );
-      }
-    }
-
-    mysql_close( $link );
-
-    return true;
+    return createTableHelper( 'profits' );
 
   }
 
@@ -811,42 +795,13 @@ class Database {
 
   public static function profitLossTableExists() {
 
-    $link = self::connect();
-
-    if ( !mysql_query( sprintf( "SELECT * FROM information_schema.tables WHERE table_schema = '%s' " .
-                                "AND table_name = 'profit_loss' LIMIT 1;",
-                                mysql_escape_string( Config::get( Config::DB_NAME, null ) ) ), $link ) ) {
-      throw new Exception( "database insertion error: " . mysql_error( $link ) );
-    }
-
-    $rows = mysql_affected_rows( $link );
-    $result = $rows > 0;
-
-    mysql_close( $link );
-
-    return $result;
+    return tableExistsHelper( 'profit_loss' );
 
   }
 
   public static function createProfitLossTable() {
 
-    $link = self::connect();
-
-    $query = file_get_contents( __DIR__ . '/../profit_loss.sql' );
-
-    foreach ( explode( ';', $query ) as $q ) {
-      $q = trim( $q );
-      if ( !strlen( $q ) ) {
-        continue;
-      }
-      if ( !mysql_query( $q, $link ) ) {
-        throw new Exception( "database insertion error: " . mysql_error( $link ) );
-      }
-    }
-
-    mysql_close( $link );
-
-    return true;
+    return createTableHelper( 'profit_loss' );
 
   }
 
