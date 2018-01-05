@@ -150,14 +150,14 @@ class CoinManager {
       foreach ( $wallets as $coin => $value ) {
 
         $balance = formatBTC( $value );
+	if ( isset( $balances[ $coin ] ) ) {
+	  $balances[ $coin ] += $balance;
+	} else {
+	  $balances[ $coin ] = $balance;
+	}
 
         if ( Config::isCurrency( $coin ) ) {
           Database::saveSnapshot( $coin, $balance, $balance, 0, $exid, $time );
-          if ( isset( $balances[ $coin ] ) ) {
-            $balances[ $coin ] += $balance;
-          } else {
-            $balances[ $coin ] = $balance;
-          }
           continue;
         }
 

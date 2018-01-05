@@ -837,10 +837,28 @@ class Database {
 
     $data = self::getSmoothedResultsForGraph( $result );
 
+    $prevCreated = 0;
+    $sum = 0;
     foreach ( $data as $row ) {
+      if ( $prevCreated && $prevCreated != $row[ 'time' ] ) {
+        // We just passed over one group of (created, ID_exchange)
+        self::saveBalance( $coin, $sum, '0', $prevCreated, $link );
+      }
+      if ( $prevCreated != $row[ 'time' ] ) {
+        $prevCreated = $row[ 'time' ];
+        $sum = 0;
+      }
       self::recordBalance( $coin, $row[ 'value' ], $row[ 'raw' ], $exchange, 
                            $row[ 'time' ], $link );
+      $sum += $row[ 'raw' ];
     }
+
+    // Handle the boundary condition
+    if ( count( $data ) ) {
+      self::saveBalance( $coin, $sum, '0', $data[ count( $data ) - 1 ][ 'time' ], $link );
+    }
+
+    return $sum;
 
   }
 
@@ -867,9 +885,6 @@ class Database {
       printf( "\rImporting balances for %s on %s", $coin, $name );
 
       self::importBalancesHelper( $coin, $exchange, $link );
-      if ( Config::isCurrency( $coin ) && $exchange == '3' ) {
-        self::importBalancesHelper( $coin, '0', $link );
-      }
     }
 
     print "\n";
