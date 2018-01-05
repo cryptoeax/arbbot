@@ -856,7 +856,7 @@ class Database {
 
     while ( $row = mysql_fetch_assoc( $result ) ) {
       $coin = $row[ 'coin' ];
-      $exchange = $row[ 'ID_exchange' ];
+      $exchange = $row[ 'exchange' ];
 
       self::importBalancesHelper( $coin, $exchange, $link );
       if ( Config::isCurrency( $coin ) ) {
