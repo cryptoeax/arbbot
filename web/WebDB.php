@@ -158,17 +158,17 @@ class WebDB {
           // Ignore
         }
 
-	if (!in_array( $id, array_keys( $ma ) )) {
-	  $ma[$id] = [ ];
-	}
-	$ma[$id][] = $balance;
-	while ( count( $ma[$id] ) > 4 ) {
-	  array_shift( $ma[$id] );
-	}
+        if (!in_array( $id, array_keys( $ma ) )) {
+          $ma[$id] = [ ];
+        }
+        $ma[$id][] = $balance;
+        while ( count( $ma[$id] ) > 4 ) {
+          array_shift( $ma[$id] );
+        }
 
-	$sma = array_sum( $ma[$id] ) / count( $ma[$id] );
-	$data[] = ['time' => strval( time() ), 'value' => $sma, 'raw' => $balance,
-		   'exchange' => $id ];
+        $sma = array_sum( $ma[$id] ) / count( $ma[$id] );
+        $data[] = ['time' => strval( time() ), 'value' => $sma, 'raw' => $balance,
+                   'exchange' => $id ];
       }
     }
 
@@ -225,16 +225,16 @@ class WebDB {
       // Append an entry for the current balances
       $sum = 0;
       foreach ( $ids as $id ) {
-	$balance = 0;
-	try {
-	  $ex = Exchange::createFromID( $id );
-	  $ex->refreshWallets();
-	  $wallets = $ex->getWalletsConsideringPendingDeposits();
-	  // Will be 0 if $coin doesn't exist in our wallets!
-	  $balance = @floatval( $wallets[ $coin ] );
-	} catch ( Exception $ex ) {
-	  // Ignore
-	}
+        $balance = 0;
+        try {
+          $ex = Exchange::createFromID( $id );
+          $ex->refreshWallets();
+          $wallets = $ex->getWalletsConsideringPendingDeposits();
+          // Will be 0 if $coin doesn't exist in our wallets!
+          $balance = @floatval( $wallets[ $coin ] );
+        } catch ( Exception $ex ) {
+          // Ignore
+        }
         $sum += $balance;
       }
       $values[] = [ 'sum' => $sum, 'time' => time() ];
