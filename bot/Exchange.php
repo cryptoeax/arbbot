@@ -32,7 +32,6 @@ abstract class Exchange {
 
     $path = __DIR__ . '/xchange/map.' . $id;
     if ( !is_readable( $path ) ) {
-      logg( "WARNING: Invalid ID passed to Exchange::createFromID: ${id}" );
       throw new Exception( "Invalid id: '${id}'" );
     }
     return file_get_contents( $path );
