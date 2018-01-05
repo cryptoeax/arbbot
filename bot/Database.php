@@ -4,7 +4,7 @@ class Database {
 
   const STATISTICS_MAX_AGE = 432000;
 
-  private static $trades = [ ];
+  private static $trades = null;
 
   private static function connect() {
 
