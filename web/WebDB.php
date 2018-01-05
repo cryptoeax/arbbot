@@ -504,7 +504,7 @@ class WebDB {
                                     "FROM profit_loss %s" .
                                     "ORDER BY created DESC",
                                     // "summary" returns transactions in the past 24 hours
-                                    ( $mode == "summary" ) ? 'WHERE UNIX_TIMESTAMP() - created < 24 * 60 * 60' : ''
+                                    ( $mode == "summary" ) ? 'WHERE UNIX_TIMESTAMP() - created < 24 * 60 * 60 ' : ''
                            ), $link );
     if ( !$result ) {
       throw new Exception( "database selection error: " . mysql_error( $link ) );
