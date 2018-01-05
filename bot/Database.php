@@ -157,10 +157,10 @@ class Database {
 
   }
 
-  private static function saveBalance( $coin, $balance, $exchangeID, $time, $link ) {
+  public static function saveBalance( $coin, $balance, $exchangeID, $time, $link ) {
 
     // Read the three most recent balances for this coin on this exchange.
-    $result = mysql_query( sprintf( "SELECT balance AS amount FROM snapshot WHERE coin = '%s' %s ORDER BY created DESC LIMIT 3",
+    $result = mysql_query( sprintf( "SELECT SUM(balance) AS amount FROM snapshot WHERE coin = '%s' %s GROUP BY created, ID_exchange ORDER BY created DESC LIMIT 3",
                                     $coin, 
                                     $exchangeID == '0' ? '' : ( 'AND ID_exchange = ' . $exchangeID ) ), $link );
     if ( !$result ) {
@@ -183,11 +183,6 @@ class Database {
     $link = self::connect();
 
     self::saveBalance( $coin, $balance, $exchangeID, $time, $link );
-
-    if ( $rate == 0 ) {
-      // This means we're saving a currency, so save a special exchange ID 0 for the total graph too.
-      self::saveBalance( $coin, $balance, '0', $time, $link );
-    }
 
     // Record the snapshot entry.
     $query = sprintf( "INSERT INTO snapshot (coin, balance, desired_balance, uses, trades, rate, ID_exchange, created) VALUES ('%s', '%s', '%s', %d, %d, '%s', %d, %d);", //
@@ -849,7 +844,7 @@ class Database {
     $link = self::connect();
 
     // We want to iterate over all unique pairs (coin, exchange)
-    $result = mysql_query( "SELECT DISTINCT coin, ID_exchange AS exchange FROM snapshot;", $link );
+    $result = mysql_query( "SELECT DISTINCT coin, ID_exchange AS exchange FROM snapshot ORDER BY coin ASC, exchange ASC;", $link );
     if ( !$result ) {
       throw new Exception( "database selection error: " . mysql_error( $link ) );
     }
@@ -867,7 +862,7 @@ class Database {
       printf( "\rImporting balances for %s on %s", $coin, $name );
 
       self::importBalancesHelper( $coin, $exchange, $link );
-      if ( Config::isCurrency( $coin ) ) {
+      if ( Config::isCurrency( $coin ) && $exchange == '3' ) {
         self::importBalancesHelper( $coin, '0', $link );
       }
     }

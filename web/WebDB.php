@@ -118,7 +118,7 @@ class WebDB {
     if ( $mode == 0 ) {
       // We have a fast path for this case.
       while ( $row = mysql_fetch_assoc( $result ) ) {
-        $data[] = [ 'time' => $row[ 'created' ], 'value' => $row[ 'value' ],
+        $data[] = [ 'time' => $row[ 'created' ], 'value' => $row[ 'data' ],
                     'raw' => $row[ 'raw' ], 'exchange' => $row[ 'ID_exchange' ] ];
       }
     } else {
