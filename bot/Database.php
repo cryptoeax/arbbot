@@ -160,7 +160,7 @@ class Database {
   public static function queryBalanceMovingAverage( $coin, $balance, $exchangeID, $link ) {
 
     // Read the three most recent balances for this coin on this exchange.
-    $result = mysql_query( sprintf( "SELECT SUM(balance) AS amount FROM snapshot WHERE coin = '%s' %s GROUP BY created, ID_exchange ORDER BY created DESC LIMIT 3",
+    $result = mysql_query( sprintf( "SELECT SUM(raw) AS amount FROM balances WHERE coin = '%s' %s GROUP BY created, ID_exchange ORDER BY created DESC LIMIT 3",
                                     $coin, 
                                     $exchangeID == '0' ? '' : ( 'AND ID_exchange = ' . $exchangeID ) ), $link );
     if ( !$result ) {
