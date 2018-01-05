@@ -125,8 +125,6 @@ class WebDB {
       $data = Database::getSmoothedResultsForGraph( $result );
     }
 
-    mysql_close( $link );
-
     $ids = [ ];
     if ( $mode == 0 ) {
       // Append an entry for the current balances
@@ -148,19 +146,13 @@ class WebDB {
           // Ignore
         }
 
-        if (!in_array( $id, array_keys( $ma ) )) {
-          $ma[$id] = [ ];
-        }
-        $ma[$id][] = $balance;
-        while ( count( $ma[$id] ) > 4 ) {
-          array_shift( $ma[$id] );
-        }
-
-        $sma = array_sum( $ma[$id] ) / count( $ma[$id] );
+        $sma = Database::queryBalanceMovingAverage( $coin, $balance, $id, $link );
         $data[] = ['time' => strval( time() ), 'value' => $sma, 'raw' => $balance,
                    'exchange' => $id ];
       }
     }
+
+    mysql_close( $link );
 
     if ( $mode != 1 ) {
       return [ '0' => $data, '1' => self::getTotalValue( $exchange, $coin, $mode, $ids ) ];
