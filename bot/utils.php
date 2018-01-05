@@ -79,3 +79,30 @@ function installDirectoryDirty() {
 
 }
 
+function getSmoothedResultsForGraph( $result ) {
+
+  $ma = [ ];
+
+  $data = [ ];
+  while ( $row = mysql_fetch_assoc( $result ) ) {
+
+    $value = floatval( $row[ 'data' ] );
+    $ex = $row[ 'ID_exchange' ];
+
+    if (!in_array( $ex, array_keys( $ma ) )) {
+      $ma[$ex] = [ ];
+    }
+    $ma[$ex][] = $value;
+    while ( count( $ma[$ex] ) > 4 ) {
+      array_shift( $ma[$ex] );
+    }
+
+    $sma = array_sum( $ma[$ex] ) / count( $ma[$ex] );
+    $data[] = ['time' => $row[ 'created' ], 'value' => $sma , 'raw' => $value,
+               'exchange' => $ex ];
+  }
+
+  return $data;
+
+}
+
