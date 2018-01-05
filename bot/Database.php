@@ -857,12 +857,17 @@ class Database {
     while ( $row = mysql_fetch_assoc( $result ) ) {
       $coin = $row[ 'coin' ];
       $exchange = $row[ 'exchange' ];
+      // Poor man's progress bar
+      printf( "\rImporting balances for %s on %s",
+              $coin, Exchange::getExchangeName( $exchange ) );
 
       self::importBalancesHelper( $coin, $exchange, $link );
       if ( Config::isCurrency( $coin ) ) {
         self::importBalancesHelper( $coin, '0', $link );
       }
     }
+
+    print "\n";
 
     mysql_close( $link );
 
