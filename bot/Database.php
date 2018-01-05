@@ -6,7 +6,7 @@ class Database {
 
   private static $trades = null;
 
-  private static function connect() {
+  public static function connect() {
 
     $dbHost = Config::get( Config::DB_HOST, null );
     $dbName = Config::get( Config::DB_NAME, null );
