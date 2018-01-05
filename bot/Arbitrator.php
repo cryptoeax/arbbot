@@ -335,6 +335,8 @@ class Arbitrator {
     $orderInfo .= "\n";
     logg( $orderInfo );
 
+    $undersellProtection = Config::get( Config::UNDERSELL_PROTECTION, Config::DEFAULT_UNDERSELL_PROTECTION );
+
     $sellOrderID = $target->sell( $tradeable, $currency, $reducedSellRate, $sellAmount );
     $buyOrderID = null;
     if ( is_null( $sellOrderID ) ) {
@@ -342,17 +344,21 @@ class Arbitrator {
       $buyOrderID = null;
     } else {
       logg( "Placed sell order (" . $target->getName() . " ID: $sellOrderID)" );
-      $target->refreshWallets();
 
-      $sellTrades = $this->tradeMatcher->handlePostTradeTasks( $this, $target, $tradeable, $currency, 'sell',
-                                                               $sellOrderID, $sellAmount );
-      $tradesSum = array_reduce( $sellTrades, 'sumOfAmount', 0 );
+      $tradesSum = 0;
+      if ( $undersellProtection ) {
+        $target->refreshWallets();
 
-      if ( floatval( $tradesSum ) == 0 ) {
+        $sellTrades = $this->tradeMatcher->handlePostTradeTasks( $this, $target, $tradeable, $currency, 'sell',
+                                                                 $sellOrderID, $sellAmount );
+        $tradesSum = array_reduce( $sellTrades, 'sumOfAmount', 0 );
+      }
+
+      if ( $undersellProtection && floatval( $tradesSum ) == 0 ) {
         logg( "Sell order not fullfilled, we will not attempt a buy order to avoid incurring a loss." );
         $buyOrderID = null;
       } else {
-        if ( $tradesSum != $sellAmount ) {
+        if ( $undersellProtection && $tradesSum != $sellAmount ) {
           logg( sprintf( "Warning: Meant to sell %s but managed to only sell %s",
                          formatBTC( $sellAmount ), formatBTC( $tradesSum ) ) );
 
@@ -396,13 +402,13 @@ class Arbitrator {
       logg( "Checking trade results ($i)..." );
 
       $source->refreshWallets();
-      if ( $i != 1 ) {
+      if ( !$undersellProtection || $i != 1 ) {
         $target->refreshWallets();
       }
 
       $buyTrades = $this->tradeMatcher->handlePostTradeTasks( $this, $source, $tradeable, $currency, 'buy',
                                                               $buyOrderID, $tradeAmount );
-      if ( $i != 1 ) {
+      if ( !$undersellProtection || $i != 1 ) {
         $sellTrades = $this->tradeMatcher->handlePostTradeTasks( $this, $target, $tradeable, $currency, 'sell',
                                                                  $sellOrderID, $sellAmount );
       }

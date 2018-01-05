@@ -24,6 +24,9 @@ class Config {
   const MAX_MIN_CONFIRMATIONS_ALLOWED = 'expert.max-min-confirmations-allowed';
   const DEFAULT_MAX_MIN_CONFIRMATIONS_ALLOWED = 50;
   //
+  const UNDERSELL_PROTECTION = 'expert.undersell-protection';
+  const DEFAULT_UNDERSELL_PROTECTION = false;
+  //
   const RATE_EMA_PERIOD = 'expert.rate-ema-period';
   const DEFAULT_RATE_EMA_PERIOD = 12;
   //
