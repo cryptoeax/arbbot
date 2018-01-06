@@ -219,7 +219,6 @@ class Arbitrator {
       return false;
     }
 
-
     /*
       Check for arbitrage opportunities. If the bid is higher than the ask
      * on one exchange we do a quick simulation to estimate the profit. If
