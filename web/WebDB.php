@@ -155,6 +155,7 @@ class WebDB {
 
       foreach ( $ids as $id ) {
         if ( $id == '0' ) {
+          $balance = 0;
           foreach ( $ids as $id2 ) {
             if ( $id2 == '0' ) {
               continue;
