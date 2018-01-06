@@ -825,7 +825,7 @@ class Database {
 
   private static function importBalancesHelper( $coin, $exchange, $link ) {
 
-    $query = sprintf( "SELECT SUM(balance) AS data, created, ID_exchange FROM snapshot WHERE coin = '%s' %s GROUP BY created, ID_exchange;", //
+    $query = sprintf( "SELECT SUM(balance) AS data, created, ID_exchange FROM snapshot WHERE coin = '%s' %s GROUP BY created;", //
             mysql_escape_string( $coin ), //
             $exchange === "0" ? "" : sprintf( " AND ID_exchange = %d", mysql_escape_string( $exchange ) )
     );
@@ -837,28 +837,10 @@ class Database {
 
     $data = self::getSmoothedResultsForGraph( $result );
 
-    $prevCreated = 0;
-    $sum = 0;
     foreach ( $data as $row ) {
-      if ( $prevCreated && $prevCreated != $row[ 'time' ] ) {
-        // We just passed over one group of (created, ID_exchange)
-        self::saveBalance( $coin, $sum, '0', $prevCreated, $link );
-      }
-      if ( $prevCreated != $row[ 'time' ] ) {
-        $prevCreated = $row[ 'time' ];
-        $sum = 0;
-      }
       self::recordBalance( $coin, $row[ 'value' ], $row[ 'raw' ], $exchange, 
                            $row[ 'time' ], $link );
-      $sum += $row[ 'raw' ];
     }
-
-    // Handle the boundary condition
-    if ( count( $data ) ) {
-      self::saveBalance( $coin, $sum, '0', $data[ count( $data ) - 1 ][ 'time' ], $link );
-    }
-
-    return $sum;
 
   }
 
@@ -872,6 +854,7 @@ class Database {
       throw new Exception( "database selection error: " . mysql_error( $link ) );
     }
 
+    $prevCoin = '';
     while ( $row = mysql_fetch_assoc( $result ) ) {
       $coin = $row[ 'coin' ];
       $exchange = $row[ 'exchange' ];
@@ -884,7 +867,18 @@ class Database {
       // Poor man's progress bar
       printf( "\rImporting balances for %s on %s", $coin, $name );
 
+      if ( $prevCoin != '' && $prevCoin != $coin ) {
+        self::importBalancesHelper( $prevCoin, '0', $link );
+      }
+      if ( $prevCoin != $coin ) {
+        $prevCoin = $coin;
+      }
       self::importBalancesHelper( $coin, $exchange, $link );
+    }
+
+    // Handle the boundary condition
+    if ( $prevCoin != '' ) {
+      self::importBalancesHelper( $prevCoin, '0', $link );
     }
 
     print "\n";
