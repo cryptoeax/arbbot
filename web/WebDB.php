@@ -88,7 +88,7 @@ class WebDB {
 
     $query = null;
     if ( $mode == 0 ) {
-      $query = sprintf( "SELECT SUM(value) AS data, raw, created, ID_exchange FROM balances WHERE coin = '%s' %s GROUP BY created, ID_exchange;", //
+      $query = sprintf( "SELECT SUM(value) AS data, SUM(raw) AS raw, created, ID_exchange FROM balances WHERE coin = '%s' %s GROUP BY created, ID_exchange;", //
               mysql_escape_string( $coin ), //
               $exchange === "0" ? "" : sprintf( " AND ID_exchange = %d", mysql_escape_string( $exchange ) )
       );
