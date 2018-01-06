@@ -138,6 +138,7 @@ class CoinManager {
     logg( "saveSnapshot()" );
 
     $time = time();
+    $balances = array( );
     foreach ( $this->exchanges as $exchange ) {
 
       $exid = $exchange->getID();
@@ -149,6 +150,11 @@ class CoinManager {
       foreach ( $wallets as $coin => $value ) {
 
         $balance = formatBTC( $value );
+	if ( isset( $balances[ $coin ] ) ) {
+	  $balances[ $coin ] += $value;
+	} else {
+	  $balances[ $coin ] = $value;
+	}
 
         if ( Config::isCurrency( $coin ) ) {
           Database::saveSnapshot( $coin, $balance, $balance, 0, $exid, $time );
@@ -208,6 +214,14 @@ class CoinManager {
         Database::saveSnapshot( $coin, $balance, $desiredBalance, $rate, $exid, $time );
       }
     }
+
+    $link = Database::connect();
+
+    foreach ( $balances as $coin => $balance ) {
+      Database::saveBalance( $coin, $balance, '0', $time, $link );
+    }
+
+    mysql_close( $link );
 
   }
 

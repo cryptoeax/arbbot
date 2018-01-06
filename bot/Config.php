@@ -24,6 +24,9 @@ class Config {
   const MAX_MIN_CONFIRMATIONS_ALLOWED = 'expert.max-min-confirmations-allowed';
   const DEFAULT_MAX_MIN_CONFIRMATIONS_ALLOWED = 50;
   //
+  const UNDERSELL_PROTECTION = 'expert.undersell-protection';
+  const DEFAULT_UNDERSELL_PROTECTION = false;
+  //
   const RATE_EMA_PERIOD = 'expert.rate-ema-period';
   const DEFAULT_RATE_EMA_PERIOD = 12;
   //
@@ -44,9 +47,6 @@ class Config {
   //
   const MAX_PAIRS_PER_RUN = 'expert.max-pairs-per-run';
   const DEFAULT_MAX_PAIRS_PER_RUN = 10;
-  //
-  const SUSPICIOUS_PRICE_DIFFERENCE = 'expert.suspicious-price-difference';
-  const DEFAULT_SUSPICIOUS_PRICE_DIFFERENCE = 33;
   //
   const INTERVAL_MANAGEMENT = 'expert.interval-management';
   const DEFAULT_INTERVAL_MANAGEMENT = 1;
@@ -94,10 +94,10 @@ class Config {
   const DEFAULT_MIN_PROFIT = 0.00000050;
   //
   const BUY_RATE_FACTOR = 'trade.buy-factor';
-  const DEFAULT_BUY_RATE_FACTOR = 1.1;
+  const DEFAULT_BUY_RATE_FACTOR = 1.005;
   //
   const SELL_RATE_FACTOR = 'trade.sell-factor';
-  const DEFAULT_SELL_RATE_FACTOR = 0.9;
+  const DEFAULT_SELL_RATE_FACTOR = 0.995;
   //
   // TAKEPROFIT MODULE
   const TAKE_PROFIT_ADDRESS = 'takeprofit.profit-address';

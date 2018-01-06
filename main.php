@@ -47,6 +47,14 @@ if ( !Database::alertsTableExists() ) {
   Database::importAlerts();
 }
 
+if ( !Database::balancesTableExists() ) {
+  logg( "Upgrading the database to create the separate balances table" );
+  logg( "This is a one time operation which may be really slow, please wait..." );
+
+  Database::createBalancesTable();
+  Database::importBalances();
+}
+
 if ( !Database::profitsTableExists() ) {
   Database::createProfitsTable();
   Database::importProfits();

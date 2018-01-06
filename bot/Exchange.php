@@ -29,14 +29,19 @@ abstract class Exchange {
 
   }
 
-  public static function createFromID( $id ) {
+  public static function getExchangeName( $id ) {
 
     $path = __DIR__ . '/xchange/map.' . $id;
     if ( !is_readable( $path ) ) {
-      logg( "WARNING: Invalid ID passed to Exchange::createFromID: ${id}" );
       throw new Exception( "Invalid id: '${id}'" );
     }
-    $name = file_get_contents( $path );
+    return file_get_contents( $path );
+
+  }
+
+  public static function createFromID( $id ) {
+
+    $name = self::getExchangeName( $id );
     require_once __DIR__ . "/xchange/${name}.php";
     return new $name();
 

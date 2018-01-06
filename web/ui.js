@@ -7,7 +7,7 @@ var statsTimeout = null;
 var totalPL = null;
 var realizedPL = null;
 var profitableTrades = null;
-var plMode = "details";
+var plMode = "summary";
 var uiDisabled = false;
 var adminUIReady = false;
 
@@ -35,6 +35,12 @@ $(function() {
         Cookies.set('smooth', smooth);
 
         updateGraph();
+        return false;
+    });
+
+    $(".showPLSummary").click(function() {
+        plMode = "summary";
+        updatePL();
         return false;
     });
 
@@ -170,9 +176,9 @@ $(function() {
                 var obj = {};
                 var smooth = $("#smooth")[0].checked;
 
-                for (var x = 0; x < data[0].length; x++) {
-                    var d1 = [data[0][x].time * 1000, smooth ? data[0][x].value : data[0][x].raw];
-                    var exchange = data[0][x].exchange;
+                for (var x = 0; x < data.length; x++) {
+                    var d1 = [data[x].time * 1000, smooth ? data[x].value : data[x].raw];
+                    var exchange = data[x].exchange;
                     if (exchange === undefined) {
                         continue;
                     }
@@ -180,14 +186,6 @@ $(function() {
                         obj[exchange] = [];
                     }
                     obj[exchange].push(d1);
-                }
-                if (data[1]) {
-                    for (var x = 0; x < data[1].length; x++) {
-                        if (!obj[0]) {
-                            obj[0] = [];
-                        }
-                        obj[0].push([data[1][x].time * 1000, smooth ? data[1][x].value : data[1][x].raw]);
-                    }
                 }
 
                 var exchanges = Object.keys(obj);
@@ -305,6 +303,9 @@ $(function() {
             url: "ajax.php?func=pl",
             type: "GET",
             cache: false,
+            data: {
+                mode: plMode,
+            },
             success: function(data) {
 
                 totalPL = rnd4(data.pl) + data.pl_currency;
@@ -313,7 +314,7 @@ $(function() {
 
                 var arr = data.data;
 
-                if (plMode == "details") {
+                if (plMode == "summary" || plMode == "details") {
     	        $("#filterbox").remove();
 
                     var htmlData = "";

@@ -22,7 +22,9 @@ case 'management':
   $results = WebDB::getManagement();
   break;
 case 'pl':
-  $results = WebDB::getPL();
+  $mode = filter_input( INPUT_GET, 'mode' );
+
+  $results = WebDB::getPL( $mode );
   break;
 case 'stats':
   $results = WebDB::getStats();
