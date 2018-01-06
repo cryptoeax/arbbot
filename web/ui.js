@@ -218,12 +218,12 @@ $(function() {
                     },
                     tooltip: {
                         show: true,
-                        content: "%y.8",
+                        content: "%y",
                         onHover: function(item, element) {
                           // The tooltip plugin does not provide an API to customize the
                           // formatting string per data series, so we have to fix up the
                           // formatting after the fact like this.
-                          $(element[0]).text(parseFloat(element[0].innerText).toFixed(8));
+                          $(element[0]).text(parseFloat(item.datapoint[1]).toFixed(8));
                         }
                     },
                     xaxis: {
