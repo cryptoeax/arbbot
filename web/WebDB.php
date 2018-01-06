@@ -166,8 +166,8 @@ class WebDB {
           $balance = @floatval( $walletsMap[ $id ][ $coin ] );
         }
         $sma = Database::queryBalanceMovingAverage( $coin, $balance, $id, $link );
-        $data[] = ['time' => strval( time() ), 'value' => $sma, 'raw' => $balance,
-                   'exchange' => $id ];
+        $data[] = ['time' => strval( time() ), 'value' => formatBTC( $sma ),
+                   'raw' => formatBTC( $balance ), 'exchange' => $id ];
       }
     }
 
