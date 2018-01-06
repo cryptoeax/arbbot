@@ -154,6 +154,22 @@ class Bittrex extends BittrexLikeExchange {
     return $results;
   }
 
+  public function cancelOrder( $orderID ) {
+
+    try {
+      $this->queryCancelOrder( $orderID );
+      return true;
+    }
+    catch ( Exception $ex ) {
+      if ( strpos( $ex->getMessage(), 'ORDER_NOT_OPEN' ) === false ) {
+	logg( $this->prefix() . "Got an exception in cancelOrder(): " . $ex->getMessage() );
+	return true;
+      }
+      return false;
+    }
+
+  }
+
   public function queryRecentDeposits( $currency = null ) {
 
     $history = $this->queryAPI( 'account/getdeposithistory',

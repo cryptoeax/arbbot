@@ -122,22 +122,6 @@ abstract class BittrexLikeExchange extends Exchange {
 
   }
 
-  public function cancelOrder( $orderID ) {
-
-    try {
-      $this->queryCancelOrder( $orderID );
-      return true;
-    }
-    catch ( Exception $ex ) {
-      if ( strpos( $ex->getMessage(), 'ORDER_NOT_OPEN' ) === false ) {
-	logg( $this->prefix() . "Got an exception in cancelOrder(): " . $ex->getMessage() );
-	return true;
-      }
-      return false;
-    }
-
-  }
-
   public function cancelAllOrders() {
 
     $orders = $this->queryOpenOrders();
@@ -324,7 +308,7 @@ abstract class BittrexLikeExchange extends Exchange {
 
   }
 
-  private function queryCancelOrder( $id ) {
+  protected function queryCancelOrder( $id ) {
     return $this->queryAPI( 'market/cancel', //
                     [
                 $this->orderIDParam => $id

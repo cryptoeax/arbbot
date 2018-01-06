@@ -109,6 +109,34 @@ class Bleutrade extends BittrexLikeExchange {
     return $results;
   }
 
+  public function cancelOrder( $orderID ) {
+
+    try {
+      $this->queryCancelOrder( $orderID );
+
+      $options = array(
+	'market' => 'ALL',
+	'orderstatus' => 'CANCELED',
+	'ordertype' => 'ALL',
+	'depth' => 20000, // max!
+      );
+      $result = $this->queryAPI( 'account/getorders', $options );
+
+      foreach ( $result as $row ) {
+        if ( $row[ 'OrderId' ] == $orderID ) {
+          return true; // Cancellation succeeded.
+        }
+      }
+
+      // Cancellation failed.
+      return false;
+    }
+    catch ( Exception $ex ) {
+      return false;
+    }
+
+  }
+
   public function queryRecentDeposits( $currency = null ) {
 
     $history = $this->queryAPI( 'account/getdeposithistory' );
