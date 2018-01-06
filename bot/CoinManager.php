@@ -151,9 +151,9 @@ class CoinManager {
 
         $balance = formatBTC( $value );
 	if ( isset( $balances[ $coin ] ) ) {
-	  $balances[ $coin ] += $balance;
+	  $balances[ $coin ] += $value;
 	} else {
-	  $balances[ $coin ] = $balance;
+	  $balances[ $coin ] = $value;
 	}
 
         if ( Config::isCurrency( $coin ) ) {
