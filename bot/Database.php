@@ -160,9 +160,14 @@ class Database {
   public static function queryBalanceMovingAverage( $coin, $balance, $exchangeID, $link ) {
 
     // Read the three most recent balances for this coin on this exchange.
-    $result = mysql_query( sprintf( "SELECT SUM(raw) AS amount FROM balances WHERE coin = '%s' %s GROUP BY created, ID_exchange ORDER BY created DESC LIMIT 3",
-                                    $coin, 
-                                    $exchangeID == '0' ? '' : ( 'AND ID_exchange = ' . $exchangeID ) ), $link );
+    $query = '';
+    if ( $exchangeID == '0' ) {
+      $query = sprintf( "SELECT SUM(raw) AS amount FROM balances WHERE coin = '%s' GROUP BY created ORDER BY created DESC LIMIT 3", $coin );
+    } else {
+      $query = sprintf( "SELECT SUM(raw) AS amount FROM balances WHERE coin = '%s' AND ID_exchange = %d GROUP BY created ORDER BY created DESC LIMIT 3",
+                        $coin, $exchangeID );
+    }
+    $result = mysql_query( $query, $link );
     if ( !$result ) {
       throw new Exception( "database selection error: " . mysql_error( $link ) );
     }
