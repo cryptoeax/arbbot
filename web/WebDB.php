@@ -125,6 +125,7 @@ class WebDB {
       $data = Database::getSmoothedResultsForGraph( $result );
     }
 
+    $walletsMap = [ ];
     $ids = [ ];
     if ( $mode == 0 ) {
       // Append an entry for the current balances
@@ -139,13 +140,24 @@ class WebDB {
         try {
           $ex = Exchange::createFromID( $id );
           $ex->refreshWallets();
-          $wallets = $ex->getWalletsConsideringPendingDeposits();
-          // Will be 0 if $coin doesn't exist in our wallets!
-          $balance = @floatval( $wallets[ $coin ] );
+          $walletsMap[ $id ] = $ex->getWalletsConsideringPendingDeposits();
         } catch ( Exception $ex ) {
           // Ignore
         }
+      }
 
+      foreach ( $ids as $id ) {
+        if ( $id == '0' ) {
+          foreach ( $ids as $id2 ) {
+            if ( $id2 == '0' ) {
+              continue;
+            }
+            $balance += @floatval( $walletsMap[ $id2 ][ $coin ] );
+          }
+        } else {
+          // Will be 0 if $coin doesn't exist in our wallets!
+          $balance = @floatval( $walletsMap[ $id ][ $coin ] );
+        }
         $sma = Database::queryBalanceMovingAverage( $coin, $balance, $id, $link );
         $data[] = ['time' => strval( time() ), 'value' => $sma, 'raw' => $balance,
                    'exchange' => $id ];
