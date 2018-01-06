@@ -94,10 +94,10 @@ class Config {
   const DEFAULT_MIN_PROFIT = 0.00000050;
   //
   const BUY_RATE_FACTOR = 'trade.buy-factor';
-  const DEFAULT_BUY_RATE_FACTOR = 1.1;
+  const DEFAULT_BUY_RATE_FACTOR = 1.005;
   //
   const SELL_RATE_FACTOR = 'trade.sell-factor';
-  const DEFAULT_SELL_RATE_FACTOR = 0.9;
+  const DEFAULT_SELL_RATE_FACTOR = 0.995;
   //
   // TAKEPROFIT MODULE
   const TAKE_PROFIT_ADDRESS = 'takeprofit.profit-address';
