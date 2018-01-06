@@ -129,7 +129,14 @@ class WebDB {
     $ids = [ ];
     if ( $mode == 0 ) {
       // Append an entry for the current balances
-      $ids = array_reduce( $data, function( $carry, $value ) {
+      $ids = array_reduce( array_reverse( $data, true ), function( $carry, $value ) {
+        if ( in_array( '0', $carry ) ) {
+          // We reverse the array and add everything to $carry until we get to '0',
+          // and from there on we just keep returning what we have (the carry) until
+          // the end.  This effectively returns an array containing all of the IDs
+          // after and including the last 0.
+          return $carry;
+        }
         if ( !in_array( $value[ 'exchange' ], $carry ) ) {
           return array_merge( $carry, [ $value[ 'exchange' ] ] );
         }
