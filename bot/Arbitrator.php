@@ -347,7 +347,6 @@ class Arbitrator {
     $buyOrderID = null;
     if ( is_null( $sellOrderID ) ) {
       logg( "Sell order failed, we will not attempt a buy order to avoid incurring a loss." );
-      $buyOrderID = null;
     } else {
       logg( "Placed sell order (" . $target->getName() . " ID: $sellOrderID)" );
 
