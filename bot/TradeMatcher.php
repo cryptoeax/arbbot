@@ -172,8 +172,13 @@ class TradeMatcher {
   function handlePostTradeTasks( &$arbitrator, &$exchange, $coin, $currency, $type,
                                  $orderID, $tradeAmount ) {
 
-    $trades = $exchange->getRecentOrderTrades( $arbitrator, $coin, $currency, $type,
-                                               $orderID, $tradeAmount );
+    $trades = [ ];
+    try {
+      $trades = $exchange->getRecentOrderTrades( $arbitrator, $coin, $currency, $type,
+                                                 $orderID, $tradeAmount );
+    } catch ( Exception $ex ) {
+      logg( "WARNING: Caught exceptin while calling getRecentOrderTrades(): " . $ex->getMessage() );
+    }
     foreach ( $trades as $trade ) {
       $arbitrator->getTradeMatcher()->saveTrade( $exchange->getID(), $type, $trade[ 'tradeable' ],
                                                  $trade[ 'currency' ], $trade );
