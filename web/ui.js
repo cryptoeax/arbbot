@@ -707,7 +707,7 @@ $(function() {
                     while (amount.length < 8) {
                         amount = " " + amount;
                     }
-                    htmlData += amount + " " + coin + " SOLD @ " + no2el(data[i].exchange) + "\n";
+                    htmlData += amount + " " + coin + " " + no2e(data[i].source) + " -> " + no2e(data[i].target) + "\n";
                 }
 
                 $("#trades").html("<pre>" + htmlData + "</pre>");

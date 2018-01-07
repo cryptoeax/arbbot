@@ -277,7 +277,8 @@ class WebDB {
       array_push( $results, array( //
           'amount' => $row[ 'amount' ] , //
           'coin' => $row[ 'coin' ], //
-          'exchange' => $row[ 'ID_exchange_target' ], //
+          'source' => $row[ 'ID_exchange_source' ], //
+          'target' => $row[ 'ID_exchange_target' ], //
           'time' => $row[ 'created' ] //
       ) );
     }
