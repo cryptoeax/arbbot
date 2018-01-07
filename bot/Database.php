@@ -830,10 +830,18 @@ class Database {
 
   private static function importBalancesHelper( $coin, $exchange, $link ) {
 
-    $query = sprintf( "SELECT SUM(balance) AS data, created, ID_exchange FROM snapshot WHERE coin = '%s' %s GROUP BY created;", //
-            mysql_escape_string( $coin ), //
-            $exchange === "0" ? "" : sprintf( " AND ID_exchange = %d", mysql_escape_string( $exchange ) )
-    );
+    $query = '';
+    if ( $exchange === '0' ) {
+      $query = sprintf( "SELECT SUM(balance) AS data, created, '0' AS ID_exchange FROM snapshot WHERE coin = '%s' GROUP BY created;", //
+              mysql_escape_string( $coin )
+      );
+    } else {
+      // There is only one ID_exchange that we're selecting on, so MAX(ID_exchange) is the same as ID_exchange.
+      $query = sprintf( "SELECT SUM(balance) AS data, created, MAX(ID_exchange) AS ID_exchange FROM snapshot WHERE coin = '%s' AND ID_exchange = %d GROUP BY created;", //
+              mysql_escape_string( $coin ), //
+              mysql_escape_string( $exchange )
+      );
+    }
    
     $result = mysql_query( $query, $link );
     if ( !$result ) {
