@@ -352,6 +352,13 @@ class Arbitrator {
 
       $tradesSum = 0;
       if ( $undersellProtection ) {
+        logg( "Waiting for order execution..." );
+        sleep( Config::get( Config::ORDER_CHECK_DELAY, Config::DEFAULT_ORDER_CHECK_DELAY ) );
+        if ( !is_null( $sellOrderID ) &&
+             $target->cancelOrder( $sellOrderID ) ) {
+          logg( "A sell order hasn't been filled. If this happens regulary you should increase the " . Config::ORDER_CHECK_DELAY . " setting!", true );
+        }
+
         $target->refreshWallets();
 
         $sellTrades = $this->tradeMatcher->handlePostTradeTasks( $this, $target, $tradeable, $currency, 'sell',
@@ -386,9 +393,11 @@ class Arbitrator {
           break;
         }
 
-        if ( !is_null( $sellOrderID ) &&
-             $target->cancelOrder( $sellOrderID ) ) {
-          logg( "A sell order hasn't been filled. If this happens regulary you should increase the " . Config::ORDER_CHECK_DELAY . " setting!", true );
+        if ( !$undersellProtection ) {
+          if ( !is_null( $sellOrderID ) &&
+               $target->cancelOrder( $sellOrderID ) ) {
+            logg( "A sell order hasn't been filled. If this happens regulary you should increase the " . Config::ORDER_CHECK_DELAY . " setting!", true );
+          }
         }
         if ( !is_null( $buyOrderID ) &&
              $source->cancelOrder( $buyOrderID ) ) {
