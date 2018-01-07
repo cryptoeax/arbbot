@@ -88,11 +88,13 @@ $(function() {
 
     var walletAge = 0;
 
-    function no2e(x) {
+    function no2e(x, title) {
 
         var num = parseInt(x);
         if (num <= 3 && num >= 0) {
-            return '<img src="xchange/' + num + '.ico" width="14" height="14">';
+	    return '<span title="' + (title ? title : no2ell_xfer(x)) + '">' +
+                   '<img src="xchange/' + num + '.ico" width="14" height="14">' +
+                   '</span>';
         }
 
         return "?";
@@ -672,12 +674,9 @@ $(function() {
                     }
 
                     var direction = "";
-                    direction += "<span title=\"" + no2ell_xfer(data[i].exchange_source) + "\">";
                     direction += no2e(data[i].exchange_source);
-                    direction += "</span> -> ";
-                    direction += "<span title=\"" + no2ell_xfer(data[i].exchange_target) + "\">";
+                    direction += " -> ";
                     direction += no2e(data[i].exchange_target);
-                    direction += "</span>";
 
                     htmlData += amount + " " + coin + " " + direction + "\n";
                 }
@@ -886,8 +885,8 @@ $(function() {
                         var balance = formatBalance(dat.balance);
                         var balws = genWhitespace(balance, 6);
 
-                        htmlData += "<a href=\"#\" coin=\"" + coin + "\" exchange=\"" + xid + "\" mode=\"1\" class=\"showGraph\" title=\"" + no2ell(xid) + "\">";
-                        htmlData += no2e(xid);
+                        htmlData += "<a href=\"#\" coin=\"" + coin + "\" exchange=\"" + xid + "\" mode=\"1\" class=\"showGraph\">";
+                        htmlData += no2e(xid, no2ell(xid));
                         htmlData += "</a>";
                         htmlData += " = ";
 
