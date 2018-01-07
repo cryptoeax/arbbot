@@ -636,7 +636,9 @@ $(function() {
                     }
 
                     htmlData += amount + " " + coin;
-                    htmlData += " @ ";
+                    htmlData += " ";
+                    htmlData += no2e(data[i].exchange);
+                    htmlData += " ";
                     htmlData += no2el(data[i].exchange);
                     htmlData += "\n";
                 }
