@@ -87,6 +87,12 @@ abstract class Exchange {
 
   }
 
+  public function getAllPairs() {
+
+    return $this->pairs;
+
+  }
+
   public function getTradeablePairs() {
 
     return $this->tradeablePairs;

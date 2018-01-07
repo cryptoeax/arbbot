@@ -102,7 +102,7 @@ class Arbitrator {
 
   private function checkOpportunitiesAt( $x1, $x2 ) {
 
-    $pairs = array_intersect( $x1->getTradeablePairs(), $x2->getTradeablePairs() );
+    $pairs = array_intersect( $x1->getTradeablePairs(), $x2->getAllPairs() );
     logg( "Checking " . $x1->getName() . " vs " . $x2->getName() . " (" . count( $pairs ) . " common pairs)" );
 
     // Create even more randomness
@@ -537,7 +537,8 @@ class Arbitrator {
     foreach ( $this->exchanges as $exchange ) {
       $exchange->refreshExchangeData();
 
-      logg( count( $exchange->getTradeablePairs() ) . " tradeable pairs @ " . $exchange->getName() );
+      logg( "tradeable pairs: " . count( $exchange->getTradeablePairs() ) . " of " .
+            count( $exchange->getAllPairs() ) . " @ " . $exchange->getName() );
     }
 
     $this->refreshProfitablePairsOfTheDay();
