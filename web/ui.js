@@ -953,7 +953,13 @@ $(function() {
             htmlData += "     Realized P&L: " + realizedPL + "\n";
         }
         if (profitableTrades != null) {
-            htmlData += "Profitable trades: " + rnd2(profitableTrades) + "%\n";
+            if (plMode == "summary") {
+                htmlData += "Profitable trades\n" +
+                            "    past 24 hours: ";
+            } else {
+                htmlData += "Profitable trades: ";
+            }
+	    htmlData += rnd2(profitableTrades) + "%\n";
         }
         htmlData += "    Autobuy funds: " + autobuy + "\n\n";
         htmlData += "  Next manage-run: " + timeLeft(stats.next_management) + "\n";
