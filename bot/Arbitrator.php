@@ -361,7 +361,7 @@ class Arbitrator {
 
       if ( $undersellProtection && floatval( $tradesSum ) == 0 ) {
         logg( "Sell order not fullfilled, we will not attempt a buy order to avoid incurring a loss." );
-        $buyOrderID = null;
+        $sellOrderID = null;
       } else {
         if ( $undersellProtection && $tradesSum != $sellAmount ) {
           logg( sprintf( "Warning: Meant to sell %s but managed to only sell %s",
