@@ -162,7 +162,7 @@ class Database {
     // Read the three most recent balances for this coin on this exchange.
     $query = '';
     if ( $exchangeID == '0' ) {
-      $query = sprintf( "SELECT SUM(raw) AS amount FROM balances WHERE coin = '%s' GROUP BY created ORDER BY created DESC LIMIT 3", $coin );
+      $query = sprintf( "SELECT SUM(raw) AS amount FROM balances WHERE coin = '%s' AND ID_exchange = '0' GROUP BY created ORDER BY created DESC LIMIT 3", $coin );
     } else {
       $query = sprintf( "SELECT SUM(raw) AS amount FROM balances WHERE coin = '%s' AND ID_exchange = %d GROUP BY created ORDER BY created DESC LIMIT 3",
                         $coin, $exchangeID );
