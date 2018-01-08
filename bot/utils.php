@@ -59,6 +59,11 @@ function sumOfAmount( $carry, $item ) {
   return $carry + $item[ 'amount' ];
 }
 
+
+function sumOfAmountTimesRate( $carry, $item ) {
+  return $carry + $item[ 'amount' ] * $item[ 'rate' ];
+}
+
 function getCurrency( $item ) {
   return $item[ 'Currency' ];
 }

@@ -351,6 +351,8 @@ class Arbitrator {
       logg( "Placed sell order (" . $target->getName() . " ID: $sellOrderID)" );
 
       $tradesSum = 0;
+      $averageSellRate = 0;
+      $priceAdjustment = 0;
       if ( $undersellProtection ) {
         logg( "Waiting for order execution..." );
         sleep( 0.1 * Config::get( Config::ORDER_CHECK_DELAY, Config::DEFAULT_ORDER_CHECK_DELAY ) );
@@ -364,6 +366,10 @@ class Arbitrator {
         $sellTrades = $this->tradeMatcher->handlePostTradeTasks( $this, $target, $tradeable, $currency, 'sell',
                                                                  $sellOrderID, $sellAmount );
         $tradesSum = array_reduce( $sellTrades, 'sumOfAmount', 0 );
+        $averageSellRate = $tradesSum == 0 ? $reducedSellRate :
+                             array_reduce( $sellTrades, 'sumOfAmountTimesRate', 0 ) / $tradesSum;
+        // Price adjustment is the difference of the sale price to the price that we intended to sell at.
+        $priceAdjustment = formatBTC( $averageSellRate ) - $reducedSellRate;
       }
 
       if ( $undersellProtection && floatval( $tradesSum ) == 0 ) {
@@ -376,6 +382,18 @@ class Arbitrator {
 
           // Adjust $tradeAmount according to how much we managed to sell.
           $tradeAmount = $tradesSum + $txFee;
+        }
+        // Ignore non-negative price adjustments, since if we manage to sell at a higher price than we
+        // expected, we can still attempt to buy at the price that we intended to buy at while making
+        // potentially more profits!
+        if ( $undersellProtection && $priceAdjustment < 0 ) {
+          if ( $increasedBuyRate + $priceAdjustment >= $bestBuyRate ) {
+	    logg( sprintf( "Warning: Meant to sell at %s but instead sold at %s, so adjusting the buy rate by %s.",
+			   formatBTC( $reducedSellRate ), formatBTC( $averageSellRate ),
+			   formatBTC( $priceAdjustment ) ) );
+
+            $increasedBuyRate += $priceAdjustment;
+          }
         }
 
         for ( $i = 0; $i < 5; ++ $i ) {
