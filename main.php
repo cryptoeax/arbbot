@@ -37,6 +37,8 @@ logg( "Loading config..." );
 
 Database::handleAddressUpgrade();
 
+Database::handleCoinUpgrade();
+
 Database::handleTrackUpgrade();
 
 if ( !Database::alertsTableExists() ) {

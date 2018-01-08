@@ -476,13 +476,51 @@ class Database {
       // Old database format, need to upgrade first.
       $result = mysql_query( "ALTER TABLE withdrawal MODIFY address TEXT NOT NULL;", $link );
       if ( !$result ) {
-        throw new Exception( "database selection error: " . mysql_error( $link ) );
+        throw new Exception( "database alteration error: " . mysql_error( $link ) );
       }
     }
 
     mysql_close( $link );
 
-    return $results;
+  }
+
+  public static function handleCoinUpgrade() {
+
+    $link = self::connect();
+
+    $result = mysql_query( "SHOW COLUMNS FROM management LIKE 'coin';", $link );
+    if ( !$result ) {
+      throw new Exception( "database selection error: " . mysql_error( $link ) );
+    }
+
+    $row = mysql_fetch_assoc( $result );
+    if ( $row[ 'Type' ] == 'char(5)' ) {
+      // Old database format, need to upgrade first.
+      $upgrades = array(
+        [ 'balances', 'coin' ],
+        [ 'exchange_trades', 'coin' ],
+        [ 'exchange_trades', 'currency' ],
+        [ 'management', 'coin' ],
+        [ 'profits', 'currency' ],
+        [ 'profit_loss', 'coin' ],
+        [ 'profit_loss', 'currency' ],
+        [ 'snapshot', 'coin' ],
+        [ 'track', 'coin' ],
+        [ 'trade', 'coin' ],
+        [ 'withdrawal', 'coin' ],
+      );
+      foreach ( $upgrades as $item ) {
+        $table = $item[ 0 ];
+        $field = $item[ 1 ];
+        $result = mysql_query( sprintf( "ALTER TABLE %s MODIFY %s CHAR(10) NOT NULL;",
+                                        $table, $field ), $link );
+        if ( !$result ) {
+          throw new Exception( "database alteration error: " . mysql_error( $link ) );
+        }
+      }
+    }
+
+    mysql_close( $link );
 
   }
 
