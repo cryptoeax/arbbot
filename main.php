@@ -106,6 +106,8 @@ foreach ( $exchanges as $exchange ) {
   }
 }
 
+Database::fixupProfitLossCalculations( $exchanges );
+
 $tradeMatcher = new TradeMatcher( $exchanges );
 foreach ( $exchanges as $exchange ) {
 

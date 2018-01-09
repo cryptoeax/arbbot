@@ -688,6 +688,63 @@ class Database {
 
   }
 
+  public static function fixupProfitLossCalculations( &$exchanges ) {
+    $stats = self::getStats();
+
+    if ( @$stats[ 'profit_loss_fixup' ] != 1 ) {
+      $link = self::connect();
+
+      $result = mysql_query( "SELECT ID, created, ID_exchange_source, coin, tradeable_bought, rate_sell, tradeable_tx_fee, currency_tx_fee, currency_pl FROM profit_loss " .
+                             "WHERE trade_IDs_buy != '' OR trade_IDs_sell != '' OR raw_trade_IDs_buy != '' OR raw_trade_IDs_sell != '';",
+                             $link );
+      if ( !$result ) {
+        throw new Exception( "database selection error: " . mysql_error( $link ) );
+      }
+
+      $exchangeMap = [ ];
+      foreach ( $exchanges as $ex ) {
+        $exchangeMap[ $ex->getID() ] = $ex;
+        $ex->refreshExchangeData();
+      }
+      $cm = new CoinManager( $exchanges );
+
+      print "Fixing incorrect transfer fee calculations in the Profit&Loss data, this may take a while...\n";
+
+      while ( $row = mysql_fetch_assoc( $result ) ) {
+        // Poor man's progress bar
+        print strftime( "\rChecking transaction performed on %Y-%m-%d %H:%M:%S", $row[ 'created' ] );
+
+        $oldFee = floatval( $row[ 'tradeable_tx_fee' ] );
+        $oldFeeInCurrency = floatval( $row[ 'currency_tx_fee' ] );
+        $newFee = floatval( $cm->getSafeTxFee( $exchangeMap[ $row[ 'ID_exchange_source' ] ], $row[ 'coin' ], $row[ 'tradeable_bought' ] ) );
+        $newFeeInCurrency = floatval( $row[ 'rate_sell' ] * $newFee );
+        if ( $oldFee != $newFee ) {
+          $diff = $newFeeInCurrency - $oldFeeInCurrency;
+          if ( $diff >= 0 ) {
+            // The fee data obtained from exchanges is subject to change.  If we get a positive diff here,
+            // the only possible explanation is a change in the transfer fees, so we can't know anything
+            // conclusive about what the real fees were at the transaction time unfortunately any more...
+            continue;
+          }
+
+          $result2 = mysql_query( sprintf( "UPDATE profit_loss SET tradeable_tx_fee = '%s', currency_tx_fee = '%s', " .
+                                           "currency_pl = '%s' WHERE ID = %d;",
+                                           formatBTC( $newFee ), formatBTC( $newFeeInCurrency ),
+                                           formatBTC( $row[ 'currency_pl' ] - $diff ), $row[ 'ID' ] ),
+                                  $link );
+          if ( !$result2 ) {
+            throw new Exception( "database insertion error: " . mysql_error( $link ) );
+          }
+        }
+      }
+
+      print "\n";
+
+      $stats[ 'profit_loss_fixup' ] = 1;
+      self::saveStats( $stats );
+    }
+  }
+
   public static function getTop5ProfitableCoinsOfTheDay() {
 
     $link = self::connect();
