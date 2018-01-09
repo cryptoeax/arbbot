@@ -21,6 +21,9 @@ class Config {
   const MAX_TX_FEE_ALLOWED = 'expert.max-tx-fee-allowed';
   const DEFAULT_MAX_TX_FEE_ALLOWED = 0.00001;
   //
+  const NEAR_ZERO_BTC_VALUE = 'expert.near-zero-btc-value';
+  const DEFAULT_NEAR_ZERO_BTC_VALUE = 0.02;
+  //
   const MAX_MIN_CONFIRMATIONS_ALLOWED = 'expert.max-min-confirmations-allowed';
   const DEFAULT_MAX_MIN_CONFIRMATIONS_ALLOWED = 50;
   //

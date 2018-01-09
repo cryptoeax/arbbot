@@ -231,7 +231,7 @@ class CoinManager {
 
   }
 
-  private function balance( $coin, $skipUsageCheck = false ) {
+  private function balance( $coin, $skipUsageCheck = false, $safetyFactor = 0.01 ) {
 
     logg( "balance($coin)" );
     if ( Config::isBlocked( $coin ) ) {
@@ -287,7 +287,6 @@ class CoinManager {
     $negativeExchanges = [ ];
 
     $minXFER = 0;
-    $safetyFactor = 0.01;
     if ( $coin == 'BTC' ) {
       $minXFER = Config::get( Config::MIN_BTC_XFER, Config::DEFAULT_MIN_BTC_XFER );
       // Be a bit more conservative with BTC, since it's our profits after all!
@@ -295,6 +294,8 @@ class CoinManager {
                                     Config::DEFAULT_BTC_XFER_SAFETY_FACTOR );
     }
     $oneIsZero = false;
+    $oneIsNearZero = false; // Only used for BTC
+    $nearZeroThreshold = Config::get( Config::NEAR_ZERO_BTC_VALUE, Config::DEFAULT_NEAR_ZERO_BTC_VALUE );
     foreach ( $exchanges as $exchange ) {
       // Allow max 1% of coin amount to be transfer fee:
       $minXFER = max( $minXFER, $this->getSafeTxFee( $exchange, $coin, $averageCoins ) / $safetyFactor );
@@ -302,6 +303,9 @@ class CoinManager {
       $wallets = $exchange->getWallets();
       if ( $wallets[ $coin ] == 0 ) {
         $oneIsZero = true;
+      }
+      if ( $coin == 'BTC' && $wallets[ $coin ] <= $nearZeroThreshold ) {
+        $oneIsNearZero = true;
       }
     }
     logg( "XFER THRES.: $minXFER $coin" );
@@ -336,6 +340,19 @@ class CoinManager {
     }
 
     if ( count( $positiveExchanges ) == 0 || count( $negativeExchanges ) == 0 ) {
+      if ( $oneIsNearZero && count( $exchanges ) > 2 ) {
+        // While balancing currencies with more than 2 exchanges, if we get to a situation
+        // where one of our exchanges is running out of its balance but we have been unable
+        // to perform a rebalancing, if we just give up we may end up stuck in this local
+        // minima for quite a while.  So to avoid this, we try to be less conservative and
+        // relax our safety factor a bit to see if we'll manage to rebalance that way.
+        if ( $safetyFactor <= 0.09 ) { // Don't lose more than 10% of our balance in transfers!
+          logg( sprintf( "Failed to rebalance with a safety factor of %d%%, trying %d%% now...",
+                         floor( $safetyFactor * 100 ),
+                         floor( ( $safetyFactor + 0.01 ) * 100 ) ) );
+          return $this->balance( $coin, $skipUsageCheck, $safetyFactor + 0.01 );
+        }
+      }
       logg( "No exchange in need or available to give" );
       return;
     }
