@@ -199,7 +199,7 @@ abstract class BittrexLikeExchange extends Exchange {
 
     unset( $this->names[ $tradeable ] );
     unset( $this->transferFees[ $tradeable ] );
-    unset( $this->connfirmationTimes[ $tradeable ] );
+    unset( $this->confirmationTimes[ $tradeable ] );
   }
 
   public function detectStuckTransfers() {
