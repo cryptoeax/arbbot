@@ -248,6 +248,7 @@ abstract class BittrexLikeExchange extends Exchange {
       }
       $wallets[ $currency[ 'Currency' ] ] = 0;
     }
+    $wallets[ 'BTC' ] = 0;
 
     $balances = $this->queryBalances();
     foreach ( $balances as $balance ) {
