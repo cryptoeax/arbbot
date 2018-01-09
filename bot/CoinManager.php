@@ -219,7 +219,7 @@ class CoinManager {
 
   }
 
-  private function balance( $coin, $skipUsageCheck = false, $safetyFactor = 0.01 ) {
+  private function balance( $coin, $skipUsageCheck = false, $safetyFactorArg = 0.01 ) {
 
     logg( "balance($coin)" );
     if ( Config::isBlocked( $coin ) ) {
@@ -275,6 +275,7 @@ class CoinManager {
     $negativeExchanges = [ ];
 
     $minXFER = 0;
+    $safetyFactor = $safetyFactorArg;
     if ( $coin == 'BTC' ) {
       $minXFER = Config::get( Config::MIN_BTC_XFER, Config::DEFAULT_MIN_BTC_XFER );
       // Be a bit more conservative with BTC, since it's our profits after all!
@@ -334,11 +335,11 @@ class CoinManager {
         // to perform a rebalancing, if we just give up we may end up stuck in this local
         // minima for quite a while.  So to avoid this, we try to be less conservative and
         // relax our safety factor a bit to see if we'll manage to rebalance that way.
-        if ( $safetyFactor <= 0.09 ) { // Don't lose more than 10% of our balance in transfers!
+        if ( $safetyFactorArg <= 0.09 ) { // Don't lose more than 10% of our balance in transfers!
           logg( sprintf( "Failed to rebalance with a safety factor of %d%%, trying %d%% now...",
-                         floor( $safetyFactor * 100 ),
-                         floor( ( $safetyFactor + 0.01 ) * 100 ) ) );
-          return $this->balance( $coin, $skipUsageCheck, $safetyFactor + 0.01 );
+                         floor( $safetyFactorArg * 100 ),
+                         floor( ( $safetyFactorArg + 0.01 ) * 100 ) ) );
+          return $this->balance( $coin, $skipUsageCheck, $safetyFactorArg + 0.01 );
         }
       }
       logg( "No exchange in need or available to give" );
