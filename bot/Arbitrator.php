@@ -115,7 +115,8 @@ class Arbitrator {
 
     foreach ( $slicedPairs as $pair ) {
 
-      if ( $this->checkPairAt( $pair, $x1, $x2 ) ) {
+      if ( $this->checkPairAt( $pair, $x1, $x2 ) ||
+           $this->checkPairAt( $pair, $x2, $x1 ) ) {
         return true;
       }
     }
@@ -174,7 +175,7 @@ class Arbitrator {
       return;
     }
 
-    logg( "Checking $pair..." );
+    logg( "Checking $pair at " . $x1->getName() . " -> " . $x2->getName() . "..." );
 
     // Measure time for orderbook checks. Sometimes it takes 20+ seconds and could result in a failed trade
     $timeout = time() + 10;
