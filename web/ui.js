@@ -722,7 +722,7 @@ $(function() {
     }
 
     function formatBalance(b) {
-        var rval = new String(b);
+        var rval = new String(rnd8(b));
         rval = rval.substr(0, rval.indexOf('.') + 3);
         return rval;
     }
