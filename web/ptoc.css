@@ -273,3 +273,7 @@ p {
     margin-right: 1em;
     font-size: small;
 }
+
+.plain {
+    white-space: pre;
+}
