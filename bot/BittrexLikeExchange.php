@@ -437,7 +437,8 @@ abstract class BittrexLikeExchange extends Exchange {
         $error = $ex->getMessage();
         logg( $this->prefix() . $error );
 
-        if ( strpos( $error, 'ORDER_NOT_OPEN' ) !== false ) {
+        if ( strpos( $error, 'ORDER_NOT_OPEN' ) !== false ||
+             strpos( $error, 'MIN_TRADE_REQUIREMENT_NOT_MET' ) !== false ) {
           // Real error, don't attempt to retry needlessly.
           break;
         }
