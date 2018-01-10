@@ -364,7 +364,7 @@ $(function() {
                         htmlData += "<td>" + formattedTime + "</td><td>" + arr[i].coin + "</td><td>" + no2el(arr[i].source_exchange) + "</td><td>" +
                                     no2el(arr[i].target_exchange) + "</td>";
                         htmlData += "<td>" + rnd8(arr[i].amount_sold) + "</td>";
-                        htmlData += "<td>" + Math.abs(rnd8(arr[i].currency_bought)) + "</td>";
+                        htmlData += "<td>" + rnd8(Math.abs(arr[i].currency_bought)) + "</td>";
                         htmlData += "<td>" + rnd8(arr[i].currency_sold) + "</td>";
                         htmlData += "<td>" + fmtpl(arr[i].currency_revenue) + "</td>";
                         htmlData += "<td>" + rnd8(arr[i].tx_fee) + "</td>";
