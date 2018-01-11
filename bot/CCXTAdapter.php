@@ -132,8 +132,8 @@ abstract class CCXTAdapter extends Exchange {
     // Since this exchange was added after merging of the pl-rewrite branch, we don't
     // need the full trade history for the initial import, so we can ignore $recentOnly!
 
-    foreach ( $this->getTradeables() as $tradeable ) {
-      $result = $this->exchange->fetch_my_trades( $tradeable . '/' . 'BTC' );
+    foreach ( $this->getTradeablePairs() as $pair ) {
+      $result = $this->exchange->fetch_my_trades( str_replace( '_', '/', $pair ) );
   
       foreach (array_keys($history) as $market) {
         $arr = explode( '/', $row[ 'symbol'] );
@@ -252,13 +252,15 @@ abstract class CCXTAdapter extends Exchange {
 
   public function cancelAllOrders() {
 
-    $orders = $this->exchange->fetch_open_orders();
-    foreach ( $orders as $order ) {
-      $orderID = $order[ 'id' ];
-      $split = explode( '/', $order[ 'symbol' ] );
-      $tradeable = $split[ 0 ];
-      $currency = $split[ 1 ];
-      $this->cancelOrder( $currency . '_' . $tradeable . ':' . $orderID );
+    foreach ( $this->getTradeablePairs() as $pair ) {
+      $orders = $this->exchange->fetch_open_orders( str_replace( '_', '/', $pair ) );
+      foreach ( $orders as $order ) {
+        $orderID = $order[ 'id' ];
+        $split = explode( '/', $order[ 'symbol' ] );
+        $tradeable = $split[ 0 ];
+        $currency = $split[ 1 ];
+        $this->cancelOrder( $currency . '_' . $tradeable . ':' . $orderID );
+      }
     }
 
   }
