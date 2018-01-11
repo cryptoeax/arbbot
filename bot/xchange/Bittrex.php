@@ -22,17 +22,17 @@ class Bittrex extends BittrexLikeExchange {
 
   }
 
-  public function addFeeToPrice( $price ) {
+  public function addFeeToPrice( $price, $tradeable, $currency ) {
     return $price * 1.0025;
 
   }
 
-  public function deductFeeFromAmountBuy( $amount ) {
+  public function deductFeeFromAmountBuy( $amount, $tradeable, $currency ) {
     return $amount * 0.9975;
 
   }
 
-  public function deductFeeFromAmountSell( $amount ) {
+  public function deductFeeFromAmountSell( $amount, $tradeable, $currency ) {
     return $amount * 0.9975;
 
   }

@@ -274,12 +274,12 @@ class Arbitrator {
     $maxTargetAmount = min( $targetTradeableBefore, $bestSellAmount );
     $tradeAmount = formatBTC( min( $maxSourceAmount, $maxTargetAmount ) );
 
-    $buyPrice = $source->addFeeToPrice( $tradeAmount * $bestBuyRate );
-    $boughtAmount = $source->deductFeeFromAmountBuy( $tradeAmount );
+    $buyPrice = $source->addFeeToPrice( $tradeAmount * $bestBuyRate, $tradeable, $currency );
+    $boughtAmount = $source->deductFeeFromAmountBuy( $tradeAmount, $tradeable, $currency );
 
     $txFee = $this->coinManager->getSafeTxFee( $source, $tradeable, $boughtAmount );
     $sellAmount = formatBTC( $boughtAmount - $txFee );
-    $sellPrice = $target->deductFeeFromAmountSell( $sellAmount * $bestSellRate );
+    $sellPrice = $target->deductFeeFromAmountSell( $sellAmount * $bestSellRate, $tradeable, $currency );
     $profit = $sellPrice - $buyPrice;
 
     $orderInfo = "TRADING $tradeable-$currency FROM " . $source->getName() . " TO " . $target->getName() . "\n";
@@ -517,8 +517,8 @@ class Arbitrator {
     $sourceAsk = $source->getBestAsk();
     $targetBid = $target->getBestBid();
 
-    $price = $sourceX->addFeeToPrice( $amount * $sourceAsk->getPrice() );
-    $receivedAmount = $sourceX->deductFeeFromAmountBuy( $amount );
+    $price = $sourceX->addFeeToPrice( $amount * $sourceAsk->getPrice(), $tradeable, $currency );
+    $receivedAmount = $sourceX->deductFeeFromAmountBuy( $amount, $tradeable, $currency );
     if ( $price < $sourceX->getSmallestOrderSize( $tradeable, $currency, 'buy' ) ) {
       return 0;
     }
@@ -527,7 +527,8 @@ class Arbitrator {
 
     $arrivedAmount = $receivedAmount - $txFee;
 
-    $receivedPrice = $targetX->deductFeeFromAmountSell( $arrivedAmount * $targetBid->getPrice() );
+    $receivedPrice = $targetX->deductFeeFromAmountSell( $arrivedAmount * $targetBid->getPrice(),
+                                                        $tradeable, $currency );
     if ( $receivedPrice < $targetX->getSmallestOrderSize( $tradeable, $currency, 'sell' ) ) {
       return 0;
     }
