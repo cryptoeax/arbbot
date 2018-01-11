@@ -1,0 +1,20 @@
+[Unit]
+Description=Arbbot - Arbitrage Trading Bot
+After=syslog.target network.target mysql.service
+
+[Service]
+ExecStart=/usr/bin/php main.php
+WorkingDirectory=/var/www/arbbot
+Type=simple
+InaccessibleDirectories=/home /root /boot /opt /mnt /media
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=arbbot
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+NoNewPrivileges=true
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

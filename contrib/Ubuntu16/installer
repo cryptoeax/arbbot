@@ -1,0 +1,137 @@
+#!/bin/bash
+
+setup_ntp() {
+    echo "Setting up NTP"
+    service ntp stop
+    ntpdate ntp.ubuntu.com
+    service ntp start || return 1
+    update-rc.d ntp enable
+    sleep 5
+    echo "Checking for Peers"
+    ntpq -c lpeer
+}
+
+# Call it as a function so that bash uses a 'return' rather than 'exit'
+main () {
+    if [ "$EUID" -ne 0 ]
+    then echo "Please run as root by typing:"
+        echo "sudo su -"
+        return 1
+    fi
+    apt update
+    apt-get -y install php-cli php-curl php-mysqlnd mysql-server nginx-full php-fpm unzip apache2-utils ntp || return 1
+
+    ARBDIR="/var/www/arbbot"
+    cd /var/www || { echo "Unable to cd to /var/www"; return 1; }
+    git clone --recursive https://github.com/cryptoeax/arbbot.git
+    [[ ! -d "${ARBDIR}" ]] && read -p "Where is arbbot installed? (enter to accept default) " -i "/var/www/arbbot" -e ARBDIR
+    [[ ! -f ${ARBDIR}/database.sql ]] && { echo "Unable to locate ${ARBDIR}/database.sql, bailing out!"; return 0; }
+    cd ${ARBDIR} || { echo "Unable to cd to ${ARBDIR}"; return 1; }
+
+    echo "Creating the Database"
+    read -p "Please supply ROOT's MySQL password: " -e ROOTPASS
+    read -p "Next, provide a new password for creating the arbitrage DB user: " -e ARBPASS
+
+    mysql -u root -p${ROOTPASS} <<EOF
+    CREATE DATABASE arbitrage;
+    GRANT ALL ON arbitrage.* TO arbitrage@localhost IDENTIFIED BY '${ARBPASS}';
+    use arbitrage;
+    source ${ARBDIR}/database.sql;
+EOF
+if [ -f "${ARBDIR}/web/config.inc.php" ]; then
+    echo "Backing up existing ${ARBDIR}/web/config.inc.php to ${ARBDIR}/web/config.inc.php.bak"
+    cp ${ARBDIR}/web/config.inc.php ${ARBDIR}/web/config.inc.php.bak
+fi
+    cat << EOF > ${ARBDIR}/web/config.inc.php
+    <?php
+    $dbHost = "localhost";
+    $dbName = "arbitrage";
+    $dbUser = "arbitrage";
+    $dbPass = "${ARBPASS}";
+EOF
+
+if [ ! -f "${ARBDIR}/config.ini" ]; then
+    echo "Creating BOT config file at ${ARBDIR}/config.ini"
+    cp ${ARBDIR}/config.ini.example ${ARBDIR}/config.ini
+fi
+setup_ntp
+setup_sysd
+setup_web
+}
+
+setup_sysd () {
+    cat << EOF > /etc/systemd/system/arbbot.service
+    [Unit]
+    Description=Arbbot - Arbitrage Trading Bot
+    After=syslog.target network.target mysql.service
+
+    [Service]
+    ExecStart=/usr/bin/php main.php
+    WorkingDirectory=${ARBDIR}
+    Type=simple
+    InaccessibleDirectories=/home /root /boot /opt /mnt /media
+    StandardOutput=syslog
+    StandardError=syslog
+    SyslogIdentifier=arbbot
+    ProtectHome=true
+    PrivateTmp=true
+    PrivateDevices=true
+    NoNewPrivileges=true
+    Restart=always
+
+    [Install]
+    WantedBy=multi-user.target
+EOF
+
+systemctl enable arbbot || return 1
+}
+
+setup_web () {
+    mkdir -p ${ARBDIR}/conf
+    read -p "Please supply a username for the Web UI Login: " -e UI_USER
+    htpasswd -c ${ARBDIR}/conf/arbitrage.passwd ${UI_USER}
+    rm /etc/nginx/sites-enabled/default
+    cat << EOF > /etc/nginx/sites-enabled/default
+server {
+        listen 80;
+        root ${ARBDIR}/web;
+        index index.html;
+        server_name localhost;
+
+        location / {
+                auth_basic           "Restricted area";
+                auth_basic_user_file ${ARBDIR}/conf/arbitrage.passwd;
+        }
+
+        location ~ \.php$ {
+          include snippets/fastcgi-php.conf;
+          fastcgi_pass unix:/var/run/php/php7.0-fpm.sock;
+        }
+}
+EOF
+
+service nginx restart
+}
+
+main || echo "Something went wrong, please try the guide instead at https://github.com/cryptoeax/arbbot"
+
+cat <<-EOF
+TWO Options exits to actually allow the bot to buy coins automatically.
+First, you need to reserve some autobuy funds.
+You can do that either by running the following commands against the database manually:
+
+    mysql -u root -p${ROOTPASS} arbitrage -e UPDATE stats SET value = "0.2" WHERE keyy = "autobuy_funds"
+
+This example assigns 0.2 BTC to the "autobuy_funds". The higher the amount, the more coins can be bought and the more arbitrage-opportunities can be taken. Be careful to keep at least 0.1 - 0.2 BTC at the exchange to give the bot enough room to trade.
+
+
+OR by enabling the general.admin-ui setting, the web UI shows you the Admin interface which allows you to change the autobuy funds amount.
+However, we recommend against enabling the admin UI if your UI isn't secure using password authentication, HTTPS, and exposed to the Internet.
+EOF
+
+ipAddr=$(curl -s -4 icanhazip.com)
+if [[ "${ipAddr}" ]]; then
+    echo "You should now be able to log in at http://${ipAddr} using the username ${UI_USER}"
+else
+    echo "You should now be able to log in to the Web UI using the username ${UI_USER}"
+fi
