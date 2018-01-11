@@ -20,19 +20,19 @@ class Poloniex extends Exchange {
 
   }
 
-  public function addFeeToPrice( $price ) {
+  public function addFeeToPrice( $price, $tradeable, $currency ) {
 
     return $price * (1 + $this->tradeFee);
 
   }
 
-  public function deductFeeFromAmountBuy( $amount ) {
+  public function deductFeeFromAmountBuy( $amount, $tradeable, $currency ) {
 
     return $amount * (1 - $this->tradeFee);
 
   }
 
-  public function deductFeeFromAmountSell( $amount ) {
+  public function deductFeeFromAmountSell( $amount, $tradeable, $currency ) {
 
     return $amount * (1 - $this->tradeFee);
 
@@ -515,7 +515,7 @@ class Poloniex extends Exchange {
 
   }
 
-  public function getSmallestOrderSize() {
+  public function getSmallestOrderSize( $tradeable, $currency, $type ) {
 
     return '0.00010000';
 

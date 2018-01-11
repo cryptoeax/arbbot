@@ -111,17 +111,17 @@ abstract class Exchange {
 
   }
 
-  public function addFeeToPrice( $price ) {
+  public function addFeeToPrice( $price, $tradeable, $currency ) {
     return $price;
 
   }
 
-  public function deductFeeFromAmountBuy( $amount ) {
+  public function deductFeeFromAmountBuy( $amount, $tradeable, $currency ) {
     return $amount;
 
   }
 
-  public function deductFeeFromAmountSell( $amount ) {
+  public function deductFeeFromAmountSell( $amount, $tradeable, $currency ) {
     return $amount;
 
   }
@@ -191,7 +191,7 @@ abstract class Exchange {
         }
         return true;
       } );
-      $matched = $tradeMatcher->matchTradesConsideringPendingTransfers( $trades, $coin, $this, $tradeAmount );
+      $matched = $tradeMatcher->matchTradesConsideringPendingTransfers( $trades, $coin, $currency, $this, $tradeAmount );
       if ( $matched ) {
         break;
       }
@@ -240,7 +240,7 @@ abstract class Exchange {
 
   public abstract function detectStuckTransfers();
 
-  public abstract function getSmallestOrderSize();
+  public abstract function getSmallestOrderSize( $tradeable, $currency, $type );
 
   public abstract function getID();
 

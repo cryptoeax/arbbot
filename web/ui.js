@@ -232,6 +232,15 @@ $(function() {
                           $(element[0]).text(parseFloat(item.datapoint[1]).toFixed(8));
                         }
                     },
+                    yaxis: {
+                        tickFormatter: function(val, axis) {
+                          if (Math.abs(val) > 1) {
+                            return rnd2(val);
+                          } else {
+                            return rnd8(val);
+                          }
+                        }
+                    },
                     xaxis: {
                         mode: "time",
                         timeformat: "%b %e\n%H:%M",

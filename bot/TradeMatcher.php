@@ -99,7 +99,7 @@ class TradeMatcher {
       // Fee is positive for "buy" trades.
       $buyFee = -$trade[ 'fee' ];
 
-      $boughtAmount = $source->deductFeeFromAmountBuy( $trade[ 'amount' ] );
+      $boughtAmount = $source->deductFeeFromAmountBuy( $trade[ 'amount' ], $tradeable, $currency );
       $tradeableTransferFee = $cm->getSafeTxFee( $source, $trade[ 'tradeable' ], $boughtAmount );
     }
     foreach ( $sellTrades as $trade ) {
@@ -151,7 +151,7 @@ class TradeMatcher {
     return $currencyProfitLoss;
   }
 
-  public function matchTradesConsideringPendingTransfers( $trades, $tradeable, $exchange, $tradeAmount ) {
+  public function matchTradesConsideringPendingTransfers( $trades, $tradeable, $currency, $exchange, $tradeAmount ) {
 
     $tradesSum = array_reduce( $trades, 'sumOfAmount', 0 );
 
@@ -160,7 +160,8 @@ class TradeMatcher {
 
 
     return $tradesSum == 0 ||
-           abs( abs( $tradesSum / $tradeAmount ) - 1 ) <= $exchange->addFeeToPrice( 1 );
+           abs( abs( $tradesSum / $tradeAmount ) - 1 ) <=
+                  $exchange->addFeeToPrice( 1, $tradeable, $currency );
 
   }
 

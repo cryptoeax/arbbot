@@ -20,17 +20,17 @@ class Bleutrade extends BittrexLikeExchange {
 
   }
 
-  public function addFeeToPrice( $price ) {
+  public function addFeeToPrice( $price, $tradeable, $currency ) {
     return $price * 1.0025;
 
   }
 
-  public function deductFeeFromAmountBuy( $amount ) {
+  public function deductFeeFromAmountBuy( $amount, $tradeable, $currency ) {
     return $amount * 0.9975;
 
   }
 
-  public function deductFeeFromAmountSell( $amount ) {
+  public function deductFeeFromAmountSell( $amount, $tradeable, $currency ) {
     return $amount * 0.9975;
 
   }
@@ -57,7 +57,7 @@ class Bleutrade extends BittrexLikeExchange {
     }
 
     $feeFactor = ($order[ 'Type' ] == 'SELL') ? -1 : 1;
-    $fee = $feeFactor * ( $this->addFeeToPrice( $order[ 'QuantityBaseTraded' ] ) - $order[ 'QuantityBaseTraded' ] );
+    $fee = $feeFactor * ( $this->addFeeToPrice( $order[ 'QuantityBaseTraded' ], $tradeable, $currency ) - $order[ 'QuantityBaseTraded' ] );
     $total = $order[ 'QuantityBaseTraded' ];
     return $total + $fee;
 
@@ -97,7 +97,7 @@ class Bleutrade extends BittrexLikeExchange {
         'time' => strtotime( $row[ 'Created' ] ),
         'rate' => $row[ 'Price' ],
         'amount' => $amount,
-        'fee' => $feeFactor * ( $this->addFeeToPrice( $row[ 'QuantityBaseTraded' ] ) - $row[ 'QuantityBaseTraded' ] ),
+        'fee' => $feeFactor * ( $this->addFeeToPrice( $row[ 'QuantityBaseTraded' ], $tradeable, $currency ) - $row[ 'QuantityBaseTraded' ] ),
         'total' => $row[ 'QuantityBaseTraded' ],
       );
     }
@@ -202,7 +202,7 @@ class Bleutrade extends BittrexLikeExchange {
 
   }
 
-  public function getSmallestOrderSize() {
+  public function getSmallestOrderSize( $tradeable, $currency, $type ) {
 
     return '0.00050000';
 
