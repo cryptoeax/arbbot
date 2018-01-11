@@ -234,7 +234,11 @@ $(function() {
                     },
                     yaxis: {
                         tickFormatter: function(val, axis) {
-                          return rnd8(val);
+                          if (Math.abs(val) > 1) {
+                            return rnd2(val);
+                          } else {
+                            return rnd8(val);
+                          }
                         }
                     },
                     xaxis: {
