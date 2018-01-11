@@ -20,6 +20,7 @@ class CoinManager {
   const STAT_NEXT_STUCK_DETECTION = "next_stuck_detection";
   const STAT_NEXT_UNUSED_COIN_DETECTION = "next_unused_coin_detection";
   const STAT_NEXT_DB_CLEANUP = "next_db_cleanup";
+  const STAT_NEXT_CURRENCY_AGGRESSIVE_BALANCE_ALLOWED = "next_currency_aggressive_balance_allowed";
   const STAT_BOT_AGE = "bot_age";
 
   //
@@ -114,6 +115,9 @@ class CoinManager {
     }
     if ( !key_exists( self::STAT_NEXT_DB_CLEANUP, $stats ) ) {
       $stats[ self::STAT_NEXT_DB_CLEANUP ] = time() + 7 * 24 * 3600;
+    }
+    if ( !key_exists( self::STAT_NEXT_CURRENCY_AGGRESSIVE_BALANCE_ALLOWED, $stats ) ) {
+      $stats[ self::STAT_NEXT_CURRENCY_AGGRESSIVE_BALANCE_ALLOWED ] = 0;
     }
     if ( !key_exists( self::STAT_BOT_AGE, $stats ) ) {
       $stats[ self::STAT_BOT_AGE ] = time();
@@ -336,7 +340,14 @@ class CoinManager {
         // to perform a rebalancing, if we just give up we may end up stuck in this local
         // minima for quite a while.  So to avoid this, we try to be less conservative and
         // relax our safety factor a bit to see if we'll manage to rebalance that way.
-        if ( $safetyFactorArg <= 0.09 ) { // Don't lose more than 10% of our balance in transfers!
+        if ( $safetyFactorArg <= 0.09 && // Don't lose more than 10% of our balance in transfers!
+             // Throttle how often this feature kicks in.
+             time() >= $this->stats[ self::STAT_NEXT_CURRENCY_AGGRESSIVE_BALANCE_ALLOWED ] ) {
+          $this->stats[ self::STAT_NEXT_CURRENCY_AGGRESSIVE_BALANCE_ALLOWED ] = time() +
+            Config::get( Config::INTERVAL_CURRENCY_AGGRESSIVE_BALANCE,
+                         Config::DEFAULT_INTERVAL_CURRENCY_AGGRESSIVE_BALANCE ) * 1800;
+          Database::saveStats( $this->stats );
+
           logg( sprintf( "Failed to rebalance with a safety factor of %d%%, trying %d%% now...",
                          floor( $safetyFactorArg * 100 ),
                          floor( ( $safetyFactorArg + 0.01 ) * 100 ) ) );
