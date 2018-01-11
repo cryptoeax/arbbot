@@ -165,6 +165,16 @@ key =
 ; API secret for Poloniex
 secret =
 
+[binance]
+
+; Remember to enable withdrawals for BINANCE (it requires enabling IP whitelist on the API key)!
+
+; API key for Binance
+key =
+
+; API secret for Binance
+secret =
+
 ; PLEASE CHANGE THESE ONLY IF YOU ARE SURE WHAT YOU ARE DOING :)
 
 [expert]

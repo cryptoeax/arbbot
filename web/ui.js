@@ -91,7 +91,7 @@ $(function() {
     function no2e(x, title) {
 
         var num = parseInt(x);
-        if (num <= 7 && num >= 0) {
+        if (num <= 9 && num >= 0) {
 	    return '<span title="' + (title ? title : no2ell_xfer(x)) + '">' +
                    '<img src="xchange/' + num + '.ico" width="14" height="14">' +
                    '</span>';
@@ -113,6 +113,8 @@ $(function() {
             return "BTTRX";
         else if (x === "7" || x === 7)
             return "HTBTC";
+        else if (x === "9" || x === 9)
+            return "BINCE";
         else
             return "?";
 
@@ -137,6 +139,8 @@ $(function() {
             return "Bittrex";
         else if (x === "7" || x === 7)
             return "HitBTC";
+        else if (x === "9" || x === 9)
+            return "Binance";
         else
             return "?";
 
