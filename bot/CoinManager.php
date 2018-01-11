@@ -570,23 +570,32 @@ class CoinManager {
 
     logg( "Getting need..." );
 
+    $results = Database::getCurrentSimulatedProfitRate();
     $stats = Database::getWalletStats();
-    foreach ( $stats as $coin => $data ) {
+    foreach ( $results as $row ) {
 
+      $currency = $row[ 'currency' ];
+      $coin = $row[ 'coin' ];
+      if ( !Config::isCurrency( $currency ) ) {
+        logg( "Skipping: $currency is not a currency!" );
+        continue;
+      }
       if ( Config::isCurrency( $coin ) || Config::isBlocked( $coin ) ) {
         logg( "Skipping: $coin is blocked!" );
         continue;
       }
 
-      foreach ( $data as $exchangeID => $stat ) {
+      $exchangeID = $row[ 'ID_exchange_target'];
+      $stat = $stats[ $coin ][ $exchangeID ];
+      $exchange = $this->exchangesID[ $exchangeID ];
+      $balance = $allWallets[ $exchangeID ][ $coin ];
+      $desiredBalance = $stat[ 'desired_balance' ];
 
-        $exchange = $this->exchangesID[ $exchangeID ];
-        $balance = $allWallets[ $exchangeID ][ $coin ];
-        $desiredBalance = $stat[ 'desired_balance' ];
-
-        $diff = formatBTC( $desiredBalance - $balance );
-        if ( $diff > 0 ) {
-          logg( "Need $diff $coin @ " . $exchange->getName() );
+      $diff = formatBTC( $desiredBalance - $balance );
+      if ( $diff > 0 ) {
+        logg( "Need $diff $coin @ " . $exchange->getName() );
+        // We add an entry to the $needs array ratio times to get a weighted randomized autobuy function.
+        for ( $i = 0; $i < $row[ 'ratio' ]; $i++ ) {
           $needs[] = ['coin' => $coin, 'amount' => $diff, 'exchange' => $exchangeID ];
         }
       }

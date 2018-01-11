@@ -345,7 +345,7 @@ class Database {
 
     $link = self::connect();
 
-    $query = 'SELECT * FROM snapshot WHERE created = (SELECT MAX(created) FROM snapshot)';
+    $query = 'SELECT * FROM current_snapshot';
 
     $result = mysql_query( $query, $link );
     if ( !$result ) {
@@ -371,6 +371,29 @@ class Database {
     return $results;
 
   }
+
+  public static function getCurrentSimulatedProfitRate() {
+
+    $link = self::connect();
+
+    $query = 'SELECT * FROM current_simulated_profit_rate ORDER BY ratio DESC';
+
+    $result = mysql_query( $query, $link );
+    if ( !$result ) {
+      throw new Exception( "database selection error: " . mysql_error( $link ) );
+    }
+
+    $results = [ ];
+    while ( $row = mysql_fetch_assoc( $result ) ) {
+      $results[] = $row;
+    }
+
+    mysql_close( $link );
+
+    return $results;
+
+  }
+
 
   public static function getOpportunityCount( $coin, $currency, $exchangeID ) {
 
@@ -992,6 +1015,18 @@ class Database {
     print "\n";
 
     mysql_close( $link );
+
+  }
+
+  public static function currentSimulatedProfitsRateViewExists() {
+
+    return self::tableExistsHelper( 'current_simulated_profits_rate' );
+
+  }
+
+  public static function createCurrentSimulatedProfitsRateView() {
+
+    return self::createTableHelper( 'current_simulated_profits_rate' );
 
   }
 
