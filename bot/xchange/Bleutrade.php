@@ -202,7 +202,7 @@ class Bleutrade extends BittrexLikeExchange {
 
   }
 
-  public function getSmallestOrderSize() {
+  public function getSmallestOrderSize( $tradeable, $currency, $type ) {
 
     return '0.00050000';
 

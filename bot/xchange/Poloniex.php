@@ -515,7 +515,7 @@ class Poloniex extends Exchange {
 
   }
 
-  public function getSmallestOrderSize() {
+  public function getSmallestOrderSize( $tradeable, $currency, $type ) {
 
     return '0.00010000';
 
