@@ -298,6 +298,7 @@ abstract class CCXTAdapter extends Exchange {
     $this->confirmationTimes = $conf;
     $this->tradeFees = $tradeFees;
     $this->minTrades = $minTrade;
+    $this->transferFees = $this->exchange->fees[ 'funding' ][ 'withdraw' ];
 
     $this->calculateTradeablePairs();
 
