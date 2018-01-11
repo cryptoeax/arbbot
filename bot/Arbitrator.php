@@ -496,10 +496,7 @@ class Arbitrator {
 
       Database::saveTrade( $tradeable, $currency, $sellAmount, $source->getID(), $target->getID() );
 
-      if ( !$sourceWalletless ) {
-        // For walletless exchanges, the buyWalletless() operation does the withdraw() operation too.
-        $this->coinManager->withdraw( $source, $target, $tradeable, $boughtAmount );
-      }
+      $this->coinManager->withdraw( $source, $target, $tradeable, $boughtAmount );
       break;
     }
     return true;
