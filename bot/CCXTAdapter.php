@@ -132,31 +132,33 @@ abstract class CCXTAdapter extends Exchange {
     // Since this exchange was added after merging of the pl-rewrite branch, we don't
     // need the full trade history for the initial import, so we can ignore $recentOnly!
 
-    $result = $this->exchange->fetch_my_trades( $tradeable . '/' . $currency );
-
-    foreach (array_keys($history) as $market) {
-      $arr = explode( '/', $row[ 'symbol'] );
-      $currency = $arr[ 1 ];
-      $tradeable = $arr[ 0 ];
-      $market = $tradeable . '_' . $currency;
-
-      if (!in_array( $market, array_keys( $results ) )) {
-        $results[ $market ] = array();
+    foreach ( $this->getTradeables() as $tradeable ) {
+      $result = $this->exchange->fetch_my_trades( $tradeable . '/' . 'BTC' );
+  
+      foreach (array_keys($history) as $market) {
+        $arr = explode( '/', $row[ 'symbol'] );
+        $currency = $arr[ 1 ];
+        $tradeable = $arr[ 0 ];
+        $market = $tradeable . '_' . $currency;
+  
+        if (!in_array( $market, array_keys( $results ) )) {
+          $results[ $market ] = array();
+        }
+        $feeFactor = ($row[ 'side' ] == 'sell') ? -1 : 1;
+  
+        $results[ $market ][] = array(
+          'rawID' => $row[ 'id' ],
+          'id' => $currency . '_' . $tradeable . ':' . $row[ 'id' ],
+          'currency' => $currency,
+          'tradeable' => $tradeable,
+          'type' => $row[ 'side' ],
+          'time' => floor( $row[ 'timestamp' ] / 1000 ), // timestamp is in milliseconds
+          'rate' => floatval( $row[ 'price' ] ),
+          'amount' => floatval( $row[ 'filled' ] ),
+          'fee' => floatval( $row[ 'fee' ][ 'cost' ] ),
+          'total' => floatval( $row[ 'cost' ] ),
+        );
       }
-      $feeFactor = ($row[ 'side' ] == 'sell') ? -1 : 1;
-
-      $results[ $market ][] = array(
-        'rawID' => $row[ 'id' ],
-        'id' => $currency . '_' . $tradeable . ':' . $row[ 'id' ],
-        'currency' => $currency,
-        'tradeable' => $tradeable,
-        'type' => $row[ 'side' ],
-        'time' => floor( $row[ 'timestamp' ] / 1000 ), // timestamp is in milliseconds
-        'rate' => floatval( $row[ 'price' ] ),
-        'amount' => floatval( $row[ 'filled' ] ),
-        'fee' => floatval( $row[ 'fee' ][ 'cost' ] ),
-        'total' => floatval( $row[ 'cost' ] ),
-      );
     }
 
     foreach ( array_keys( $results ) as $market ) {
