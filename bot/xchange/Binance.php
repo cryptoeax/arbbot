@@ -37,17 +37,28 @@ class Binance extends CCXTAdapter {
 
   public function detectStuckTransfers() {
 
-    // TODO
-    $history = $this->queryDepositsAndWithdrawals();
-    foreach ( $history as $key => $block ) {
+    $history = $this->exchange->wapiGetDepositHistory();
+
+    $this->detectStuckTransfersInternal( $history, 'deposit' );
+
+    $history = $this->exchange->wapiGetWithdrawHistory();
+
+    $this->detectStuckTransfersInternal( $history, 'withdraw' );
+
+  }
+
+  private function detectStuckTransfersInternal( $history, $key ) {
+
+    foreach ( $history[ $key . 'List' ] as $entry ) {
+
       foreach ( $block as $entry ) {
-        $timestamp = $entry[ 'timestamp' ];
+        $timestamp = floor( $entry[ 'applyTime' ] / 1000 ); // in milliseconds
         if ( key_exists( $key, $this->lastStuckReportTime ) && $timestamp < $this->lastStuckReportTime[ $key ] ) {
           continue;
         }
         $status = strtoupper( $entry[ 'status' ] );
 
-        if ( $timestamp < time() - 12 * 3600 && (substr( $status, 0, 8 ) != 'COMPLETE' || strpos( $status, 'ERROR' ) !== false) ) {
+        if ( $timestamp < time() - 12 * 3600 && ($status == 2 /* awaiting approval */ || $status == 4 /* processing */) ) {
           alert( 'stuck-transfer', $this->prefix() . "Stuck $key! Please investigate and open support ticket if neccessary!\n\n" . print_r( $entry, true ), true );
           $this->lastStuckReportTime[ $key ] = $timestamp;
         }
