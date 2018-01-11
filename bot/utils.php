@@ -68,6 +68,22 @@ function getCurrency( $item ) {
   return $item[ 'Currency' ];
 }
 
+function generateNonce( $id ) {
+  static $previousNonce = array( );
+  if ( !isset( $previousNonce[ $id ] ) ) {
+    $previousNonce[ $id ] = 0;
+  }
+
+  // Try the current time, if we're getting called too fast, step up one by one.
+  $nonce = floor( microtime( true ) * 1000000);
+  if ( $nonce <= $previousNonce[ $id ] ) {
+    $nonce = $previousNonce[ $id ] + 1;
+  }
+
+  $previousNonce[ $id ] = $nonce;
+  return $nonce;
+}
+
 function installDirectoryDirty() {
 
   $installDir = __DIR__ . '/../';

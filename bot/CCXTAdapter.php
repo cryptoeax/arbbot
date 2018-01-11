@@ -21,7 +21,6 @@ abstract class CCXTAdapter extends Exchange {
     $secret = Config::get( sprintf( "%s.secret", $lower ) );
     parent::__construct( $key, $secret );
 
-    $ccxtName = '\\ccxt\\' . $ccxtName;
     $this->exchange = new $ccxtName( );
     $this->exchange->apiKey = $key;
     $this->exchange->secret = $secret;

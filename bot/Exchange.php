@@ -258,20 +258,7 @@ abstract class Exchange {
 
   protected function nonce() {
 
-    static $previousNonce = array( );
-    $id = $this->getID();
-    if ( !isset( $previousNonce[ $id ] ) ) {
-      $previousNonce[ $id ] = 0;
-    }
-
-    // Try the current time, if we're getting called too fast, step up one by one.
-    $nonce = floor( microtime( true ) * 1000000);
-    if ( $nonce <= $previousNonce[ $id ] ) {
-      $nonce = $previousNonce[ $id ] + 1;
-    }
-
-    $previousNonce[ $id ] = $nonce;
-    return $nonce;
+    return generateNonce( $this->getID() );
 
   }
 
