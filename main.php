@@ -57,7 +57,9 @@ if ( !Database::balancesTableExists() ) {
   Database::importBalances();
 }
 
-Database::createCurrentSimulatedProfitsRateView();
+if ( !Database::currentSimulatedProfitsRateViewExists() ) {
+  Database::createCurrentSimulatedProfitsRateView();
+}
 
 if ( !Database::profitsTableExists() ) {
   Database::createProfitsTable();
