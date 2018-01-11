@@ -235,12 +235,12 @@ SELECT * FROM snapshot WHERE created = (SELECT MAX(created) FROM snapshot);
 
 CREATE OR REPLACE VIEW `current_simulated_profit_rate_raw` AS
 SELECT MAX(t.`created`) AS `created`, t.`coin`, t.`currency`, SUM(t.`amount`) * MAX(`rate`) AS `price`,
-       SUM(t.`profit`) AS `profit`, `profit` / (SUM(t.`amount`) * MAX(`rate`)) AS `ratio`, `ID_exchange_source`, `ID_exchange_target`
+       SUM(t.`profit`) AS `profit`, SUM(`profit`) / (SUM(t.`amount`) * MAX(`rate`)) AS `ratio`, `ID_exchange_source`, `ID_exchange_target`
 FROM `track` AS t INNER JOIN `current_snapshot` AS s ON
      t.`coin` = s.`coin` AND t.`ID_exchange_target` = s.`ID_exchange`
 WHERE UNIX_TIMESTAMP() - t.`created` < 24 * 60 * 60
 GROUP BY t.`coin`, t.`currency`, `ID_exchange_source`, `ID_exchange_target`
-ORDER BY `profit` / (SUM(t.`amount`) * MAX(`rate`)) DESC;
+ORDER BY SUM(`profit`) / (SUM(t.`amount`) * MAX(`rate`)) DESC;
 
 -- --------------------------------------------------------
 
