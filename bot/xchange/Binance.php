@@ -45,21 +45,20 @@ class Binance extends CCXTAdapter {
 
   public function getWalletsConsideringPendingDeposits() {
 
-    // TODO
     $result = [ ];
     foreach ( $this->wallets as $coin => $balance ) {
       $result[ $coin ] = $balance;
     }
-    $history = $this->queryDepositsAndWithdrawals();
+    $history = $this->exchange->wapiGetDepositHistory();
 
-    foreach ( $history[ 'deposits' ] as $entry ) {
+    foreach ( $history[ 'depositList' ] as $entry ) {
 
-      $status = strtoupper( $entry[ 'status' ] );
-      if ($status != 'PENDING') {
+      $status = $entry[ 'status' ];
+      if ($status != 0 /* pending */) {
         continue;
       }
 
-      $coin = strtoupper( $entry[ 'currency' ] );
+      $coin = strtoupper( $entry[ 'asset' ] );
       $amount = $entry[ 'amount' ];
       $result[ $coin ] += $amount;
 
