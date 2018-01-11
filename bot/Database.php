@@ -626,7 +626,7 @@ class Database {
       }
       $exchange = Exchange::createFromID( $row[ 'target' ] );
 
-      $price_sold = $matches[ 2 ] / $exchange->deductFeeFromAmountSell( $row[ 'amount' ] );
+      $price_sold = $matches[ 2 ] / $exchange->deductFeeFromAmountSell( $row[ 'amount' ], $row[ 'coin' ], $row[ 'currency' ] );
       $tx_fee = $matches[ 6 ] * $price_sold;
       $pl = $matches[ 4 ] - $tx_fee;
       if ($pl > 0) {

@@ -22,17 +22,17 @@ class Bittrex extends BittrexLikeExchange {
 
   }
 
-  public function addFeeToPrice( $price ) {
+  public function addFeeToPrice( $price, $tradeable, $currency ) {
     return $price * 1.0025;
 
   }
 
-  public function deductFeeFromAmountBuy( $amount ) {
+  public function deductFeeFromAmountBuy( $amount, $tradeable, $currency ) {
     return $amount * 0.9975;
 
   }
 
-  public function deductFeeFromAmountSell( $amount ) {
+  public function deductFeeFromAmountSell( $amount, $tradeable, $currency ) {
     return $amount * 0.9975;
 
   }
@@ -170,53 +170,7 @@ class Bittrex extends BittrexLikeExchange {
 
   }
 
-  public function queryRecentDeposits( $currency = null ) {
-
-    $history = $this->queryAPI( 'account/getdeposithistory',
-                                $currency ? array ( 'currency' => $currency ) : array( ) );
-
-    $result = array();
-    foreach ( $history as $row ) {
-      $result[] = array(
-        'currency' => $row[ 'Currency' ],
-        'amount' => $row[ 'Amount' ],
-        'txid' => $row[ 'TxId' ],
-        'address' => $row[ 'CryptoAddress' ],
-        'time' => strtotime( $row[ 'LastUpdated' ] ),
-        'pending' => ( $row[ 'Confirmations' ] < $this->getConfirmationTime( $row[ 'Currency' ] ) ),
-      );
-    }
-
-    usort( $result, 'compareByTime' );
-
-    return $result;
-
-  }
-
-  public function queryRecentWithdrawals( $currency = null ) {
-
-    $history = $this->queryAPI( 'account/getwithdrawalhistory',
-                                $currency ? array ( 'currency' => $currency ) : array( ) );
-
-    $result = array();
-    foreach ( $history as $row ) {
-      $result[] = array(
-        'currency' => $row[ 'Currency' ],
-        'amount' => $row[ 'Amount' ],
-        'txid' => $row[ 'TxId' ],
-        'address' => $row[ 'Address' ],
-        'time' => strtotime( $row[ 'Opened' ] ),
-        'pending' => $row[ 'PendingPayment' ] === true,
-      );
-    }
-
-    usort( $result, 'compareByTime' );
-
-    return $result;
-
-  }
-
-  public function getSmallestOrderSize() {
+  public function getSmallestOrderSize( $tradeable, $currency, $type ) {
 
     return '0.00100000';
 

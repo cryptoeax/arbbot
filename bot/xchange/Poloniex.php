@@ -20,19 +20,19 @@ class Poloniex extends Exchange {
 
   }
 
-  public function addFeeToPrice( $price ) {
+  public function addFeeToPrice( $price, $tradeable, $currency ) {
 
     return $price * (1 + $this->tradeFee);
 
   }
 
-  public function deductFeeFromAmountBuy( $amount ) {
+  public function deductFeeFromAmountBuy( $amount, $tradeable, $currency ) {
 
     return $amount * (1 - $this->tradeFee);
 
   }
 
-  public function deductFeeFromAmountSell( $amount ) {
+  public function deductFeeFromAmountSell( $amount, $tradeable, $currency ) {
 
     return $amount * (1 - $this->tradeFee);
 
@@ -274,49 +274,6 @@ class Poloniex extends Exchange {
 
   }
 
-  private function queryRecentTransfers( $type, $currency ) {
-
-    $now = time();
-    $history = $this->queryAPI( 'returnDepositsWithdrawals', array(
-      'start' => $now - 30 * 60,
-      'end' => $now,
-    ) );
-
-    $result = array();
-    foreach ( $history[ "${type}s" ] as $row ) {
-      if ( !is_null( $currency ) && $currency != $row[ 'currency' ] ) {
-        continue;
-      }
-
-      $result[] = array(
-        'currency' => $row[ 'currency' ],
-        'amount' => $row[ 'amount' ],
-        // deposits have txid, withdrawals have withdrawalNumber
-        'txid' => isset( $row[ 'txid' ] ) ? $row[ 'txid' ] : $row[ 'withdrawalNumber' ],
-        'address' => $row[ 'address' ],
-        'time' => $row[ 'timestamp' ],
-        'pending' => strpos( $row[ 'status' ], 'COMPLETE' ) !== false,
-      );
-    }
-
-    usort( $result, 'compareByTime' );
-
-    return $result;
-
-  }
-
-  public function queryRecentDeposits( $currency = null ) {
-
-    return $this->queryRecentTransfers( 'deposit', $currency );
-
-  }
-
-  public function queryRecentWithdrawals( $currency = null ) {
-
-    return $this->queryRecentTransfers( 'withdrawal', $currency );
-
-  }
-
   protected function fetchOrderbook( $tradeable, $currency ) {
 
     $orderbook = $this->queryOrderbook( $tradeable, $currency );
@@ -515,7 +472,7 @@ class Poloniex extends Exchange {
 
   }
 
-  public function getSmallestOrderSize() {
+  public function getSmallestOrderSize( $tradeable, $currency, $type ) {
 
     return '0.00010000';
 

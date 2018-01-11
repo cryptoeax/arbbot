@@ -20,17 +20,17 @@ class Bleutrade extends BittrexLikeExchange {
 
   }
 
-  public function addFeeToPrice( $price ) {
+  public function addFeeToPrice( $price, $tradeable, $currency ) {
     return $price * 1.0025;
 
   }
 
-  public function deductFeeFromAmountBuy( $amount ) {
+  public function deductFeeFromAmountBuy( $amount, $tradeable, $currency ) {
     return $amount * 0.9975;
 
   }
 
-  public function deductFeeFromAmountSell( $amount ) {
+  public function deductFeeFromAmountSell( $amount, $tradeable, $currency ) {
     return $amount * 0.9975;
 
   }
@@ -57,7 +57,7 @@ class Bleutrade extends BittrexLikeExchange {
     }
 
     $feeFactor = ($order[ 'Type' ] == 'SELL') ? -1 : 1;
-    $fee = $feeFactor * ( $this->addFeeToPrice( $order[ 'QuantityBaseTraded' ] ) - $order[ 'QuantityBaseTraded' ] );
+    $fee = $feeFactor * ( $this->addFeeToPrice( $order[ 'QuantityBaseTraded' ], $tradeable, $currency ) - $order[ 'QuantityBaseTraded' ] );
     $total = $order[ 'QuantityBaseTraded' ];
     return $total + $fee;
 
@@ -97,7 +97,7 @@ class Bleutrade extends BittrexLikeExchange {
         'time' => strtotime( $row[ 'Created' ] ),
         'rate' => $row[ 'Price' ],
         'amount' => $amount,
-        'fee' => $feeFactor * ( $this->addFeeToPrice( $row[ 'QuantityBaseTraded' ] ) - $row[ 'QuantityBaseTraded' ] ),
+        'fee' => $feeFactor * ( $this->addFeeToPrice( $row[ 'QuantityBaseTraded' ], $tradeable, $currency ) - $row[ 'QuantityBaseTraded' ] ),
         'total' => $row[ 'QuantityBaseTraded' ],
       );
     }
@@ -137,72 +137,7 @@ class Bleutrade extends BittrexLikeExchange {
 
   }
 
-  public function queryRecentDeposits( $currency = null ) {
-
-    $history = $this->queryAPI( 'account/getdeposithistory' );
-
-    $result = array();
-    foreach ( $history as $row ) {
-      if ( !is_null( $currency ) && $currency != $row[ 'currency' ] ) {
-        continue;
-      }
-
-      // Label is in the following format:
-      // "Youraddress"
-      $address = $row[ 'Label' ];
-
-      $result[] = array(
-        'currency' => $row[ 'Coin' ],
-        'amount' => $row[ 'Amount' ],
-        'txid' => '', // transaction id not exposed
-        'address' => $address,
-        'time' => strtotime( $row[ 'TimeStamp' ] ),
-        'pending' => false, // assume anything that shows up here is finished
-      );
-    }
-
-    usort( $result, 'compareByTime' );
-
-    return $result;
-
-  }
-
-  public function queryRecentWithdrawals( $currency = null ) {
-
-    $history = $this->queryAPI( 'account/getwithdrawhistory' );
-
-    $result = array();
-    foreach ( $history as $row ) {
-      if ( !is_null( $currency ) && $currency != $row[ 'currency' ] ) {
-        continue;
-      }
-
-      // Label is in the following format:
-      // "amount;address;fee"
-      if ( !preg_match( '/;([^;]+);/', $row[ 'Label' ], $matches ) ) {
-        logg( $this->prefix() . sprintf( "WARNING: Received unexpected `Label' in the withdrawal history: \"%s\"",
-                                         $row[ 'Label' ] ) );
-        continue;
-      }
-      $address = $matches[ 1 ];
-
-      $result[] = array(
-        'currency' => $row[ 'Coin' ],
-        'amount' => abs( floatval( $row[ 'Amount' ] ) ),
-        'txid' => $row[ 'TransactionId' ],
-        'address' => $address,
-        'time' => strtotime( $row[ 'TimeStamp' ] ),
-        'pending' => false, // assume anything that shows up here is finished
-      );
-    }
-
-    usort( $result, 'compareByTime' );
-
-    return $result;
-
-  }
-
-  public function getSmallestOrderSize() {
+  public function getSmallestOrderSize( $tradeable, $currency, $type ) {
 
     return '0.00050000';
 

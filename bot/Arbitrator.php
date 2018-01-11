@@ -230,7 +230,7 @@ class Arbitrator {
 
 
     $amount = formatBTC( min( $sourceAsk->getAmount(), $targetBid->getAmount() ) );
-    $profit = $this->simulateTrade( $sourceOrderbook, $targetOrderbook, $amount );
+    $profit = $this->simulateTrade( $sourceOrderbook, $targetOrderbook, $amount, $currency );
     logg( "SPREAD : " . formatBTC( $targetBid->getPrice() - $sourceAsk->getPrice() ) . " $currency = " . formatBTC( max( 0, $profit ) ) . " $currency PROFIT" );
 
     if ( $profit < Config::get( Config::MIN_PROFIT, Config::DEFAULT_MIN_PROFIT ) ) {
@@ -274,12 +274,12 @@ class Arbitrator {
     $maxTargetAmount = min( $targetTradeableBefore, $bestSellAmount );
     $tradeAmount = formatBTC( min( $maxSourceAmount, $maxTargetAmount ) );
 
-    $buyPrice = $source->addFeeToPrice( $tradeAmount * $bestBuyRate );
-    $boughtAmount = $source->deductFeeFromAmountBuy( $tradeAmount );
+    $buyPrice = $source->addFeeToPrice( $tradeAmount * $bestBuyRate, $tradeable, $currency );
+    $boughtAmount = $source->deductFeeFromAmountBuy( $tradeAmount, $tradeable, $currency );
 
     $txFee = $this->coinManager->getSafeTxFee( $source, $tradeable, $boughtAmount );
     $sellAmount = formatBTC( $boughtAmount - $txFee );
-    $sellPrice = $target->deductFeeFromAmountSell( $sellAmount * $bestSellRate );
+    $sellPrice = $target->deductFeeFromAmountSell( $sellAmount * $bestSellRate, $tradeable, $currency );
     $profit = $sellPrice - $buyPrice;
 
     $orderInfo = "TRADING $tradeable-$currency FROM " . $source->getName() . " TO " . $target->getName() . "\n";
@@ -313,11 +313,11 @@ class Arbitrator {
       return false;
     }
 
-    if ( $buyPrice < $source->getSmallestOrderSize() ) {
+    if ( $buyPrice < $source->getSmallestOrderSize( $tradeable, $currency, 'buy' ) ) {
       logg( $orderInfo . "NOT ENTERING TRADE: BUY PRICE IS BELOW ACCEPTABLE THRESHOLD\n" );
       return false;
     }
-    if ( $sellPrice < $target->getSmallestOrderSize() ) {
+    if ( $sellPrice < $target->getSmallestOrderSize( $tradeable, $currency, 'sell' ) ) {
       logg( $orderInfo . "NOT ENTERING TRADE: SELL PRICE IS BELOW ACCEPTABLE THRESHOLD\n" );
       return false;
     }
@@ -325,8 +325,8 @@ class Arbitrator {
     $increasedBuyRate = formatBTC( $bestBuyRate * Config::get( Config::BUY_RATE_FACTOR, Config::DEFAULT_BUY_RATE_FACTOR ) );
     $reducedSellRate = formatBTC( $bestSellRate * Config::get( Config::SELL_RATE_FACTOR, Config::DEFAULT_SELL_RATE_FACTOR ) );
 
-    if ( $reducedSellRate * $sellAmount < $target->getSmallestOrderSize() ) {
-      $reducedSellRate = formatBTC( $target->getSmallestOrderSize() / $sellAmount + 0.00000001 );
+    if ( $reducedSellRate * $sellAmount < $target->getSmallestOrderSize( $tradeable, $currency, 'sell' ) ) {
+      $reducedSellRate = formatBTC( $target->getSmallestOrderSize( $tradeable, $currency, 'sell' ) / $sellAmount + 0.00000001 );
     }
 
     if ( $reducedSellRate <= $increasedBuyRate ) {
@@ -503,7 +503,7 @@ class Arbitrator {
 
   }
 
-  function simulateTrade( $source, $target, $amount ) {
+  function simulateTrade( $source, $target, $amount, $currency ) {
 
     // A quick simulation to check the outcome of the trade
 
@@ -514,9 +514,9 @@ class Arbitrator {
     $sourceAsk = $source->getBestAsk();
     $targetBid = $target->getBestBid();
 
-    $price = $sourceX->addFeeToPrice( $amount * $sourceAsk->getPrice() );
-    $receivedAmount = $sourceX->deductFeeFromAmountBuy( $amount );
-    if ( $price < $sourceX->getSmallestOrderSize() ) {
+    $price = $sourceX->addFeeToPrice( $amount * $sourceAsk->getPrice(), $tradeable, $currency );
+    $receivedAmount = $sourceX->deductFeeFromAmountBuy( $amount, $tradeable, $currency );
+    if ( $price < $sourceX->getSmallestOrderSize( $tradeable, $currency, 'buy' ) ) {
       return 0;
     }
 
@@ -524,8 +524,9 @@ class Arbitrator {
 
     $arrivedAmount = $receivedAmount - $txFee;
 
-    $receivedPrice = $targetX->deductFeeFromAmountSell( $arrivedAmount * $targetBid->getPrice() );
-    if ( $receivedPrice < $targetX->getSmallestOrderSize() ) {
+    $receivedPrice = $targetX->deductFeeFromAmountSell( $arrivedAmount * $targetBid->getPrice(),
+                                                        $tradeable, $currency );
+    if ( $receivedPrice < $targetX->getSmallestOrderSize( $tradeable, $currency, 'sell' ) ) {
       return 0;
     }
 

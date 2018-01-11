@@ -196,7 +196,8 @@ class CoinManager {
             $desiredBalance = formatBTC( $maxTradeSize / $averageRate * $balanceFactor );
             $diff = abs( $desiredBalance - $balance );
             // Only allow a diff if the need is fulfillable:
-            if ( $diff * $averageRate < $exchange->getSmallestOrderSize() ) {
+            if ( $diff * $averageRate < $exchange->getSmallestOrderSize( $coin, 'BTC', 'buy' ) &&
+                 $diff * $averageRate < $exchange->getSmallestOrderSize( $coin, 'BTC', 'sell' ) ) {
               $desiredBalance = $balance;
             }
           }
@@ -618,7 +619,7 @@ class CoinManager {
       $askAmount = $orderbook->getBestAsk()->getAmount();
       $buyAmount = formatBTC( min( $needAmount, min( $askAmount, $autobuyAmount / ($rate * 1.01) ) ) );
       $buyPrice = formatBTC( $buyAmount * $rate );
-      if ( $buyPrice < $exchange->getSmallestOrderSize() ) {
+      if ( $buyPrice < $exchange->getSmallestOrderSize( $coin, 'BTC', 'buy' ) ) {
         logg( "Not enough coins at top of the orderbook!" );
         continue;
       }
@@ -766,7 +767,7 @@ class CoinManager {
       $bidAmount = $orderbook->getBestBid()->getAmount();
       $sellAmount = formatBTC( min( $liquidationAmount, $bidAmount ) );
       $sellPrice = formatBTC( $sellAmount * $rate );
-      if ( $sellPrice < $exchange->getSmallestOrderSize() ) {
+      if ( $sellPrice < $exchange->getSmallestOrderSize( $coin, 'BTC', 'sell' ) ) {
         logg( "Not enough coins at top of the orderbook!" );
         continue;
       }
