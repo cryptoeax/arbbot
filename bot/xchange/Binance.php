@@ -6,7 +6,7 @@ require_once __DIR__ . '/../CCXTAdapter.php';
 class Binance extends CCXTAdapter {
 
   public function __construct() {
-    parent::__construct( 4, 'Binance', 'binance' );
+    parent::__construct( 9, 'Binance', 'binance' );
   }
 
   public function isMarketActive( $market ) {
