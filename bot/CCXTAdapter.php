@@ -117,7 +117,7 @@ abstract class CCXTAdapter extends Exchange {
     $result = $this->exchange->fetch_my_trades( $tradeable . '/' . $currency );
 
     foreach ($result as $entry) {
-      if ($entry[ 'id' ] == $orderNumber) {
+      if ($entry[ 'order' ] == $orderNumber) {
         $factor = ($type == 'sell') ? -1 : 1;
         return floatval( $entry[ 'cost' ] ) + $factor * floatval( $entry[ 'fee' ][ 'cost' ] );
       }
@@ -146,8 +146,8 @@ abstract class CCXTAdapter extends Exchange {
         $feeFactor = ($row[ 'side' ] == 'sell') ? -1 : 1;
   
         $results[ $market ][] = array(
-          'rawID' => $row[ 'id' ],
-          'id' => $currency . '_' . $tradeable . ':' . $row[ 'id' ],
+          'rawID' => $row[ 'order' ],
+          'id' => $currency . '_' . $tradeable . ':' . $row[ 'order' ],
           'currency' => $currency,
           'tradeable' => $tradeable,
           'type' => $row[ 'side' ],
@@ -169,7 +169,7 @@ abstract class CCXTAdapter extends Exchange {
 
   public function getRecentOrderTrades( &$arbitrator, $tradeable, $currency, $type, $orderID, $tradeAmount ) {
 
-    if (!preg_match( '/^[A-Z0-9_]+:(.*)$/', $orderID, $matches )) {
+    if (!preg_match( '/^([A-Z0-9]+)_([A-Z0-9]+):(.*)$/', $orderID, $matches )) {
       throw new Exception( $this->prefix() . "Invalid order id: " . $orderID );
     }
     $rawOrderID = $matches[ 1 ];
@@ -178,6 +178,9 @@ abstract class CCXTAdapter extends Exchange {
     $trades = array( );
     $feeFactor = ($type == 'sell') ? -1 : 1;
     foreach ( $results as $row ) {
+      if ( $row[ 'order' ] != $rawOrderID ) {
+        continue;
+      }
       $trades[] = array(
         'rawID' => $rawOrderID . '/' . $row[ 'id' ],
         'id' => $rawOrderID,
@@ -254,7 +257,7 @@ abstract class CCXTAdapter extends Exchange {
     foreach ( $this->getTradeablePairs() as $pair ) {
       $orders = $this->exchange->fetch_open_orders( str_replace( '_', '/', $pair ) );
       foreach ( $orders as $order ) {
-        $orderID = $order[ 'id' ];
+        $orderID = $order[ 'order' ];
         $split = explode( '/', $order[ 'symbol' ] );
         $tradeable = $split[ 0 ];
         $currency = $split[ 1 ];
