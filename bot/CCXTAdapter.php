@@ -31,6 +31,17 @@ abstract class CCXTAdapter extends Exchange {
 
   public abstract function isMarketActive( $market );
 
+  /**
+   ************************************************************
+   * Must return an array with the following keys:
+   * history: an array of deposit history entries
+   * statusKey: key name for the status field
+   * coinKey: key name for the coin field
+   * amountKey: key name for the amount field
+   ************************************************************
+   */
+  public abstract function getDepositHistory();
+
   public function addFeeToPrice( $price, $tradeable, $currency ) {
 
     $pair = $tradeable . "_" . $currency;
@@ -306,6 +317,31 @@ abstract class CCXTAdapter extends Exchange {
     $this->transferFees = $this->exchange->fees[ 'funding' ][ 'withdraw' ];
 
     $this->calculateTradeablePairs();
+
+  }
+
+  public function getWalletsConsideringPendingDeposits() {
+
+    $result = [ ];
+    foreach ( $this->wallets as $coin => $balance ) {
+      $result[ $coin ] = $balance;
+    }
+    $info = $this->getDepositHistory();
+
+    foreach ( $info[ 'history' ] as $entry ) {
+
+      $status = $entry[ $info[ 'statusKey' ] ];
+      if ($status != 0 /* pending */) {
+        continue;
+      }
+
+      $coin = strtoupper( $entry[ $info[ 'coinKey' ] ] );
+      $amount = $entry[ $info[ 'amountKey' ] ];
+      $result[ $coin ] += $amount;
+
+    }
+
+    return $result;
 
   }
 
