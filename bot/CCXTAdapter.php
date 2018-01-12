@@ -38,6 +38,7 @@ abstract class CCXTAdapter extends Exchange {
    * statusKey: key name for the status field
    * coinKey: key name for the coin field
    * amountKey: key name for the amount field
+   * pending: the value of status when the deposit is pending.
    ************************************************************
    */
   public abstract function getDepositHistory();
@@ -331,7 +332,7 @@ abstract class CCXTAdapter extends Exchange {
     foreach ( $info[ 'history' ] as $entry ) {
 
       $status = $entry[ $info[ 'statusKey' ] ];
-      if ($status != 0 /* pending */) {
+      if ($status != $info[ 'pending' ]) {
         continue;
       }
 

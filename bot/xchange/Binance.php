@@ -75,6 +75,7 @@ class Binance extends CCXTAdapter {
       'statusKey' => 'status',
       'coinKey' => 'asset',
       'amountKey' => 'amount',
+      'pending' => 0,
 
     );
 
