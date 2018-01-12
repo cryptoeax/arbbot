@@ -172,8 +172,10 @@ abstract class CCXTAdapter extends Exchange {
     if (!preg_match( '/^([A-Z0-9]+)_([A-Z0-9]+):(.*)$/', $orderID, $matches )) {
       throw new Exception( $this->prefix() . "Invalid order id: " . $orderID );
     }
-    $rawOrderID = $matches[ 1 ];
-    $results = $this->exchange->fetch_order_trades( $rawOrderID, $tradeable . '/' . $currency );
+    $currency = $matches[ 1 ];
+    $tradeable = $matches[ 2 ];
+    $rawOrderID = $matches[ 3 ];
+    $results = $this->exchange->fetch_my_trades( $tradeable . '/' . $currency );
 
     $trades = array( );
     $feeFactor = ($type == 'sell') ? -1 : 1;
