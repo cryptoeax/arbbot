@@ -12,6 +12,8 @@ abstract class CCXTAdapter extends Exchange {
   private $tradeFees = [ ];
   private $minTrades = [ ];
 
+  private $lastStuckReportTime = [ ];
+
   function __construct( $id, $name, $ccxtName ) {
     $this->id = $id;
     $this->name = $name;
@@ -38,10 +40,22 @@ abstract class CCXTAdapter extends Exchange {
    * statusKey: key name for the status field
    * coinKey: key name for the coin field
    * amountKey: key name for the amount field
-   * pending: the value of status when the deposit is pending.
+   * pending: the value of status when the deposit is pending. can be an array.
    ************************************************************
    */
   public abstract function getDepositHistory();
+
+  /**
+   ************************************************************
+   * Must return an array with the following keys:
+   * history: an array of withdrawal history entries
+   * statusKey: key name for the status field
+   * coinKey: key name for the coin field
+   * amountKey: key name for the amount field
+   * pending: the value of status when the withdrawal is pending. can be an array.
+   ************************************************************
+   */
+  public abstract function getWithdrawalHistory();
 
   public function addFeeToPrice( $price, $tradeable, $currency ) {
 
@@ -328,11 +342,14 @@ abstract class CCXTAdapter extends Exchange {
       $result[ $coin ] = $balance;
     }
     $info = $this->getDepositHistory();
+    if ( !is_array( $info[ 'pending' ] ) ) {
+      $info[ 'pending' ] = [ $info[ 'pending' ] ];
+    }
 
     foreach ( $info[ 'history' ] as $entry ) {
 
       $status = $entry[ $info[ 'statusKey' ] ];
-      if ($status != $info[ 'pending' ]) {
+      if ( !in_array( $status, $info[ 'pending' ] ) ) {
         continue;
       }
 
@@ -343,6 +360,46 @@ abstract class CCXTAdapter extends Exchange {
     }
 
     return $result;
+
+  }
+
+  public function detectStuckTransfers() {
+
+    $info = $this->getDepositHistory();
+    if ( !is_array( $info[ 'pending' ] ) ) {
+      $info[ 'pending' ] = [ $info[ 'pending' ] ];
+    }
+
+    $this->detectStuckTransfersInternal( $info[ 'history' ], 'deposit', $info );
+
+    $info = $this->getWithdrawalHistory();
+    if ( !is_array( $info[ 'pending' ] ) ) {
+      $info[ 'pending' ] = [ $info[ 'pending' ] ];
+    }
+
+    $this->detectStuckTransfersInternal( $info[ 'history' ], 'withdraw', $info );
+
+  }
+
+  private function detectStuckTransfersInternal( $history, $key, $info ) {
+
+    foreach ( $history as $entry ) {
+
+      foreach ( $block as $entry ) {
+        $timestamp = floor( $entry[ $info[ 'timeKey' ] ] / 1000 ); // in milliseconds
+        if ( key_exists( $key, $this->lastStuckReportTime ) && $timestamp < $this->lastStuckReportTime[ $key ] ) {
+          continue;
+        }
+        $status = $entry[ $info[ 'statusKey' ] ];
+
+        if ( $timestamp < time() - 12 * 3600 && in_array( $status, $info[ 'pending' ] ) ) {
+          alert( 'stuck-transfer', $this->prefix() .
+                 "Stuck $key! Please investigate and open support ticket if neccessary!\n\n" .
+                 print_r( $entry, true ), true );
+          $this->lastStuckReportTime[ $key ] = $timestamp;
+        }
+      }
+    }
 
   }
 
