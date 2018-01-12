@@ -56,7 +56,7 @@ class Binance extends CCXTAdapter {
         if ( key_exists( $key, $this->lastStuckReportTime ) && $timestamp < $this->lastStuckReportTime[ $key ] ) {
           continue;
         }
-        $status = strtoupper( $entry[ 'status' ] );
+        $status = $entry[ 'status' ];
 
         if ( $timestamp < time() - 12 * 3600 && ($status == 2 /* awaiting approval */ || $status == 4 /* processing */) ) {
           alert( 'stuck-transfer', $this->prefix() . "Stuck $key! Please investigate and open support ticket if neccessary!\n\n" . print_r( $entry, true ), true );
