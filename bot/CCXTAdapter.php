@@ -98,14 +98,14 @@ abstract class CCXTAdapter extends Exchange {
   public function buy( $tradeable, $currency, $rate, $amount ) {
     $result = $this->exchange->create_order( $tradeable . '/' . $currency, 'limit', 'buy',
                                              $amount, $rate );
-    return $result[ 'id' ];
+    return $currency . '_' . $tradeable . ':' . $result[ 'id' ];
 
   }
 
   public function sell( $tradeable, $currency, $rate, $amount ) {
     $result = $this->exchange->create_order( $tradeable . '/' . $currency, 'limit', 'sell',
                                              $amount, $rate );
-    return $result[ 'id' ];
+    return $currency . '_' . $tradeable . ':' . $result[ 'id' ];
 
   }
 
