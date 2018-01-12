@@ -134,7 +134,7 @@ abstract class CCXTAdapter extends Exchange {
     foreach ( $this->getTradeablePairs() as $pair ) {
       $result = $this->exchange->fetch_my_trades( str_replace( '_', '/', $pair ) );
   
-      foreach (array_keys($history) as $market) {
+      foreach ( $result as $row ) {
         $arr = explode( '/', $row[ 'symbol'] );
         $currency = $arr[ 1 ];
         $tradeable = $arr[ 0 ];
