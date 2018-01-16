@@ -429,13 +429,13 @@ abstract class BittrexLikeExchange extends Exchange {
         }
         //
 
-	if ( $data === false ) {
-	  $error = $this->prefix() . "Could not get reply: " . curl_error( $ch );
-	  logg( $error );
-	  continue;
-	}
+        if ( $data === false ) {
+          $error = $this->prefix() . "Could not get reply: " . curl_error( $ch );
+          logg( $error );
+          continue;
+        }
 
-	return $this->xtractResponse( $data );
+        return $this->xtractResponse( $data );
       }
       catch ( Exception $ex ) {
         $error = $ex->getMessage();
