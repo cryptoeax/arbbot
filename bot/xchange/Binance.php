@@ -7,6 +7,8 @@ define( 'BINANCE_ID', 9 );
 
 class BinanceExchange extends \ccxt\binance {
 
+  use CCXTErrorHandler;
+
   public function __construct( $options = array( ) ) {
     parent::__construct( $options );
   }
