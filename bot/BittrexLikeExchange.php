@@ -350,6 +350,10 @@ abstract class BittrexLikeExchange extends Exchange {
             ]
     );
 
+    if ( !isset( $result[ $this->orderIDParam ] ) ) {
+      return null;
+    }
+
     return $result[ $this->orderIDParam ];
 
   }
