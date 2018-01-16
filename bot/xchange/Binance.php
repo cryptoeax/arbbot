@@ -9,10 +9,6 @@ class BinanceExchange extends \ccxt\binance {
 
   use CCXTErrorHandler;
 
-  public function __construct( $options = array( ) ) {
-    parent::__construct( $options );
-  }
-
   public function nonce() {
     return generateNonce( BINANCE_ID );
   }
