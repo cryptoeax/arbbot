@@ -370,6 +370,9 @@ abstract class CCXTAdapter extends Exchange {
       $result[ $coin ] = $balance;
     }
     $info = $this->getDepositHistory();
+    if ( !is_array( $info[ 'history' ] ) ) {
+      return $result;
+    }
     if ( !is_array( $info[ 'pending' ] ) ) {
       $info[ 'pending' ] = [ $info[ 'pending' ] ];
     }
@@ -394,18 +397,22 @@ abstract class CCXTAdapter extends Exchange {
   public function detectStuckTransfers() {
 
     $info = $this->getDepositHistory();
-    if ( !is_array( $info[ 'pending' ] ) ) {
-      $info[ 'pending' ] = [ $info[ 'pending' ] ];
-    }
+    if ( is_array( $info[ 'history' ] ) ) {
+      if ( !is_array( $info[ 'pending' ] ) ) {
+        $info[ 'pending' ] = [ $info[ 'pending' ] ];
+      }
 
-    $this->detectStuckTransfersInternal( $info[ 'history' ], 'deposit', $info );
+      $this->detectStuckTransfersInternal( $info[ 'history' ], 'deposit', $info );
+    }
 
     $info = $this->getWithdrawalHistory();
-    if ( !is_array( $info[ 'pending' ] ) ) {
-      $info[ 'pending' ] = [ $info[ 'pending' ] ];
-    }
+    if ( is_array( $info[ 'history' ] ) ) {
+      if ( !is_array( $info[ 'pending' ] ) ) {
+        $info[ 'pending' ] = [ $info[ 'pending' ] ];
+      }
 
-    $this->detectStuckTransfersInternal( $info[ 'history' ], 'withdraw', $info );
+      $this->detectStuckTransfersInternal( $info[ 'history' ], 'withdraw', $info );
+    }
 
   }
 
