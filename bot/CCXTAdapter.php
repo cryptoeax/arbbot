@@ -13,12 +13,12 @@ trait CCXTErrorHandler {
       catch ( Exception $ex ) {
         // For buy() and sell() functions, convert exceptions into null return values.
         if ( $function == 'create_order' &&
-             ( $ex instanceof \ccxt\ccxt\ExchangeError ||
-               $ex instanceof \ccxt\ccxt\NetworkError ) ) {
+             ( $ex instanceof \ccxt\ExchangeError ||
+               $ex instanceof \ccxt\NetworkError ) ) {
           // Emulate the log messages that the other exchanges show.
           logg( "[" . strtoupper( $this->id ) . "] Got an exception in " . $params[ 2 ] . "(): " . $ex->getMessage() );
           return null;
-        } else if ( $ex instanceof \ccxt\ccxt\NetworkError ) {
+        } else if ( $ex instanceof \ccxt\NetworkError ) {
           // Retry!
           continue;
         }
