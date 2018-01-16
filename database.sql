@@ -181,7 +181,8 @@ CREATE TABLE IF NOT EXISTS `track` (
   `currency` char(10) NOT NULL,
   `amount` varchar(18) NOT NULL,
   `profit` varchar(18) NOT NULL,
-  `ID_exchange` int(11) NOT NULL,
+  `ID_exchange_source` int(11) NOT NULL,
+  `ID_exchange_target` int(11) NOT NULL,
   PRIMARY KEY (`ID`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
