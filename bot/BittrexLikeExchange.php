@@ -443,6 +443,7 @@ abstract class BittrexLikeExchange extends Exchange {
 
         if ( strpos( $error, 'ORDER_NOT_OPEN' ) !== false ||
              strpos( $error, 'MIN_TRADE_REQUIREMENT_NOT_MET' ) !== false ||
+             strpos( $error, 'ADDRESS_GENERATING' ) !== false ||
              strpos( $error, '_OFFLINE' ) !== false ) {
           // Real error, don't attempt to retry needlessly.
           break;
