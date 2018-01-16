@@ -166,7 +166,14 @@ $(function() {
         if (symbol === "alt_btc") {
             return ""; // Not a coin. Has no icon.
         }
-   
+        symbol = symbol.trim();
+        // Canonicalize symbol
+        if (symbol == "SC") {
+          symbol = "SIA";
+        } else if (symbol == "BLK") {
+          symbol = "BC";
+        }
+ 
         return "<i class=\"cc " + symbol + "\" title=\"" + symbol + "\"/> ";
     }
 
