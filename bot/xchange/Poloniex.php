@@ -603,7 +603,7 @@ class Poloniex extends Exchange {
     curl_setopt( $ch, CURLOPT_POSTFIELDS, $post_data );
     curl_setopt( $ch, CURLOPT_HTTPHEADER, $headers );
     curl_setopt( $ch, CURLOPT_CONNECTTIMEOUT, 10 );
-    curl_setopt( $ch, CURLOPT_TIMEOUT, 180 );
+    curl_setopt( $ch, CURLOPT_TIMEOUT, 10 );
 
     // run the query
     $error = null;
