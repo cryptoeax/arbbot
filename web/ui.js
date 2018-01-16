@@ -162,15 +162,15 @@ $(function() {
         return "<span class=\"" + (x < 0 ? "neg" : "pos") + "\">" + rnd8(Math.abs(x)) + "</span>";
     }
 
-  function getIcon(symbol) {
-    if (symbol === "alt_btc") {
-      return ""; // Not a coin. Has no icon.
-    }
+    function getIcon(symbol) {
+        if (symbol === "alt_btc") {
+            return ""; // Not a coin. Has no icon.
+        }
    
-    return "<i class=\"cc " + symbol + "\" title=\"" + symbol + "\"/> ";
-  }
+        return "<i class=\"cc " + symbol + "\" title=\"" + symbol + "\"/> ";
+    }
 
-  function updateGraph() {
+    function updateGraph() {
         setTimeout(updateGraph, 90000);
 
         var coinIcon = getIcon(graphCoin);
