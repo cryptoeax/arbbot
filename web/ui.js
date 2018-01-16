@@ -166,15 +166,25 @@ $(function() {
         return "<span class=\"" + (x < 0 ? "neg" : "pos") + "\">" + rnd8(Math.abs(x)) + "</span>";
     }
 
-    function updateGraph() {
+  function getIcon(symbol) {
+    if (symbol === "alt_btc") {
+      return ""; // Not a coin. Has no icon.
+    }
+   
+    return "<i class=\"cc " + symbol + "\" title=\"" + symbol + "\"/> ";
+  }
+
+  function updateGraph() {
         setTimeout(updateGraph, 90000);
 
+        var coinIcon = getIcon(graphCoin);
+
         if (graphMode === "0") {
-            $("#graphHeading").html(graphCoin + " balance @ " + no2el(graphExchange));
+            $("#graphHeading").html(coinIcon + graphCoin + " balance @ " + no2el(graphExchange));
         } else if (graphMode === "1") {
-            $("#graphHeading").html(graphCoin + " rate @ " + no2el(graphExchange));
+            $("#graphHeading").html(coinIcon + graphCoin + " rate @ " + no2el(graphExchange));
         } else {
-            $("#graphHeading").html(graphCoin + " desired balance @ " + no2el(graphExchange));
+            $("#graphHeading").html(coinIcon + graphCoin + " desired balance @ " + no2el(graphExchange));
         }
 
         $.ajax({
@@ -459,7 +469,7 @@ $(function() {
                     var minC = 0, maxC = 0;
                     var N = keys.length - 1;
                     for (var i = N; i >= 0; i--) {
-                        ticks.push([N - i, keys[i]]);
+                        ticks.push([N - i, getIcon(keys[i]) + keys[i]]);
                         data.push([N - i, obj[keys[i]].value]);
                         success.push([N - i, 100 * obj[keys[i]].success /
                                                    obj[keys[i]].count]);
@@ -652,7 +662,7 @@ $(function() {
                         amount = " " + amount;
                     }
 
-                    htmlData += amount + " " + coin;
+                    htmlData += amount + " " + getIcon(coin) + coin;
                     htmlData += " ";
                     htmlData += no2e(data[i].exchange);
                     htmlData += " ";
@@ -697,7 +707,7 @@ $(function() {
                     direction += " -> ";
                     direction += no2e(data[i].exchange_target);
 
-                    htmlData += amount + " " + coin + " " + direction + "\n";
+                    htmlData += amount + " " + getIcon(coin) + coin + " " + direction + "\n";
                 }
 
                 $("#xfers").html("<pre>" + htmlData + "</pre>");
@@ -726,7 +736,7 @@ $(function() {
                     while (amount.length < 8) {
                         amount = " " + amount;
                     }
-                    htmlData += amount + " " + coin + " " + no2e(data[i].source) + " -> " + no2e(data[i].target) + "\n";
+                    htmlData += amount + " " + getIcon(coin) + coin + " " + no2e(data[i].source) + " -> " + no2e(data[i].target) + "\n";
                 }
 
                 $("#trades").html("<pre>" + htmlData + "</pre>");
@@ -813,7 +823,7 @@ $(function() {
                 htmlData += "--------------------------\n";
                 htmlData += "\n";
 
-                htmlData += "---------- <span title=\"Currency\">BTC</span> -----------\n";
+                htmlData += "--------- " + getIcon("BTC") + "<span title=\"Currency\">BTC</span> ----------\n";
 
                 var btcData = wallets['BTC'];
                 var total = 0;
@@ -887,10 +897,10 @@ $(function() {
 
                     var dashes = "";
                     var strCoin = coin + " ";
-                    while ((strCoin + dashes).length < 25) {
+                    while ((strCoin + dashes).length < 23) {
                         dashes += "-";
                     }
-                    htmlData += "<span title=\"Currency\">" + strCoin + "</span> ";
+                    htmlData += getIcon(coin) + "<span title=\"Currency\">" + strCoin + "</span> ";
                     htmlData += dashes + "\n";
 
 
