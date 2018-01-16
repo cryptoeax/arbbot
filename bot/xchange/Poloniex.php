@@ -415,7 +415,7 @@ class Poloniex extends Exchange {
         $status = strtoupper( $entry[ 'status' ] );
 
         if ( $timestamp < time() - 12 * 3600 && (substr( $status, 0, 8 ) != 'COMPLETE' || strpos( $status, 'ERROR' ) !== false) ) {
-          alert( 'stuck-transfer', $this->prefix() . "Stuck $key! Please investigate and open support ticket if neccessary!\n\n" . print_r( $entry, true ), true );
+          alert( 'stuck-transfer', $this->prefix() . "Stuck $key! Please investigate and open support ticket at Poloniex if neccessary!\n\n" . print_r( $entry, true ), true );
           $this->lastStuckReportTime[ $key ] = $timestamp;
         }
       }
@@ -603,7 +603,7 @@ class Poloniex extends Exchange {
     curl_setopt( $ch, CURLOPT_POSTFIELDS, $post_data );
     curl_setopt( $ch, CURLOPT_HTTPHEADER, $headers );
     curl_setopt( $ch, CURLOPT_CONNECTTIMEOUT, 10 );
-    curl_setopt( $ch, CURLOPT_TIMEOUT, 180 );
+    curl_setopt( $ch, CURLOPT_TIMEOUT, 10 );
 
     // run the query
     $error = null;
