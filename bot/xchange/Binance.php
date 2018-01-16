@@ -1,6 +1,5 @@
 <?php
 
-require_once __DIR__ . '/../Config.php';
 require_once __DIR__ . '/../CCXTAdapter.php';
 
 define( 'BINANCE_ID', 9 );
