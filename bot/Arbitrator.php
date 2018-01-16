@@ -53,13 +53,11 @@ class Arbitrator {
 
     $this->refreshWallets();
 
-    if ( $this->coinManager->doManage( $this ) ) {
-      return;
+    if ( !$this->coinManager->doManage( $this ) ) {
+      $this->cancelStrayOrders();
+
+      $this->checkOpportunities();
     }
-
-    $this->cancelStrayOrders();
-
-    $this->checkOpportunities();
 
     $this->updateRunTimestamp();
 
