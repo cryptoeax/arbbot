@@ -457,7 +457,7 @@ class Database {
 
     $link = self::connect();
 
-    $query = sprintf( "SELECT AVG(rate) AS rate FROM snapshot WHERE coin = '%s' GROUP BY created", mysql_escape_string( $coin ) );
+    $query = sprintf( "SELECT AVG(rate) AS rate FROM snapshot WHERE coin = '%s' GROUP BY created ORDER BY created", mysql_escape_string( $coin ) );
 
     $result = mysql_query( $query, $link );
     if ( !$result ) {
