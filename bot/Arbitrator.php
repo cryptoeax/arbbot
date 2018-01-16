@@ -5,7 +5,6 @@ require_once __DIR__ . '/CoinManager.php';
 class Arbitrator {
 
   private $eventLoop;
-  private $errorCounter;
   private $exchanges;
   private $exchangePairs = [ ];
   private $profitablePairsOfTheDay = [ ];
@@ -54,13 +53,11 @@ class Arbitrator {
 
     $this->refreshWallets();
 
-    if ( $this->coinManager->doManage( $this ) ) {
-      return;
+    if ( !$this->coinManager->doManage( $this ) ) {
+      $this->cancelStrayOrders();
+
+      $this->checkOpportunities();
     }
-
-    $this->cancelStrayOrders();
-
-    $this->checkOpportunities();
 
     $this->updateRunTimestamp();
 
@@ -575,8 +572,6 @@ class Arbitrator {
 
   public function run() {
 
-    $this->errorCounter = 0;
-
     $this->eventLoop->run();
 
   }
@@ -585,11 +580,9 @@ class Arbitrator {
 
     try {
       $this->loop();
-      $this->errorCounter = 0;
     }
     catch ( Exception $ex ) {
-      $this->errorCounter++;
-      logg( "Error during main loop: " . $ex->getMessage() . "\n" . $ex->getTraceAsString(), $this->errorCounter == 10 );
+      logg( "Error during main loop: " . $ex->getMessage() . "\n" . $ex->getTraceAsString() );
     }
 
     $self = $this;
