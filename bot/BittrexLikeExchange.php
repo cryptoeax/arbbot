@@ -350,6 +350,10 @@ abstract class BittrexLikeExchange extends Exchange {
             ]
     );
 
+    if ( !isset( $result[ $this->orderIDParam ] ) ) {
+      return null;
+    }
+
     return $result[ $this->orderIDParam ];
 
   }
@@ -425,13 +429,13 @@ abstract class BittrexLikeExchange extends Exchange {
         }
         //
 
-	if ( $data === false ) {
-	  $error = $this->prefix() . "Could not get reply: " . curl_error( $ch );
-	  logg( $error );
-	  continue;
-	}
+        if ( $data === false ) {
+          $error = $this->prefix() . "Could not get reply: " . curl_error( $ch );
+          logg( $error );
+          continue;
+        }
 
-	return $this->xtractResponse( $data );
+        return $this->xtractResponse( $data );
       }
       catch ( Exception $ex ) {
         $error = $ex->getMessage();
@@ -439,6 +443,7 @@ abstract class BittrexLikeExchange extends Exchange {
 
         if ( strpos( $error, 'ORDER_NOT_OPEN' ) !== false ||
              strpos( $error, 'MIN_TRADE_REQUIREMENT_NOT_MET' ) !== false ||
+             strpos( $error, 'ADDRESS_GENERATING' ) !== false ||
              strpos( $error, '_OFFLINE' ) !== false ) {
           // Real error, don't attempt to retry needlessly.
           break;
