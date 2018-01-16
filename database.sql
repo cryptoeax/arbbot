@@ -195,7 +195,7 @@ CREATE TABLE IF NOT EXISTS `trade` (
   `ID` int(11) NOT NULL AUTO_INCREMENT,
   `created` int(11) NOT NULL,
   `coin` char(10) NOT NULL,
-  `currency` char(3) NOT NULL,
+  `currency` char(10) NOT NULL,
   `amount` varchar(18) NOT NULL,
   `ID_exchange_source` int(11) NOT NULL,
   `ID_exchange_target` int(11) NOT NULL,
