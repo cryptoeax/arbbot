@@ -18,7 +18,7 @@ class Arbitrator {
   function __construct( $loop, $exchanges, &$tradeMatcher ) {
     $this->eventLoop = $loop;
     $self = $this;
-    $this->eventLoop->addTimer( 1, function() use($self) {
+    $this->eventLoop->addPeriodicTimer( 1, function() use($self) {
       $self->innerRun();
     } );
 
@@ -584,11 +584,6 @@ class Arbitrator {
     catch ( Exception $ex ) {
       logg( "Error during main loop: " . $ex->getMessage() . "\n" . $ex->getTraceAsString() );
     }
-
-    $self = $this;
-    $this->eventLoop->addTimer( 1, function() use($self) {
-      $self->innerRun();
-    } );
 
   }
 
