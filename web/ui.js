@@ -7,7 +7,7 @@ var statsTimeout = null;
 var totalPL = null;
 var realizedPL = null;
 var profitableTrades = null;
-var plMode = "details";
+var plMode = "summary";
 var uiDisabled = false;
 var adminUIReady = false;
 
@@ -35,6 +35,12 @@ $(function() {
         Cookies.set('smooth', smooth);
 
         updateGraph();
+        return false;
+    });
+
+    $(".showPLSummary").click(function() {
+        plMode = "summary";
+        updatePL();
         return false;
     });
 
@@ -82,11 +88,13 @@ $(function() {
 
     var walletAge = 0;
 
-    function no2e(x) {
+    function no2e(x, title) {
 
         var num = parseInt(x);
-        if (num <= 3 && num >= 0) {
-            return '<img src="xchange/' + num + '.ico" width="14" height="14">';
+        if (num <= 7 && num >= 0) {
+	    return '<span title="' + (title ? title : no2ell_xfer(x)) + '">' +
+                   '<img src="xchange/' + num + '.ico" width="14" height="14">' +
+                   '</span>';
         }
 
         return "?";
@@ -103,6 +111,8 @@ $(function() {
             return "BLTRD";
         else if (x === "3" || x === 3)
             return "BTTRX";
+        else if (x === "7" || x === 7)
+            return "HTBTC";
         else
             return "?";
 
@@ -125,6 +135,8 @@ $(function() {
             return "Bleutrade";
         else if (x === "3" || x === 3)
             return "Bittrex";
+        else if (x === "7" || x === 7)
+            return "HitBTC";
         else
             return "?";
 
@@ -150,15 +162,32 @@ $(function() {
         return "<span class=\"" + (x < 0 ? "neg" : "pos") + "\">" + rnd8(Math.abs(x)) + "</span>";
     }
 
+    function getIcon(symbol) {
+        if (symbol === "alt_btc") {
+            return ""; // Not a coin. Has no icon.
+        }
+        symbol = symbol.trim();
+        // Canonicalize symbol
+        if (symbol == "SC") {
+          symbol = "SIA";
+        } else if (symbol == "BLK") {
+          symbol = "BC";
+        }
+ 
+        return "<i class=\"cc " + symbol + "\" title=\"" + symbol + "\"/> ";
+    }
+
     function updateGraph() {
         setTimeout(updateGraph, 90000);
 
+        var coinIcon = getIcon(graphCoin);
+
         if (graphMode === "0") {
-            $("#graphHeading").html(graphCoin + " balance @ " + no2el(graphExchange));
+            $("#graphHeading").html(coinIcon + graphCoin + " balance @ " + no2el(graphExchange));
         } else if (graphMode === "1") {
-            $("#graphHeading").html(graphCoin + " rate @ " + no2el(graphExchange));
+            $("#graphHeading").html(coinIcon + graphCoin + " rate @ " + no2el(graphExchange));
         } else {
-            $("#graphHeading").html(graphCoin + " desired balance @ " + no2el(graphExchange));
+            $("#graphHeading").html(coinIcon + graphCoin + " desired balance @ " + no2el(graphExchange));
         }
 
         $.ajax({
@@ -170,9 +199,9 @@ $(function() {
                 var obj = {};
                 var smooth = $("#smooth")[0].checked;
 
-                for (var x = 0; x < data[0].length; x++) {
-                    var d1 = [data[0][x].time * 1000, smooth ? data[0][x].value : data[0][x].raw];
-                    var exchange = data[0][x].exchange;
+                for (var x = 0; x < data.length; x++) {
+                    var d1 = [data[x].time * 1000, smooth ? data[x].value : data[x].raw];
+                    var exchange = data[x].exchange;
                     if (exchange === undefined) {
                         continue;
                     }
@@ -180,14 +209,6 @@ $(function() {
                         obj[exchange] = [];
                     }
                     obj[exchange].push(d1);
-                }
-                if (data[1]) {
-                    for (var x = 0; x < data[1].length; x++) {
-                        if (!obj[0]) {
-                            obj[0] = [];
-                        }
-                        obj[0].push([data[1][x].time * 1000, smooth ? data[1][x].value : data[1][x].raw]);
-                    }
                 }
 
                 var exchanges = Object.keys(obj);
@@ -220,7 +241,22 @@ $(function() {
                     },
                     tooltip: {
                         show: true,
-                        content: "%y.8",
+                        content: "%y",
+                        onHover: function(item, element) {
+                          // The tooltip plugin does not provide an API to customize the
+                          // formatting string per data series, so we have to fix up the
+                          // formatting after the fact like this.
+                          $(element[0]).text(parseFloat(item.datapoint[1]).toFixed(8));
+                        }
+                    },
+                    yaxis: {
+                        tickFormatter: function(val, axis) {
+                          if (Math.abs(val) > 1) {
+                            return rnd2(val);
+                          } else {
+                            return rnd8(val);
+                          }
+                        }
                     },
                     xaxis: {
                         mode: "time",
@@ -305,6 +341,9 @@ $(function() {
             url: "ajax.php?func=pl",
             type: "GET",
             cache: false,
+            data: {
+                mode: plMode,
+            },
             success: function(data) {
 
                 totalPL = rnd4(data.pl) + data.pl_currency;
@@ -313,7 +352,7 @@ $(function() {
 
                 var arr = data.data;
 
-                if (plMode == "details") {
+                if (plMode == "summary" || plMode == "details") {
     	        $("#filterbox").remove();
 
                     var htmlData = "";
@@ -350,8 +389,8 @@ $(function() {
 
                         htmlData += "<td>" + formattedTime + "</td><td>" + arr[i].coin + "</td><td>" + no2el(arr[i].source_exchange) + "</td><td>" +
                                     no2el(arr[i].target_exchange) + "</td>";
-                        htmlData += "<td>" + rnd8(arr[i].amount_sold) + "</td>";
-                        htmlData += "<td>" + Math.abs(rnd8(arr[i].currency_bought)) + "</td>";
+                        htmlData += "<td class=\"plain\">" + rnd8(arr[i].amount_sold).padStart(14, ' ') + "</td>";
+                        htmlData += "<td>" + rnd8(Math.abs(arr[i].currency_bought)) + "</td>";
                         htmlData += "<td>" + rnd8(arr[i].currency_sold) + "</td>";
                         htmlData += "<td>" + fmtpl(arr[i].currency_revenue) + "</td>";
                         htmlData += "<td>" + rnd8(arr[i].tx_fee) + "</td>";
@@ -433,7 +472,7 @@ $(function() {
                     var minC = 0, maxC = 0;
                     var N = keys.length - 1;
                     for (var i = N; i >= 0; i--) {
-                        ticks.push([N - i, keys[i]]);
+                        ticks.push([N - i, getIcon(keys[i]) + keys[i]]);
                         data.push([N - i, obj[keys[i]].value]);
                         success.push([N - i, 100 * obj[keys[i]].success /
                                                    obj[keys[i]].count]);
@@ -626,8 +665,10 @@ $(function() {
                         amount = " " + amount;
                     }
 
-                    htmlData += amount + " " + coin;
-                    htmlData += " @ ";
+                    htmlData += amount + " " + getIcon(coin) + coin;
+                    htmlData += " ";
+                    htmlData += no2e(data[i].exchange);
+                    htmlData += " ";
                     htmlData += no2el(data[i].exchange);
                     htmlData += "\n";
                 }
@@ -665,14 +706,11 @@ $(function() {
                     }
 
                     var direction = "";
-                    direction += "<span title=\"" + no2ell_xfer(data[i].exchange_source) + "\">";
                     direction += no2e(data[i].exchange_source);
-                    direction += "</span> -> ";
-                    direction += "<span title=\"" + no2ell_xfer(data[i].exchange_target) + "\">";
+                    direction += " -> ";
                     direction += no2e(data[i].exchange_target);
-                    direction += "</span>";
 
-                    htmlData += amount + " " + coin + " " + direction + "\n";
+                    htmlData += amount + " " + getIcon(coin) + coin + " " + direction + "\n";
                 }
 
                 $("#xfers").html("<pre>" + htmlData + "</pre>");
@@ -701,7 +739,7 @@ $(function() {
                     while (amount.length < 8) {
                         amount = " " + amount;
                     }
-                    htmlData += amount + " " + coin + " SOLD @ " + no2el(data[i].exchange) + "\n";
+                    htmlData += amount + " " + getIcon(coin) + coin + " " + no2e(data[i].source) + " -> " + no2e(data[i].target) + "\n";
                 }
 
                 $("#trades").html("<pre>" + htmlData + "</pre>");
@@ -710,7 +748,7 @@ $(function() {
     }
 
     function formatBalance(b) {
-        var rval = new String(b);
+        var rval = new String(rnd8(b));
         rval = rval.substr(0, rval.indexOf('.') + 3);
         return rval;
     }
@@ -788,7 +826,7 @@ $(function() {
                 htmlData += "--------------------------\n";
                 htmlData += "\n";
 
-                htmlData += "---------- <span title=\"Currency\">BTC</span> -----------\n";
+                htmlData += "--------- " + getIcon("BTC") + "<span title=\"Currency\">BTC</span> ----------\n";
 
                 var btcData = wallets['BTC'];
                 var total = 0;
@@ -862,10 +900,10 @@ $(function() {
 
                     var dashes = "";
                     var strCoin = coin + " ";
-                    while ((strCoin + dashes).length < 25) {
+                    while ((strCoin + dashes).length < 23) {
                         dashes += "-";
                     }
-                    htmlData += "<span title=\"Currency\">" + strCoin + "</span> ";
+                    htmlData += getIcon(coin) + "<span title=\"Currency\">" + strCoin + "</span> ";
                     htmlData += dashes + "\n";
 
 
@@ -879,8 +917,8 @@ $(function() {
                         var balance = formatBalance(dat.balance);
                         var balws = genWhitespace(balance, 6);
 
-                        htmlData += "<a href=\"#\" coin=\"" + coin + "\" exchange=\"" + xid + "\" mode=\"1\" class=\"showGraph\" title=\"" + no2ell(xid) + "\">";
-                        htmlData += no2e(xid);
+                        htmlData += "<a href=\"#\" coin=\"" + coin + "\" exchange=\"" + xid + "\" mode=\"1\" class=\"showGraph\">";
+                        htmlData += no2e(xid, no2ell(xid));
                         htmlData += "</a>";
                         htmlData += " = ";
 
@@ -947,7 +985,13 @@ $(function() {
             htmlData += "     Realized P&L: " + realizedPL + "\n";
         }
         if (profitableTrades != null) {
-            htmlData += "Profitable trades: " + rnd2(profitableTrades) + "%\n";
+            if (plMode == "summary") {
+                htmlData += "Profitable trades\n" +
+                            "    past 24 hours: ";
+            } else {
+                htmlData += "Profitable trades: ";
+            }
+	    htmlData += rnd2(profitableTrades) + "%\n";
         }
         htmlData += "    Autobuy funds: " + autobuy + "\n\n";
         htmlData += "  Next manage-run: " + timeLeft(stats.next_management) + "\n";

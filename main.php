@@ -37,6 +37,8 @@ logg( "Loading config..." );
 
 Database::handleAddressUpgrade();
 
+Database::handleCoinUpgrade();
+
 Database::handleTrackUpgrade();
 
 if ( !Database::alertsTableExists() ) {
@@ -46,6 +48,18 @@ if ( !Database::alertsTableExists() ) {
   Database::createAlertsTable();
   Database::importAlerts();
 }
+
+if ( !Database::balancesTableExists() ) {
+  logg( "Upgrading the database to create the separate balances table" );
+  logg( "This is a one time operation which may be really slow, please wait..." );
+
+  Database::createBalancesTable();
+  Database::importBalances();
+}
+
+//if ( !Database::currentSimulatedProfitsRateViewExists() ) {
+  Database::createCurrentSimulatedProfitsRateView();
+//}
 
 if ( !Database::profitsTableExists() ) {
   Database::createProfitsTable();
@@ -96,6 +110,8 @@ foreach ( $exchanges as $exchange ) {
   }
 }
 
+Database::fixupProfitLossCalculations( $exchanges );
+
 $tradeMatcher = new TradeMatcher( $exchanges );
 foreach ( $exchanges as $exchange ) {
 
@@ -103,13 +119,16 @@ foreach ( $exchanges as $exchange ) {
 
     logg( "Noticed new trades on " . $exchange->getName() . " that we haven't seen before, importing them now..." );
 
-    $csvPath = __DIR__ . '/' . $exchange->getTradeHistoryCSVName();
-    if ( ! is_readable( $csvPath ) ) {
-      $prompt = file_get_contents( __DIR__ . '/bot/xchange/' . $exchange->getName() . '-csv-missing.txt' );
-      logg( $prompt );
-      readline();
-      if ( !is_readable( $csvPath ) ) {
-        die( "Still can't find the file, refusing to continue\n" );
+    $name = $exchange->getTradeHistoryCSVName();
+    if ( $name ) {
+      $csvPath = __DIR__ . '/' . $name;
+      if ( ! is_readable( $csvPath ) ) {
+        $prompt = file_get_contents( __DIR__ . '/bot/xchange/' . $exchange->getName() . '-csv-missing.txt' );
+        logg( $prompt );
+        readline();
+        if ( !is_readable( $csvPath ) ) {
+          die( "Still can't find the file, refusing to continue\n" );
+        }
       }
     }
 

@@ -99,9 +99,8 @@ class TradeMatcher {
       // Fee is positive for "buy" trades.
       $buyFee = -$trade[ 'fee' ];
 
-      $boughtAmount = $source->deductFeeFromAmountBuy( $trade[ 'amount' ] );
-      $txFee = $cm->getSafeTxFee( $source, $trade[ 'tradeable' ], $boughtAmount );
-      $tradeableTransferFee = max( $tradeableTransferFee, $txFee );
+      $boughtAmount = $source->deductFeeFromAmountBuy( $trade[ 'amount' ], $tradeable, $currency );
+      $tradeableTransferFee = $cm->getSafeTxFee( $source, $trade[ 'tradeable' ], $boughtAmount );
     }
     foreach ( $sellTrades as $trade ) {
       if ( !is_null( $tradeable ) && $tradeable != $trade[ 'tradeable' ] ) {
@@ -124,10 +123,6 @@ class TradeMatcher {
       $tradeableSold += $trade[ 'amount' ];
       // Fee is negative for "buy" trades.
       $sellFee = $trade[ 'fee' ];
-
-      $soldAmount = $target->deductFeeFromAmountSell( $trade[ 'amount' ] );
-      $txFee = $cm->getSafeTxFee( $target, $trade[ 'tradeable' ], $soldAmount );
-      $tradeableTransferFee = max( $tradeableTransferFee, $txFee );
     }
 
     $currencyBought = $rateTimesAmountBuy;
@@ -156,7 +151,7 @@ class TradeMatcher {
     return $currencyProfitLoss;
   }
 
-  public function matchTradesConsideringPendingTransfers( $trades, $tradeable, $exchange, $tradeAmount ) {
+  public function matchTradesConsideringPendingTransfers( $trades, $tradeable, $currency, $exchange, $tradeAmount ) {
 
     $tradesSum = array_reduce( $trades, 'sumOfAmount', 0 );
 
@@ -165,15 +160,21 @@ class TradeMatcher {
 
 
     return $tradesSum == 0 ||
-           abs( abs( $tradesSum / $tradeAmount ) - 1 ) <= $exchange->addFeeToPrice( 1 );
+           abs( abs( $tradesSum / $tradeAmount ) - 1 ) <=
+                  $exchange->addFeeToPrice( 1, $tradeable, $currency );
 
   }
 
   function handlePostTradeTasks( &$arbitrator, &$exchange, $coin, $currency, $type,
                                  $orderID, $tradeAmount ) {
 
-    $trades = $exchange->getRecentOrderTrades( $arbitrator, $coin, $currency, $type,
-                                               $orderID, $tradeAmount );
+    $trades = [ ];
+    try {
+      $trades = $exchange->getRecentOrderTrades( $arbitrator, $coin, $currency, $type,
+                                                 $orderID, $tradeAmount );
+    } catch ( Exception $ex ) {
+      logg( "WARNING: Caught exceptin while calling getRecentOrderTrades(): " . $ex->getMessage() );
+    }
     foreach ( $trades as $trade ) {
       $arbitrator->getTradeMatcher()->saveTrade( $exchange->getID(), $type, $trade[ 'tradeable' ],
                                                  $trade[ 'currency' ], $trade );

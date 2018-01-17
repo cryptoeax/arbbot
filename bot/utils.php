@@ -51,16 +51,21 @@ function logg( $message ) {
 
 }
 
-function generateNewTradesLikeClause( $str ) {
-  return "raw_trade_ID LIKE \"%$str%\"";
-}
-
 function compareByTime( $row1, $row2 ) {
   return $row1[ 'time' ] - $row2[ 'time' ];
 }
 
 function sumOfAmount( $carry, $item ) {
   return $carry + $item[ 'amount' ];
+}
+
+
+function sumOfAmountTimesRate( $carry, $item ) {
+  return $carry + $item[ 'amount' ] * $item[ 'rate' ];
+}
+
+function getCurrency( $item ) {
+  return $item[ 'Currency' ];
 }
 
 function installDirectoryDirty() {

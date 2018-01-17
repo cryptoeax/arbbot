@@ -21,8 +21,14 @@ class Config {
   const MAX_TX_FEE_ALLOWED = 'expert.max-tx-fee-allowed';
   const DEFAULT_MAX_TX_FEE_ALLOWED = 0.00001;
   //
+  const NEAR_ZERO_BTC_VALUE = 'expert.near-zero-btc-value';
+  const DEFAULT_NEAR_ZERO_BTC_VALUE = 0.02;
+  //
   const MAX_MIN_CONFIRMATIONS_ALLOWED = 'expert.max-min-confirmations-allowed';
   const DEFAULT_MAX_MIN_CONFIRMATIONS_ALLOWED = 50;
+  //
+  const UNDERSELL_PROTECTION = 'expert.undersell-protection';
+  const DEFAULT_UNDERSELL_PROTECTION = false;
   //
   const RATE_EMA_PERIOD = 'expert.rate-ema-period';
   const DEFAULT_RATE_EMA_PERIOD = 12;
@@ -60,6 +66,9 @@ class Config {
   const INTERVAL_DB_CLEANUP = 'expert.interval-db-cleanup';
   const DEFAULT_INTERVAL_DB_CLEANUP = 2;
   //
+  const INTERVAL_CURRENCY_AGGRESSIVE_BALANCE = 'expert.interval-currency-aggressive-balance';
+  const DEFAULT_INTERVAL_CURRENCY_AGGRESSIVE_BALANCE = 5;
+  //
   const ALLOW_INSECURE_UI = 'expert.allow-insecure-ui';
   const DEFAULT_ALLOW_INSECURE_UI = false;
   //
@@ -91,10 +100,10 @@ class Config {
   const DEFAULT_MIN_PROFIT = 0.00000050;
   //
   const BUY_RATE_FACTOR = 'trade.buy-factor';
-  const DEFAULT_BUY_RATE_FACTOR = 1.1;
+  const DEFAULT_BUY_RATE_FACTOR = 1.005;
   //
   const SELL_RATE_FACTOR = 'trade.sell-factor';
-  const DEFAULT_SELL_RATE_FACTOR = 0.9;
+  const DEFAULT_SELL_RATE_FACTOR = 0.995;
   //
   // TAKEPROFIT MODULE
   const TAKE_PROFIT_ADDRESS = 'takeprofit.profit-address';

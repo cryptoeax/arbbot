@@ -112,10 +112,17 @@ min-profit = 0.00000050
 ; to 'force' the order to match against the next orderbook entry, these factors
 ; are applied before posting the order.
 ; This increases the chance to get the order filled, but could result in a loss.
+; Note that if you set the buy factor too high and/or the sell factor too low,
+; the bot may never end up entering a trade, with messages like "NOT ENTERING TRADE:
+; REDUCED SELL RATE xxx IS BELOW INCREASED BUY RATE yyy", in which case you need
+; to adjust these accordingly.  These numbers are factors that are multiplied into
+; the buy/sell prices that the bot places orders at, so the log messages should
+; give you an idea of how the prices the bot is working with change as you adjust
+; these variables.
 ;
 ; Set both values to 1 to disable
-buy-factor = 1.1
-sell-factor = 0.9
+buy-factor = 1.005
+sell-factor = 0.995
 
 [mail]
 ; MAIL CONFIGURATION
@@ -136,6 +143,16 @@ address =
 key =
 
 ; API secret for Bittrex
+secret =
+
+[bleutrade]
+
+; Bleutrade API keys can be generated on https://bleutrade.com/member/api_keys.
+
+; API key for Bleutrade
+key =
+
+; API secret for Bleutrade
 secret =
 
 [poloniex]
@@ -166,6 +183,15 @@ max-tx-fee-allowed = 0.00001
 ; transfer, we won't be in the ownership of our coins in a long time and therefore will miss out
 ; on any arbitrage opportunities in the interim.
 max-min-confirmations-allowed = 50
+
+; Protect against underselling during transactions.  This works by first issuing the sell trades
+; and then quickly attempting to check the result of the sell trade to see whether the entire order
+; was fullfilled and if not adjust down the buy order amount accordingly before placing it.  The
+; downside of this is that it introduces an extra lag between the placement of the sell and buy
+; orders, which might cause the desired orders to disappear from the buy orderbook by the time that
+; the bot manages to place the buy order, but the bot manages to place a more accurate buy order
+; as a result.
+undersell-protection = false
 
 ; How many pairs to check per exchange pair
 max-pairs-per-run = 15

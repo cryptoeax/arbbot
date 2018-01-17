@@ -4,7 +4,9 @@ class Database {
 
   const STATISTICS_MAX_AGE = 432000;
 
-  private static function connect() {
+  private static $trades = null;
+
+  public static function connect() {
 
     $dbHost = Config::get( Config::DB_HOST, null );
     $dbName = Config::get( Config::DB_NAME, null );
@@ -139,14 +141,65 @@ class Database {
 
   }
 
+  private static function recordBalance( $coin, $sma, $balance, $exchangeID, $time, $link ) {
+
+    // Record the balance entry.
+    $query = sprintf( "INSERT INTO balances (coin, `value`, `raw`, ID_exchange, created) VALUES ('%s', '%s', '%s', %d, %d);", //
+            $coin, //
+            formatBTC( $sma ), //
+            formatBTC( $balance ), //
+            $exchangeID, //
+            $time //
+    );
+    if ( !mysql_query( $query, $link ) ) {
+      throw new Exception( "database insertion error: " . mysql_error( $link ) );
+    }
+
+  }
+
+  public static function queryBalanceMovingAverage( $coin, $balance, $exchangeID, $link ) {
+
+    // Read the three most recent balances for this coin on this exchange.
+    $query = '';
+    if ( $exchangeID == '0' ) {
+      $query = sprintf( "SELECT SUM(raw) AS amount FROM balances WHERE coin = '%s' AND ID_exchange = '0' GROUP BY created ORDER BY created DESC LIMIT 3", $coin );
+    } else {
+      $query = sprintf( "SELECT SUM(raw) AS amount FROM balances WHERE coin = '%s' AND ID_exchange = %d GROUP BY created ORDER BY created DESC LIMIT 3",
+                        $coin, $exchangeID );
+    }
+    $result = mysql_query( $query, $link );
+    if ( !$result ) {
+      throw new Exception( "database selection error: " . mysql_error( $link ) );
+    }
+
+    $data = [];
+    while ( $row = mysql_fetch_assoc( $result ) ) {
+      $data[] = $row;
+    }
+    $prevBalanceSum = array_reduce( $data, 'sumOfAmount', 0 );
+    return ($prevBalanceSum + $balance) / (1 + count( $data ));
+
+  }
+
+  public static function saveBalance( $coin, $balance, $exchangeID, $time, $link ) {
+
+    $sma = self::queryBalanceMovingAverage( $coin, $balance, $exchangeID, $link );
+    self::recordBalance( $coin, $sma, $balance, $exchangeID, $time, $link );
+
+  }
+
   public static function saveSnapshot( $coin, $balance, $desiredBalance, $rate, $exchangeID, $time ) {
 
     $link = self::connect();
+
+    self::saveBalance( $coin, $balance, $exchangeID, $time, $link );
+
+    // Record the snapshot entry.
     $query = sprintf( "INSERT INTO snapshot (coin, balance, desired_balance, uses, trades, rate, ID_exchange, created) VALUES ('%s', '%s', '%s', %d, %d, '%s', %d, %d);", //
             $coin, //
             formatBTC( $balance ), //
             formatBTC( $desiredBalance ), //
-            self::getOpportunityCount( $coin, $exchangeID ), //
+            self::getOpportunityCount( $coin, 'BTC', $exchangeID ), //
             self::getTradeCount( $coin, $exchangeID ), //
             formatBTC( $rate ), //
             $exchangeID, //
@@ -292,7 +345,7 @@ class Database {
 
     $link = self::connect();
 
-    $query = 'SELECT * FROM snapshot WHERE created = (SELECT MAX(created) FROM snapshot)';
+    $query = 'SELECT * FROM current_snapshot';
 
     $result = mysql_query( $query, $link );
     if ( !$result ) {
@@ -318,6 +371,29 @@ class Database {
     return $results;
 
   }
+
+  public static function getCurrentSimulatedProfitRate() {
+
+    $link = self::connect();
+
+    $query = 'SELECT * FROM current_simulated_profit_rate ORDER BY ratio DESC';
+
+    $result = mysql_query( $query, $link );
+    if ( !$result ) {
+      throw new Exception( "database selection error: " . mysql_error( $link ) );
+    }
+
+    $results = [ ];
+    while ( $row = mysql_fetch_assoc( $result ) ) {
+      $results[] = $row;
+    }
+
+    mysql_close( $link );
+
+    return $results;
+
+  }
+
 
   public static function getOpportunityCount( $coin, $currency, $exchangeID ) {
 
@@ -381,7 +457,7 @@ class Database {
 
     $link = self::connect();
 
-    $query = sprintf( "SELECT AVG(rate) AS rate FROM snapshot WHERE coin = '%s' GROUP BY created", mysql_escape_string( $coin ) );
+    $query = sprintf( "SELECT AVG(rate) AS rate FROM snapshot WHERE coin = '%s' GROUP BY created ORDER BY created", mysql_escape_string( $coin ) );
 
     $result = mysql_query( $query, $link );
     if ( !$result ) {
@@ -423,13 +499,51 @@ class Database {
       // Old database format, need to upgrade first.
       $result = mysql_query( "ALTER TABLE withdrawal MODIFY address TEXT NOT NULL;", $link );
       if ( !$result ) {
-        throw new Exception( "database selection error: " . mysql_error( $link ) );
+        throw new Exception( "database alteration error: " . mysql_error( $link ) );
       }
     }
 
     mysql_close( $link );
 
-    return $results;
+  }
+
+  public static function handleCoinUpgrade() {
+
+    $link = self::connect();
+
+    $result = mysql_query( "SHOW COLUMNS FROM management LIKE 'coin';", $link );
+    if ( !$result ) {
+      throw new Exception( "database selection error: " . mysql_error( $link ) );
+    }
+
+    $row = mysql_fetch_assoc( $result );
+    if ( $row[ 'Type' ] == 'char(5)' ) {
+      // Old database format, need to upgrade first.
+      $upgrades = array(
+        [ 'balances', 'coin' ],
+        [ 'exchange_trades', 'coin' ],
+        [ 'exchange_trades', 'currency' ],
+        [ 'management', 'coin' ],
+        [ 'profits', 'currency' ],
+        [ 'profit_loss', 'coin' ],
+        [ 'profit_loss', 'currency' ],
+        [ 'snapshot', 'coin' ],
+        [ 'track', 'coin' ],
+        [ 'trade', 'coin' ],
+        [ 'withdrawal', 'coin' ],
+      );
+      foreach ( $upgrades as $item ) {
+        $table = $item[ 0 ];
+        $field = $item[ 1 ];
+        $result = mysql_query( sprintf( "ALTER TABLE %s MODIFY %s CHAR(10) NOT NULL;",
+                                        $table, $field ), $link );
+        if ( !$result ) {
+          throw new Exception( "database alteration error: " . mysql_error( $link ) );
+        }
+      }
+    }
+
+    mysql_close( $link );
 
   }
 
@@ -535,7 +649,7 @@ class Database {
       }
       $exchange = Exchange::createFromID( $row[ 'target' ] );
 
-      $price_sold = $matches[ 2 ] / $exchange->deductFeeFromAmountSell( $row[ 'amount' ] );
+      $price_sold = $matches[ 2 ] / $exchange->deductFeeFromAmountSell( $row[ 'amount' ], $row[ 'coin' ], $row[ 'currency' ] );
       $tx_fee = $matches[ 6 ] * $price_sold;
       $pl = $matches[ 4 ] - $tx_fee;
       if ($pl > 0) {
@@ -597,6 +711,63 @@ class Database {
 
   }
 
+  public static function fixupProfitLossCalculations( &$exchanges ) {
+    $stats = self::getStats();
+
+    if ( @$stats[ 'profit_loss_fixup' ] != 1 ) {
+      $link = self::connect();
+
+      $result = mysql_query( "SELECT ID, created, ID_exchange_source, coin, tradeable_bought, rate_sell, tradeable_tx_fee, currency_tx_fee, currency_pl FROM profit_loss " .
+                             "WHERE trade_IDs_buy != '' OR trade_IDs_sell != '' OR raw_trade_IDs_buy != '' OR raw_trade_IDs_sell != '';",
+                             $link );
+      if ( !$result ) {
+        throw new Exception( "database selection error: " . mysql_error( $link ) );
+      }
+
+      $exchangeMap = [ ];
+      foreach ( $exchanges as $ex ) {
+        $exchangeMap[ $ex->getID() ] = $ex;
+        $ex->refreshExchangeData();
+      }
+      $cm = new CoinManager( $exchanges );
+
+      print "Fixing incorrect transfer fee calculations in the Profit&Loss data, this may take a while...\n";
+
+      while ( $row = mysql_fetch_assoc( $result ) ) {
+        // Poor man's progress bar
+        print strftime( "\rChecking transaction performed on %Y-%m-%d %H:%M:%S", $row[ 'created' ] );
+
+        $oldFee = floatval( $row[ 'tradeable_tx_fee' ] );
+        $oldFeeInCurrency = floatval( $row[ 'currency_tx_fee' ] );
+        $newFee = floatval( $cm->getSafeTxFee( $exchangeMap[ $row[ 'ID_exchange_source' ] ], $row[ 'coin' ], $row[ 'tradeable_bought' ] ) );
+        $newFeeInCurrency = floatval( $row[ 'rate_sell' ] * $newFee );
+        if ( $oldFee != $newFee ) {
+          $diff = $newFeeInCurrency - $oldFeeInCurrency;
+          if ( $diff >= 0 ) {
+            // The fee data obtained from exchanges is subject to change.  If we get a positive diff here,
+            // the only possible explanation is a change in the transfer fees, so we can't know anything
+            // conclusive about what the real fees were at the transaction time unfortunately any more...
+            continue;
+          }
+
+          $result2 = mysql_query( sprintf( "UPDATE profit_loss SET tradeable_tx_fee = '%s', currency_tx_fee = '%s', " .
+                                           "currency_pl = '%s' WHERE ID = %d;",
+                                           formatBTC( $newFee ), formatBTC( $newFeeInCurrency ),
+                                           formatBTC( $row[ 'currency_pl' ] - $diff ), $row[ 'ID' ] ),
+                                  $link );
+          if ( !$result2 ) {
+            throw new Exception( "database insertion error: " . mysql_error( $link ) );
+          }
+        }
+      }
+
+      print "\n";
+
+      $stats[ 'profit_loss_fixup' ] = 1;
+      self::saveStats( $stats );
+    }
+  }
+
   public static function getTop5ProfitableCoinsOfTheDay() {
 
     $link = self::connect();
@@ -626,6 +797,9 @@ class Database {
                                             $rate, $amount, $fee, $total ) {
 
     $link = self::connect();
+    self::ensureTradesUpdated( $link );
+    self::$trades[ $rawTradeID ] = true;
+
     $query = sprintf( "REPLACE INTO exchange_trades (created, ID_exchange, coin, currency, " .
                       "                              raw_trade_ID, trade_ID, rate, amount, " .
                       "                              fee, total, type) VALUES " .
@@ -639,13 +813,14 @@ class Database {
 
   }
 
-  public static function alertsTableExists() {
+  private static function tableExistsHelper( $name ) {
 
     $link = self::connect();
 
     if ( !mysql_query( sprintf( "SELECT * FROM information_schema.tables WHERE table_schema = '%s' " .
-                                "AND table_name = 'alerts' LIMIT 1;",
-                                mysql_escape_string( Config::get( Config::DB_NAME, null ) ) ), $link ) ) {
+                                "AND table_name = '%s' LIMIT 1;",
+                                mysql_escape_string( Config::get( Config::DB_NAME, null ) ),
+                                mysql_escape_string( $name ) ), $link ) ) {
       throw new Exception( "database selection error: " . mysql_error( $link ) );
     }
 
@@ -658,11 +833,11 @@ class Database {
 
   }
 
-  public static function createAlertsTable() {
+  public static function createTableHelper( $name ) {
 
     $link = self::connect();
 
-    $query = file_get_contents( __DIR__ . '/../alerts.sql' );
+    $query = file_get_contents( __DIR__ . sprintf( '/../%s.sql', $name ) );
 
     foreach ( explode( ';', $query ) as $q ) {
       $q = trim( $q );
@@ -677,6 +852,18 @@ class Database {
     mysql_close( $link );
 
     return true;
+
+  }
+
+  public static function alertsTableExists() {
+
+    return self::tableExistsHelper( 'alerts' );
+
+  }
+
+  public static function createAlertsTable() {
+
+    return self::createTableHelper( 'alerts' );
 
   }
 
@@ -718,46 +905,140 @@ class Database {
 
     mysql_close( $link );
 
+ }
+ 
+  public static function balancesTableExists() {
+
+    return self::tableExistsHelper( 'balances' );
+
+  }
+
+  public static function createBalancesTable() {
+
+    return self::createTableHelper( 'balances' );
+
+  }
+  
+  public static function getSmoothedResultsForGraph( $result ) {
+  
+    $ma = [ ];
+  
+    $data = [ ];
+    while ( $row = mysql_fetch_assoc( $result ) ) {
+  
+      $value = floatval( $row[ 'data' ] );
+      $ex = $row[ 'ID_exchange' ];
+  
+      if (!in_array( $ex, array_keys( $ma ) )) {
+        $ma[$ex] = [ ];
+      }
+      $ma[$ex][] = $value;
+      while ( count( $ma[$ex] ) > 4 ) {
+        array_shift( $ma[$ex] );
+      }
+  
+      $sma = array_sum( $ma[$ex] ) / count( $ma[$ex] );
+      $data[] = ['time' => $row[ 'created' ], 'value' => $sma , 'raw' => $value,
+                 'exchange' => $ex ];
+    }
+  
+    return $data;
+  
+  }
+
+  private static function importBalancesHelper( $coin, $exchange, $link ) {
+
+    $query = '';
+    if ( $exchange === '0' ) {
+      $query = sprintf( "SELECT SUM(balance) AS data, created, '0' AS ID_exchange FROM snapshot WHERE coin = '%s' GROUP BY created;", //
+              mysql_escape_string( $coin )
+      );
+    } else {
+      // There is only one ID_exchange that we're selecting on, so MAX(ID_exchange) is the same as ID_exchange.
+      $query = sprintf( "SELECT SUM(balance) AS data, created, MAX(ID_exchange) AS ID_exchange FROM snapshot WHERE coin = '%s' AND ID_exchange = %d GROUP BY created;", //
+              mysql_escape_string( $coin ), //
+              mysql_escape_string( $exchange )
+      );
+    }
+   
+    $result = mysql_query( $query, $link );
+    if ( !$result ) {
+      throw new Exception( "database selection error: " . mysql_error( $link ) );
+    }
+
+    $data = self::getSmoothedResultsForGraph( $result );
+
+    foreach ( $data as $row ) {
+      self::recordBalance( $coin, $row[ 'value' ], $row[ 'raw' ], $exchange, 
+                           $row[ 'time' ], $link );
+    }
+
+  }
+
+  public static function importBalances() {
+
+    $link = self::connect();
+
+    // We want to iterate over all unique pairs (coin, exchange)
+    $result = mysql_query( "SELECT DISTINCT coin, ID_exchange AS exchange FROM snapshot ORDER BY coin ASC, exchange ASC;", $link );
+    if ( !$result ) {
+      throw new Exception( "database selection error: " . mysql_error( $link ) );
+    }
+
+    $prevCoin = '';
+    while ( $row = mysql_fetch_assoc( $result ) ) {
+      $coin = $row[ 'coin' ];
+      $exchange = $row[ 'exchange' ];
+      $name = 'unknown';
+      try {
+        $name = Exchange::getExchangeName( $exchange );
+      }
+      catch ( Exception $ex ) {
+      }
+      // Poor man's progress bar
+      printf( "\rImporting balances for %s on %s", $coin, $name );
+
+      if ( $prevCoin != '' && $prevCoin != $coin ) {
+        self::importBalancesHelper( $prevCoin, '0', $link );
+      }
+      if ( $prevCoin != $coin ) {
+        $prevCoin = $coin;
+      }
+      self::importBalancesHelper( $coin, $exchange, $link );
+    }
+
+    // Handle the boundary condition
+    if ( $prevCoin != '' ) {
+      self::importBalancesHelper( $prevCoin, '0', $link );
+    }
+
+    print "\n";
+
+    mysql_close( $link );
+
+  }
+
+  public static function currentSimulatedProfitsRateViewExists() {
+
+    return self::tableExistsHelper( 'current_simulated_profits_rate' );
+
+  }
+
+  public static function createCurrentSimulatedProfitsRateView() {
+
+    return self::createTableHelper( 'current_simulated_profits_rate' );
+
   }
 
   public static function profitsTableExists() {
 
-    $link = self::connect();
-
-    if ( !mysql_query( sprintf( "SELECT * FROM information_schema.tables WHERE table_schema = '%s' " .
-                                "AND table_name = 'profits' LIMIT 1;",
-                                mysql_escape_string( Config::get( Config::DB_NAME, null ) ) ), $link ) ) {
-      throw new Exception( "database selection error: " . mysql_error( $link ) );
-    }
-
-    $rows = mysql_affected_rows( $link );
-    $result = $rows > 0;
-
-    mysql_close( $link );
-
-    return $result;
+    return self::tableExistsHelper( 'profits' );
 
   }
 
   public static function createProfitsTable() {
 
-    $link = self::connect();
-
-    $query = file_get_contents( __DIR__ . '/../profits.sql' );
-
-    foreach ( explode( ';', $query ) as $q ) {
-      $q = trim( $q );
-      if ( !strlen( $q ) ) {
-        continue;
-      }
-      if ( !mysql_query( $q, $link ) ) {
-        throw new Exception( "database insertion error: " . mysql_error( $link ) );
-      }
-    }
-
-    mysql_close( $link );
-
-    return true;
+    return self::createTableHelper( 'profits' );
 
   }
 
@@ -806,42 +1087,30 @@ class Database {
 
   public static function profitLossTableExists() {
 
-    $link = self::connect();
-
-    if ( !mysql_query( sprintf( "SELECT * FROM information_schema.tables WHERE table_schema = '%s' " .
-                                "AND table_name = 'profit_loss' LIMIT 1;",
-                                mysql_escape_string( Config::get( Config::DB_NAME, null ) ) ), $link ) ) {
-      throw new Exception( "database insertion error: " . mysql_error( $link ) );
-    }
-
-    $rows = mysql_affected_rows( $link );
-    $result = $rows > 0;
-
-    mysql_close( $link );
-
-    return $result;
+    return self::tableExistsHelper( 'profit_loss' );
 
   }
 
   public static function createProfitLossTable() {
 
-    $link = self::connect();
+    return self::createTableHelper( 'profit_loss' );
 
-    $query = file_get_contents( __DIR__ . '/../profit_loss.sql' );
+  }
 
-    foreach ( explode( ';', $query ) as $q ) {
-      $q = trim( $q );
-      if ( !strlen( $q ) ) {
-        continue;
-      }
-      if ( !mysql_query( $q, $link ) ) {
-        throw new Exception( "database insertion error: " . mysql_error( $link ) );
-      }
+  private static function ensureTradesUpdated( $link ) {
+
+    if ( !is_null( self::$trades ) ) {
+      return;
+    }
+    self::$trades = array( );
+
+    if ( !$result = mysql_query( "SELECT raw_trade_ID FROM exchange_trades ", $link ) ) {
+      throw new Exception( "database selection error: " . mysql_error( $link ) );
     }
 
-    mysql_close( $link );
-
-    return true;
+    while ( $row = mysql_fetch_assoc( $result ) ) {
+      self::$trades[ $row[ 'raw_trade_ID' ] ] = true;
+    }
 
   }
 
@@ -853,30 +1122,18 @@ class Database {
       return array( );
     }
 
-    $arg = implode( " OR ", array_map( 'generateNewTradesLikeClause',
-                            array_map( 'mysql_escape_string', $recentTradeIDs ) ) );
-
-    if ( !$result = mysql_query( sprintf( "SELECT raw_trade_ID " .
-                                          "FROM exchange_trades WHERE %s;",
-                                          $arg ) ) ) {
-      throw new Exception( "database insertion error: " . mysql_error( $link ) );
-    }
-
-    $return = array( );
-    while ( $row = mysql_fetch_assoc( $result ) ) {
-      $return[ $row[ 'raw_trade_ID' ] ] = true;
-    }
+    self::ensureTradesUpdated( $link );
 
     mysql_close( $link );
 
     $result = array( );
     foreach ( $recentTradeIDs as $id ) {
-      if ( isset( $return[ $id ] ) ) {
+      if ( isset( self::$trades[ $id ] ) ) {
         continue;
       }
       // If we don't find an exact match, look for a partial match.
       $add = true;
-      foreach ( array_keys( $return ) as $candidate ) {
+      foreach ( array_keys( self::$trades ) as $candidate ) {
         if ( strpos( $candidate, $id ) !== false ) {
           $add = false;
           break;

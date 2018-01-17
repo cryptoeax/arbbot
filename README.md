@@ -4,12 +4,13 @@ The bot checks for altcoins, which are traded on both Poloniex and Bittrex and c
 The original version of this bot had a [backdoor which was removed from this fork](https://github.com/cryptoeax/arbbot/commit/15abe54a462b9a6decb1ef2a197626b106c8e5d1) and the fork has gone through a security audit and to the extent of the knowledge of the current maintainer is free of any other security issues.  Furthermore, it currently has a few extra security features that prevent the web UI to be used in passwordless non-HTTPS Internet environments by default, which mitigates the original vulnerability that existed in the code.  The code base is kept small and simple for the purpose of making it possible for people to perform their own security audit should they choose so.  If you find any other bugs please file issues so that they can be fixed quickly!
 
 You can see the bot running on a cheap [linode](https://www.linode.com) here.  Currently the bot is yielding daily profits of `7-20%` on a seed investment of around `0.4BTC`.
-![](https://screenshots.firefoxusercontent.com/images/64c6a25c-d733-46fa-acb9-25f3e002b124.png)
+![](https://screenshots.firefoxusercontent.com/images/28c48837-caa2-4bc9-b987-7f891ac7eca6.png)
 
 ## Supported Exchanges
 
-  * Poloniex (all BTC markets)
   * Bittrex (all BTC markets)
+  * Bleutrade (all BTC markets)
+  * Poloniex (all BTC markets)
 
 ## Installation on Debian 9.0+ / Ubuntu 16.04+
 

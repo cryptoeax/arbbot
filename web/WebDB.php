@@ -88,7 +88,7 @@ class WebDB {
 
     $query = null;
     if ( $mode == 0 ) {
-      $query = sprintf( "SELECT SUM(balance) AS data, created, ID_exchange FROM snapshot WHERE coin = '%s' %s GROUP BY created, ID_exchange;", //
+      $query = sprintf( "SELECT SUM(value) AS data, SUM(raw) AS raw, created, ID_exchange FROM balances WHERE coin = '%s' %s GROUP BY created, ID_exchange;", //
               mysql_escape_string( $coin ), //
               $exchange === "0" ? "" : sprintf( " AND ID_exchange = %d", mysql_escape_string( $exchange ) )
       );
@@ -114,33 +114,29 @@ class WebDB {
       throw new Exception( "database selection error: " . mysql_error( $link ) );
     }
 
-    $ma = [ ];
-
     $data = [ ];
-    while ( $row = mysql_fetch_assoc( $result ) ) {
-
-      $value = floatval( $row[ 'data' ] );
-      $ex = $row[ 'ID_exchange' ];
-
-      if (!in_array( $ex, array_keys( $ma ) )) {
-        $ma[$ex] = [ ];
+    if ( $mode == 0 ) {
+      // We have a fast path for this case.
+      while ( $row = mysql_fetch_assoc( $result ) ) {
+        $data[] = [ 'time' => $row[ 'created' ], 'value' => $row[ 'data' ],
+                    'raw' => $row[ 'raw' ], 'exchange' => $row[ 'ID_exchange' ] ];
       }
-      $ma[$ex][] = $value;
-      while ( count( $ma[$ex] ) > 4 ) {
-        array_shift( $ma[$ex] );
-      }
-
-      $sma = array_sum( $ma[$ex] ) / count( $ma[$ex] );
-      $data[] = ['time' => $row[ 'created' ], 'value' => $sma , 'raw' => $value,
-                 'exchange' => $ex ];
+    } else {
+      $data = Database::getSmoothedResultsForGraph( $result );
     }
 
-    mysql_close( $link );
-
+    $walletsMap = [ ];
     $ids = [ ];
     if ( $mode == 0 ) {
       // Append an entry for the current balances
-      $ids = array_reduce( $data, function( $carry, $value ) {
+      $ids = array_reduce( array_reverse( $data, true ), function( $carry, $value ) {
+        if ( in_array( '0', $carry ) ) {
+          // We reverse the array and add everything to $carry until we get to '0',
+          // and from there on we just keep returning what we have (the carry) until
+          // the end.  This effectively returns an array containing all of the IDs
+          // after and including the last 0.
+          return $carry;
+        }
         if ( !in_array( $value[ 'exchange' ], $carry ) ) {
           return array_merge( $carry, [ $value[ 'exchange' ] ] );
         }
@@ -151,111 +147,32 @@ class WebDB {
         try {
           $ex = Exchange::createFromID( $id );
           $ex->refreshWallets();
-          $wallets = $ex->getWalletsConsideringPendingDeposits();
-          // Will be 0 if $coin doesn't exist in our wallets!
-          $balance = @floatval( $wallets[ $coin ] );
+          $walletsMap[ $id ] = $ex->getWalletsConsideringPendingDeposits();
         } catch ( Exception $ex ) {
           // Ignore
         }
-
-	if (!in_array( $id, array_keys( $ma ) )) {
-	  $ma[$id] = [ ];
-	}
-	$ma[$id][] = $balance;
-	while ( count( $ma[$id] ) > 4 ) {
-	  array_shift( $ma[$id] );
-	}
-
-	$sma = array_sum( $ma[$id] ) / count( $ma[$id] );
-	$data[] = ['time' => strval( time() ), 'value' => $sma, 'raw' => $balance,
-		   'exchange' => $id ];
-      }
-    }
-
-    if ( $mode != 1 ) {
-      return [ '0' => $data, '1' => self::getTotalValue( $exchange, $coin, $mode, $ids ) ];
-    }
-
-    return [ '0' => $data ];
-
-  }
-
-  public static function getTotalValue( $exchange, $coin, $mode, $ids ) {
-
-    $link = self::connect();
-
-    // SELECT SUM(balance) * AVG(rate) AS value, coin, created FROM `snapshot` GROUP BY coin, created, ID_exchange ORDER BY `created` ASC
-    $query = sprintf( "SELECT SUM(balance) * AVG(rate) AS value, SUM(balance) AS balance, " .
-                      "       coin, created FROM `snapshot` " .
-                      "WHERE coin = '%s' GROUP BY coin, created, ID_exchange " .
-                      "ORDER BY `created` ASC", mysql_escape_string( $coin ) );
-
-    $result = mysql_query( $query, $link );
-
-    if ( !$result ) {
-      throw new Exception( "database selection error: " . mysql_error( $link ) );
-    }
-
-    $temp = [ ];
-    $values = [ ];
-    $prevCreated = 0;
-    while ( $row = mysql_fetch_assoc( $result ) ) {
-
-      $value = $mode == '1' ? $row[ 'value' ] : $row[ 'balance' ];
-      $created = $row[ 'created' ];
-
-      if ( $prevCreated == 0 ) {
-        $prevCreated = $created;
       }
 
-      if ( $created != $prevCreated ) {
-        $values[] = ['sum' => array_sum( $temp ), 'time' => $prevCreated ];
-        $temp = [ ];
-
-        $prevCreated = $created;
+      foreach ( $ids as $id ) {
+        if ( $id == '0' ) {
+          $balance = 0;
+          foreach ( $ids as $id2 ) {
+            if ( $id2 == '0' ) {
+              continue;
+            }
+            $balance += @floatval( $walletsMap[ $id2 ][ $coin ] );
+          }
+        } else {
+          // Will be 0 if $coin doesn't exist in our wallets!
+          $balance = @floatval( $walletsMap[ $id ][ $coin ] );
+        }
+        $sma = Database::queryBalanceMovingAverage( $coin, $balance, $id, $link );
+        $data[] = ['time' => strval( time() ), 'value' => formatBTC( $sma ),
+                   'raw' => formatBTC( $balance ), 'exchange' => $id ];
       }
-
-      $temp[] = $value;
     }
-    $values[] = ['sum' => array_sum( $temp ), 'time' => $created ];
 
     mysql_close( $link );
-
-    if ( $mode == 0 ) {
-      // Append an entry for the current balances
-      $sum = 0;
-      foreach ( $ids as $id ) {
-	$balance = 0;
-	try {
-	  $ex = Exchange::createFromID( $id );
-	  $ex->refreshWallets();
-	  $wallets = $ex->getWalletsConsideringPendingDeposits();
-	  // Will be 0 if $coin doesn't exist in our wallets!
-	  $balance = @floatval( $wallets[ $coin ] );
-	} catch ( Exception $ex ) {
-	  // Ignore
-	}
-        $sum += $balance;
-      }
-      $values[] = [ 'sum' => $sum, 'time' => time() ];
-    }
-
-    $ma = [ ];
-
-    $data = [ ];
-    foreach ( $values as $value ) {
-
-      if (!in_array( $exchange, $ma )) {
-        $ma[$exchange] = [ ];
-      }
-      $ma[$exchange][] = $value[ 'sum' ];
-      while ( count( $ma[$exchange] ) > 4 ) {
-        array_shift( $ma[$exchange] );
-      }
-
-      $sma = array_sum( $ma[$exchange] ) / count( $ma[$exchange] );
-      $data[] = ['time' => $value[ 'time' ], 'value' => $sma, 'raw' => $value[ 'sum' ] ];
-    }
 
     return $data;
 
@@ -360,7 +277,8 @@ class WebDB {
       array_push( $results, array( //
           'amount' => $row[ 'amount' ] , //
           'coin' => $row[ 'coin' ], //
-          'exchange' => $row[ 'ID_exchange_target' ], //
+          'source' => $row[ 'ID_exchange_source' ], //
+          'target' => $row[ 'ID_exchange_target' ], //
           'time' => $row[ 'created' ] //
       ) );
     }
@@ -493,16 +411,19 @@ class WebDB {
 
   }
 
-  public static function getPL() {
+  public static function getPL( $mode ) {
 
     $link = self::connect();
 
-    $result = mysql_query( "SELECT created, coin, currency, tradeable_sold AS amount, currency_bought, " .
-                           "       currency_sold, currency_revenue, currency_pl, currency_tx_fee, " .
-                           "       tradeable_tx_fee, ID_exchange_source AS source, " .
-                           "       ID_exchange_target AS target " .
-                           "FROM profit_loss " .
-                           "ORDER BY created DESC", $link );
+    $result = mysql_query( sprintf( "SELECT created, coin, currency, tradeable_sold AS amount, currency_bought, " .
+                                    "       currency_sold, currency_revenue, currency_pl, currency_tx_fee, " .
+                                    "       tradeable_tx_fee, ID_exchange_source AS source, " .
+                                    "       ID_exchange_target AS target " .
+                                    "FROM profit_loss %s" .
+                                    "ORDER BY created DESC",
+                                    // "summary" returns transactions in the past 24 hours
+                                    ( $mode == "summary" ) ? 'WHERE UNIX_TIMESTAMP() - created < 24 * 60 * 60 ' : ''
+                           ), $link );
     if ( !$result ) {
       throw new Exception( "database selection error: " . mysql_error( $link ) );
     }

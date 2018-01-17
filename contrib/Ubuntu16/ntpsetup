@@ -1,0 +1,10 @@
+#!/bin/bash
+apt update
+apt -y install ntp
+service ntp stop
+ntpdate ntp.ubuntu.com
+service ntp start
+update-rc.d ntp enable
+sleep 5
+echo "Checking for Peers"
+ntpq -c lpeer

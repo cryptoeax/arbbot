@@ -15,6 +15,7 @@ abstract class Exchange {
   protected $names = [ ];
   protected $pairs = [ ];
   protected $tradeablePairs = [ ];
+  protected $tradeables = [ ];
 
   function __construct( $apiKey, $apiSecret ) {
 
@@ -28,14 +29,19 @@ abstract class Exchange {
 
   }
 
-  public static function createFromID( $id ) {
+  public static function getExchangeName( $id ) {
 
     $path = __DIR__ . '/xchange/map.' . $id;
     if ( !is_readable( $path ) ) {
-      logg( "WARNING: Invalid ID passed to Exchange::createFromID: ${id}" );
       throw new Exception( "Invalid id: '${id}'" );
     }
-    $name = file_get_contents( $path );
+    return file_get_contents( $path );
+
+  }
+
+  public static function createFromID( $id ) {
+
+    $name = self::getExchangeName( $id );
     require_once __DIR__ . "/xchange/${name}.php";
     return new $name();
 
@@ -49,6 +55,7 @@ abstract class Exchange {
     // Never consider pairs that have a confirmation time that exceeds
     // max-min-confirmations-allowed for trading.
     $pairs = array( );
+    $tradeables = array( );
     foreach ( $this->pairs as $pair ) {
       $arr = explode( '_', $pair );
       $tradeable = $arr[ 0 ];
@@ -69,9 +76,20 @@ abstract class Exchange {
       }
 
       $pairs[] = $pair;
+      $tradeables[] = array(
+	'CoinType' => 'BITCOIN',
+	'Currency' => $tradeable,
+      );
     }
 
     $this->tradeablePairs = $pairs;
+    $this->tradeables = $tradeables;
+
+  }
+
+  public function getAllPairs() {
+
+    return $this->pairs;
 
   }
 
@@ -81,23 +99,29 @@ abstract class Exchange {
 
   }
 
+  public function getTradeables() {
+
+    return $this->tradeables;
+
+  }
+
   public function getWallets() {
 
     return $this->wallets;
 
   }
 
-  public function addFeeToPrice( $price ) {
+  public function addFeeToPrice( $price, $tradeable, $currency ) {
     return $price;
 
   }
 
-  public function deductFeeFromAmountBuy( $amount ) {
+  public function deductFeeFromAmountBuy( $amount, $tradeable, $currency ) {
     return $amount;
 
   }
 
-  public function deductFeeFromAmountSell( $amount ) {
+  public function deductFeeFromAmountSell( $amount, $tradeable, $currency ) {
     return $amount;
 
   }
@@ -167,7 +191,7 @@ abstract class Exchange {
         }
         return true;
       } );
-      $matched = $tradeMatcher->matchTradesConsideringPendingTransfers( $trades, $coin, $this, $tradeAmount );
+      $matched = $tradeMatcher->matchTradesConsideringPendingTransfers( $trades, $coin, $currency, $this, $tradeAmount );
       if ( $matched ) {
         break;
       }
@@ -202,10 +226,6 @@ abstract class Exchange {
 
   public abstract function queryTradeHistory( $options = array( ), $recentOnly = false );
 
-  public abstract function queryRecentDeposits( $currency = null );
-
-  public abstract function queryRecentWithdrawals( $currency = null );
-
   public abstract function cancelAllOrders();
 
   public abstract function refreshExchangeData();
@@ -216,7 +236,7 @@ abstract class Exchange {
 
   public abstract function detectStuckTransfers();
 
-  public abstract function getSmallestOrderSize();
+  public abstract function getSmallestOrderSize( $tradeable, $currency, $type );
 
   public abstract function getID();
 
