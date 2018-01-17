@@ -268,8 +268,8 @@ abstract class Exchange {
     static $pubch = null;
     if ( is_null( $pubch ) ) {
       $pubch = curl_init();
-      curl_setopt( $pubch, CURLOPT_CONNECTTIMEOUT, 10 );
-      curl_setopt( $pubch, CURLOPT_TIMEOUT, 10 );
+      curl_setopt( $pubch, CURLOPT_CONNECTTIMEOUT, 15 );
+      curl_setopt( $pubch, CURLOPT_TIMEOUT, 60 );
       curl_setopt( $pubch, CURLOPT_RETURNTRANSFER, TRUE );
       curl_setopt( $pubch, CURLOPT_SSL_VERIFYPEER, TRUE );
       curl_setopt( $pubch, CURLOPT_USERAGENT, 'Mozilla/4.0 (compatible; PHP client; ' . php_uname( 's' ) . '; PHP/' . phpversion() . ')' );

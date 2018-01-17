@@ -272,7 +272,7 @@ abstract class BittrexLikeExchange extends Exchange {
     for ( $i = 0; $i < 100; $i++ ) {
       try {
         $data = $this->queryAPI( 'account/getdepositaddress', ['currency' => $coin ] );
-        return $data[ 'Address' ];
+        return isset( $data[ 'Address' ] ) ? $data[ 'Address' ] : null;
       }
       catch ( Exception $ex ) {
         $info = json_decode($ex->getTrace()[ 0 ][ 'args' ][ 0 ]);
@@ -286,6 +286,8 @@ abstract class BittrexLikeExchange extends Exchange {
         throw $ex;
       }
     }
+
+    return null;
 
   }
 
@@ -417,7 +419,7 @@ abstract class BittrexLikeExchange extends Exchange {
     curl_setopt( $ch, CURLOPT_URL, $uri );
     curl_setopt( $ch, CURLOPT_HTTPHEADER, ["apisign: $sign" ] );
     curl_setopt( $ch, CURLOPT_CONNECTTIMEOUT, 10 );
-    curl_setopt( $ch, CURLOPT_TIMEOUT, 10 );
+    curl_setopt( $ch, CURLOPT_TIMEOUT, 180 );
 
     $error = null;
     for ( $i = 0; $i < 5; $i++ ) {
