@@ -54,12 +54,15 @@ abstract class CCXTAdapter extends Exchange {
     ) );
     $this->exchange->apiKey = $key;
     $this->exchange->secret = $secret;
+    $this->exchange->rateLimit = $this->getRateLimit();
 
   }
 
   public abstract function checkAPIReturnValue( $result );
 
   public abstract function isMarketActive( $market );
+
+  public abstract function getRateLimit();
 
   /**
    ************************************************************
