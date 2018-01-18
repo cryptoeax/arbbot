@@ -425,19 +425,17 @@ abstract class CCXTAdapter extends Exchange {
 
     foreach ( $history as $entry ) {
 
-      foreach ( $block as $entry ) {
-        $timestamp = floor( $entry[ $info[ 'timeKey' ] ] / 1000 ); // in milliseconds
-        if ( key_exists( $key, $this->lastStuckReportTime ) && $timestamp < $this->lastStuckReportTime[ $key ] ) {
-          continue;
-        }
-        $status = $entry[ $info[ 'statusKey' ] ];
+      $timestamp = floor( $entry[ $info[ 'timeKey' ] ] / 1000 ); // in milliseconds
+      if ( key_exists( $key, $this->lastStuckReportTime ) && $timestamp < $this->lastStuckReportTime[ $key ] ) {
+        continue;
+      }
 
-        if ( $timestamp < time() - 12 * 3600 && in_array( $status, $info[ 'pending' ] ) ) {
-          alert( 'stuck-transfer', $this->prefix() .
-                 "Stuck $key! Please investigate and open support ticket if neccessary!\n\n" .
-                 print_r( $entry, true ), true );
-          $this->lastStuckReportTime[ $key ] = $timestamp;
-        }
+      $status = $entry[ $info[ 'statusKey' ] ];
+      if ( $timestamp < time() - 12 * 3600 && in_array( $status, $info[ 'pending' ] ) ) {
+        alert( 'stuck-transfer', $this->prefix() .
+               "Stuck $key! Please investigate and open support ticket if neccessary!\n\n" .
+               print_r( $entry, true ), true );
+        $this->lastStuckReportTime[ $key ] = $timestamp;
       }
     }
 
