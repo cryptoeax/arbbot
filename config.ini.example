@@ -38,8 +38,8 @@ user = arbitrage
 ; Your MySQL database password
 pass = YOUR_PASSWORD
 
-; Your MySQL database host
-host = localhost
+; Your MySQL database host (DONT MODIFY IF USING DOCKER)
+host = db
 
 ; Your MySQL database name
 name = arbitrage

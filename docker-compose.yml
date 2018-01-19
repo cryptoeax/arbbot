@@ -3,60 +3,66 @@ version: '3'
 services:
   db:
     image: mysql:5.7
-    ports:
-      - "3306:3306"
+    env_file:
+      - .env
     volumes:
       - ./docker/db/config/my.cnf:/etc/mysql/conf.d/arbbot.cnf
+      - ./docker/db/seed:/docker-entrypoint-initdb.d
       - ./docker/db-data:/var/lib/mysql
     networks:
       backend:
-        aliases:
-          - database
     restart: always
-    environment:
-      - MYSQL_ROOT_PASSWORD=changeme
-      - MYSQL_DATABASE=arbitrage
-      - MYSQL_USER=arbitrage
-      - MYSQL_PASSWORD=changeme
-  db_seed:
-    depends_on:
-      - db
-    build: docker/db-seed
-    networks:
-      - backend
   bot:
     depends_on:
-      - db_seed
-    build: docker/bot
+      - db
+    env_file:
+      - .env
+    build:
+      context: ./docker/bot
+      args:
+      - uid=${UID:-1000}
+      - username=${USER:-bot}
     volumes:
-      - .:/home/arbbot
-    restart: always
+      - .:/home/${USER:-bot}
     networks:
       - backend
+    command: ["/bin/wait-for-db.sh", "profit_loss", "${MYSQL_DATABASE:-arbitrage}", "${MYSQL_ROOT_PASSWORD:-root}", "/usr/bin/hhvm", "main.php"]
   web:
     depends_on:
-      - db_seed
+      - db
       - php
-    image: nginx:1.13
+    env_file:
+      - .env
+    build:
+      context: ./docker/web
+      args:
+      - uid=${UID:-1000}
+      - username=${USER:-bot}
+      - http_auth_user=${HTTP_AUTH_USER:-arbb0t}
+      - http_auth_password=${HTTP_AUTH_PASSWORD:-arbb0tpass}
     ports:
       - "80:80"
     volumes:
-      - ./web:/usr/share/nginx/html
-      - ./docker/web/config/default:/etc/nginx/sites-available/default
-      - ./docker/web/config/default:/etc/nginx/sites-enabled/default
-
-      - ./docker/web/logs/access.log:/var/log/nginx/access.log
-      - ./docker/web/logs/error.log:/var/log/nginx/error.log
+      - ./web:/var/www/html
     networks:
       - frontend
     restart: always
   php:
-    image: php:7.2-fpm
-    ports:
-      - "9000:9000"
+    depends_on:
+      - db
+    build:
+      context: ./docker/php
+      args:
+      - uid=${UID:-1000}
+      - username=${USER:-root}
+      - db=${MYSQL_DATABASE:-arbitrage}
+      - db_username=${MYSQL_USER:-arbitrage}
+      - db_password=${MYSQL_PASSWORD:-MySqlPassword}
+    expose:
+      - 9000
     restart: always
     volumes:
-      - ./web:/usr/share/nginx/html
+      - ./web:/var/www/html
     networks:
       - frontend
       - backend

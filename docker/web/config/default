@@ -1,14 +1,14 @@
 server {
 
         listen 80;
-        root /usr/share/nginx/html;
+        root /var/www/html;
         index index.html;
         server_name localhost;
 
         location / {
 
-#                auth_basic           "Restricted area";
-#                auth_basic_user_file /var/www/conf/arbitrage.passwd;
+                auth_basic           "Restricted area";
+                auth_basic_user_file /var/www/conf/arbitrage.passwd;
 
         }
 
