@@ -210,6 +210,45 @@ abstract class Exchange {
     return $trades;
   }
 
+  private $walletsBackup = [ ];
+
+  protected function preRefreshWallets() {
+
+    $this->walletsBackup = $this->wallets;
+
+  }
+
+  protected function postRefreshWallets() {
+
+    $id = $this->getID();
+    foreach ( $this->wallets as $coin => $balance ) {
+      if ( $balance != $this->walletsBackup[ $coin ] ) {
+        // Assume that a change in the balance when we aren't trading may be an incoming
+        // deposit being credited, look for one!
+        $change = $balance - $this->walletsBackup[ $coin ];
+        $pendingDeposit = Database::getPendingDeposit( $coin, $id );
+        if ( $pendingDeposit > 0 && $change != 0 ) {
+          Database::savePendingDeposit( $coin, -$change, $id );
+        }
+      }
+    }
+
+  }
+
+  public function getWalletsConsideringPendingDeposits() {
+
+    $wallets = $this->wallets;
+    $pendingDeposits = Database::getPendingDeposits( $this->getID() );
+
+    $results = [ ];
+    foreach ( $wallets as $coin => $balance ) {
+      $results[ $coin ] = $wallets[ $coin ] + $pendingDeposits[ $coin ];
+    }
+
+    return $results;
+
+  }
+
   public abstract function getTickers( $currency );
 
   public abstract function withdraw( $coin, $amount, $address );
@@ -232,7 +271,7 @@ abstract class Exchange {
 
   public abstract function dumpWallets();
 
-  public abstract function refreshWallets();
+  public abstract function refreshWallets( $betweenTrades = false );
 
   public abstract function detectStuckTransfers();
 
@@ -245,8 +284,6 @@ abstract class Exchange {
   public abstract function getTradeHistoryCSVName();
 
   public abstract function testAccess();
-
-  public abstract function getWalletsConsideringPendingDeposits();
 
   protected abstract function fetchOrderbook( $tradeable, $currency );
 
