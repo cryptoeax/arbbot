@@ -366,7 +366,7 @@ class Database {
             $exchangeID //
     );
 
-    if ( !mysql_query( $query, $link ) ) {
+    if ( !($result = mysql_query( $query, $link )) ) {
       throw new Exception( "database insertion error: " . mysql_error( $link ) );
     }
 
@@ -382,11 +382,10 @@ class Database {
     $link = self::connect();
 
     $query = sprintf( "SELECT SUM(amount) AS amount, coin FROM pending_deposits WHERE ID_exchange = %d GROUP BY coin;", //
-            $coin, //
             $exchangeID //
     );
 
-    if ( !mysql_query( $query, $link ) ) {
+    if ( !($result = mysql_query( $query, $link )) ) {
       throw new Exception( "database insertion error: " . mysql_error( $link ) );
     }
 
@@ -1116,7 +1115,7 @@ class Database {
 
   public static function createPendingDepositsTable() {
 
-    return self::createTableHelper( 'pending_depisits' );
+    return self::createTableHelper( 'pending_deposits' );
 
   }
 
