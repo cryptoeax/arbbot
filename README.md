@@ -58,6 +58,12 @@ This example assigns 0.2 BTC to the "autobuy_funds". The higher the amount, the 
 the more arbitrage-opportunities can be taken. Be careful to keep at least 0.1 - 0.2 BTC at the exchange to give
 the bot enough room to trade.
 
+## Updating the bot
+When you update the bot, you need to rebuild the docker containers in case they require rebuilding before rerunning the bot, you can do that with `docker-compose build`.
+
+## Backing up the bot's data
+The bot's mysql server saves its data in `docker/db-data`.  You are encouraged to back up the contents of this directory occasionally.  If you delete the contents of this directory, the next time you run the bot the bot will reinitialize its database from scratch (and will import an initial seed data from `data.sql` if that file exists.)
+
 ## How does the bot make profit?
 
 Arbitrage trading means that differences in exchange rates between two exchanges are used to gain a profit.
