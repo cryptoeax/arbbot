@@ -303,7 +303,7 @@ class Database {
 
   }
 
-  public static function saveWithdrawal( $coin, $amount, $address, $sourceExchangeID, $targetExchangeID ) {
+  public static function saveWithdrawal( $coin, $amount, $address, $sourceExchangeID, $targetExchangeID, $txFee ) {
 
     $link = self::connect();
     $time = time();
@@ -321,7 +321,7 @@ class Database {
     }
 
     $query = sprintf( "INSERT INTO pending_deposits (amount, coin, ID_withdrawal, ID_exchange, created) VALUES ('%s', '%s', %s, %d, %d);", //
-            formatBTC( $amount ), //
+            formatBTC( $amount - $txFee ), //
             $coin, //
             'LAST_INSERT_ID()',
             $targetExchangeID, //
