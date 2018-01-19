@@ -13,6 +13,7 @@ services:
     volumes:
       - ./docker/db/config/my.cnf:/etc/mysql/conf.d/arbbot.cnf
       - ./docker/db/seed/01-database.sql:/docker-entrypoint-initdb.d/01-database.sql
+      - ./docker/db/seed/data.sql:/docker-entrypoint-initdb.d/data.sql
       - ./docker/db-data:/var/lib/mysql
     networks:
       backend:

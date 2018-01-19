@@ -30,6 +30,17 @@ Customize your environment settings:
 cp .env.example .env
 vi .env               # edit the file to customize the variables, NEVER use the default passwords
 vi config.ini         # edit the database settings to make them match .env
+```
+
+In case you have been running the bot from the pre-dockerized versions, you probably want to import the data that the bot currently has saved in its database into the database that the new containerized bot launches.  You can do so by planting a special `data.sql` file in the right place, like this:
+
+```
+mysqldump -h host -u username -p --no-create-info > docker/db/seed/data.sql
+```
+
+Once you have finished the above steps, you are ready to build your containers.
+
+```
 docker-compose build
 ```
 
