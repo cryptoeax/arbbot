@@ -837,7 +837,7 @@ class Database {
 
     $link = self::connect();
 
-    $query = file_get_contents( __DIR__ . sprintf( '/../%s.sql', $name ) );
+    $query = file_get_contents( __DIR__ . sprintf( '/../db/%s.sql', $name ) );
 
     foreach ( explode( ';', $query ) as $q ) {
       $q = trim( $q );
