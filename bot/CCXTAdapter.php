@@ -137,6 +137,11 @@ abstract class CCXTAdapter extends Exchange {
 
   public function withdraw( $coin, $amount, $address ) {
 
+    if ( $amount === 0 ) {
+      // Simulate an error which ccxt may not raise for us
+      throw new Exception( "API error response: Amount must be greater than zero" );
+    }
+
     return $this->checkAPIReturnValue( $this->exchange->withdraw( $coin, $amount, $address ) );
 
   }
