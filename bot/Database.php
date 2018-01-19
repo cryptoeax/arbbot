@@ -1221,7 +1221,7 @@ class Database {
     $link = self::connect();
     $time = time();
 
-    if ( !mysql_query( "BEGIN TRANSACTION", $link ) ) {
+    if ( !mysql_query( "START TRANSACTION", $link ) ) {
       throw new Exception( "database insertion error: " . mysql_error( $link ) );
     }
 
