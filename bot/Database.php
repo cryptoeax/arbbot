@@ -1183,6 +1183,76 @@ class Database {
 
   }
 
+  public static function walletsTableExists() {
+
+    return self::tableExistsHelper( 'wallets' );
+
+  }
+
+  public static function createWalletsTable() {
+
+    return self::createTableHelper( 'wallets' );
+
+  }
+
+  public static function readWallets( $id ) {
+
+    $link = self::connect();
+
+    if ( !($result = mysql_query( sprintf( "SELECT * FROM wallets WHERE ID_exchange = %d;",
+                                            $id
+                                  ),
+                                  $link
+                     ) ) ) {
+      throw new Exception( "database selection error: " . mysql_error( $link ) );
+    }
+
+    $wallets = [ ];
+    while ( $row = mysql_fetch_assoc( $result ) ) {
+      $wallets[ $row[ 'coin' ] ] = floatval( $row[ 'amount' ] );
+    }
+
+    return $wallets;
+
+  }
+
+  public static function saveWallets( $id, $wallets ) {
+
+    $link = self::connect();
+    $time = time();
+
+    if ( !mysql_query( "BEGIN TRANSACTION", $link ) ) {
+      throw new Exception( "database insertion error: " . mysql_error( $link ) );
+    }
+
+    try {
+      if ( !mysql_query( sprintf( "DELETE FROM wallets WHERE ID_exchange = %d;", $id ), $link ) ) {
+        throw new Exception( "database insertion error: " . mysql_error( $link ) );
+      }
+  
+      foreach ( $wallets as $coin => $balance ) {
+        if ( !mysql_query( sprintf( "INSERT INTO wallets (created, coin, amount, ID_exchange) " .
+                                                          "VALUES (%d, '%s', '%s', %d);",
+                                    $time, mysql_escape_string( $coin ),
+                                    formatBTC( $balance ), $id ),
+                            $link ) ) {
+          throw new Exception( "database insertion error: " . mysql_error( $link ) );
+        }
+      }
+    }
+    catch ( Exception $ex ) {
+      mysql_query( "ROLLBACK", $link );
+      throw $ex;
+    }
+
+    if ( !mysql_query( "COMMIT", $link ) ) {
+      throw new Exception( "database insertion error: " . mysql_error( $link ) );
+    }
+
+    mysql_close( $link );
+
+  }
+
   private static function ensureTradesUpdated( $link ) {
 
     if ( !is_null( self::$trades ) ) {
