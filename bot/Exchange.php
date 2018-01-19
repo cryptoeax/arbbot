@@ -220,6 +220,11 @@ abstract class Exchange {
 
   protected function postRefreshWallets() {
 
+    if ( count( $this->walletsBackup ) == 0 ) {
+      // Ignore the first call
+      return;
+    }
+
     $id = $this->getID();
     foreach ( $this->wallets as $coin => $balance ) {
       if ( $balance != $this->walletsBackup[ $coin ] ) {
@@ -242,7 +247,7 @@ abstract class Exchange {
 
     $results = [ ];
     foreach ( $wallets as $coin => $balance ) {
-      $results[ $coin ] = $wallets[ $coin ] + $pendingDeposits[ $coin ];
+      $results[ $coin ] = $balance + @$pendingDeposits[ $coin ];
     }
 
     return $results;
