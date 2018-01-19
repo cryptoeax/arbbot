@@ -128,6 +128,7 @@ class WebDB {
     $walletsMap = [ ];
     $ids = [ ];
     if ( $mode == 0 ) {
+/*
       // Append an entry for the current balances
       $ids = array_reduce( array_reverse( $data, true ), function( $carry, $value ) {
         if ( in_array( '0', $carry ) ) {
@@ -170,6 +171,7 @@ class WebDB {
         $data[] = ['time' => strval( time() ), 'value' => formatBTC( $sma ),
                    'raw' => formatBTC( $balance ), 'exchange' => $id ];
       }
+*/
     }
 
     mysql_close( $link );
