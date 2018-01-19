@@ -19,5 +19,4 @@ waitForTable $@
 sleep 1
 
 shift 3;
-echo $@
 exec $@
