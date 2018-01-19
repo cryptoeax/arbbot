@@ -1030,6 +1030,18 @@ class Database {
 
   }
 
+  public static function pendingDepositsTableExists() {
+
+    return self::tableExistsHelper( 'pending_deposits' );
+
+  }
+
+  public static function createPendingDepositsTable() {
+
+    return self::createTableHelper( 'pending_depisits' );
+
+  }
+
   public static function profitsTableExists() {
 
     return self::tableExistsHelper( 'profits' );
