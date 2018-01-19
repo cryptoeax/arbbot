@@ -350,10 +350,7 @@ class Database {
       throw new Exception( "database insertion error: " . mysql_error( $link ) );
     }
 
-    $row = mysql_fetch_assoc( $result );
-
     mysql_close( $link );
-    return floatval( $row[ 'amount' ] );
 
   }
 
