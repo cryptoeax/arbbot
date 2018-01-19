@@ -53,32 +53,32 @@ class CoinManager {
       //
       if ( $stats[ self::STAT_NEXT_MANAGEMENT ] <= time() ) {
         //
-        $stats[ self::STAT_NEXT_MANAGEMENT ] = time() + Config::get( Config::INTERVAL_MANAGEMENT, Config::DEFAULT_INTERVAL_MANAGEMENT ) * 1800;
         self::manageWallets( $arbitrator );
+        $stats[ self::STAT_NEXT_MANAGEMENT ] = time() + Config::get( Config::INTERVAL_MANAGEMENT, Config::DEFAULT_INTERVAL_MANAGEMENT ) * 1800;
         //
       }
       else if ( $stats[ self::STAT_NEXT_TAKE_PROFIT ] <= time() ) {
         //
-        $stats[ self::STAT_NEXT_TAKE_PROFIT ] = time() + Config::get( Config::INTERVAL_TAKE_PROFIT, Config::DEFAULT_INTERVAL_TAKE_PROFIT ) * 3600;
         self::takeProfit();
+        $stats[ self::STAT_NEXT_TAKE_PROFIT ] = time() + Config::get( Config::INTERVAL_TAKE_PROFIT, Config::DEFAULT_INTERVAL_TAKE_PROFIT ) * 3600;
         //
       }
       else if ( $stats[ self::STAT_NEXT_STUCK_DETECTION ] <= time() ) {
         //
-        $stats[ self::STAT_NEXT_STUCK_DETECTION ] = time() + Config::get( Config::INTERVAL_STUCK_DETECTION, Config::DEFAULT_INTERVAL_STUCK_DETECTION ) * 3600;
         self::stuckDetection();
+        $stats[ self::STAT_NEXT_STUCK_DETECTION ] = time() + Config::get( Config::INTERVAL_STUCK_DETECTION, Config::DEFAULT_INTERVAL_STUCK_DETECTION ) * 3600;
         //
       }
       else if ( $stats[ self::STAT_NEXT_UNUSED_COIN_DETECTION ] <= time() ) {
         //
-        $stats[ self::STAT_NEXT_UNUSED_COIN_DETECTION ] = time() + Config::get( Config::INTERVAL_UNUSED_COIN_DETECTION, Config::DEFAULT_INTERVAL_UNUSED_COIN_DETECTION ) * 3600;
         self::unusedCoinsDetection();
+        $stats[ self::STAT_NEXT_UNUSED_COIN_DETECTION ] = time() + Config::get( Config::INTERVAL_UNUSED_COIN_DETECTION, Config::DEFAULT_INTERVAL_UNUSED_COIN_DETECTION ) * 3600;
         //
       }
       else if ( $stats[ self::STAT_NEXT_DB_CLEANUP ] <= time() ) {
         //
-        $stats[ self::STAT_NEXT_DB_CLEANUP ] = time() + Config::get( Config::INTERVAL_DB_CLEANUP, Config::DEFAULT_INTERVAL_DB_CLEANUP ) * 3600;
         self::dbCleanup();
+        $stats[ self::STAT_NEXT_DB_CLEANUP ] = time() + Config::get( Config::INTERVAL_DB_CLEANUP, Config::DEFAULT_INTERVAL_DB_CLEANUP ) * 3600;
         //
       }
       else {
