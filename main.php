@@ -70,6 +70,10 @@ if ( !Database::profitsTableExists() ) {
   Database::importProfits();
 }
 
+if ( !Database::walletsTableExists() ) {
+  Database::createWalletsTable();
+}
+
 if ( !Database::profitLossTableExists() ) {
   require_once __DIR__ . '/import-profit-loss.php';
   importProfitLoss();

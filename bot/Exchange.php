@@ -216,14 +216,14 @@ abstract class Exchange {
 
     $this->walletsBackup = $this->wallets;
 
+    if ( count( $this->walletsBackup ) == 0 ) {
+      // First run, read our saved wallets from last time!
+      $this->walletsBackup = Database::readWallets();
+    }
+
   }
 
   protected function postRefreshWallets() {
-
-    if ( count( $this->walletsBackup ) == 0 ) {
-      // Ignore the first call
-      return;
-    }
 
     $id = $this->getID();
     foreach ( $this->wallets as $coin => $balance ) {
@@ -237,6 +237,8 @@ abstract class Exchange {
         }
       }
     }
+
+    Database::saveWallets( $id, $this->wallets );
 
   }
 
