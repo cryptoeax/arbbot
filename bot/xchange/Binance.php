@@ -19,6 +19,17 @@ class Binance extends CCXTAdapter {
     parent::__construct( BINANCE_ID, 'Binance', 'BinanceExchange' );
   }
 
+  public function getRateLimit() {
+    $limits = $this->exchange->publicGetExchangeInfo()['rateLimits'];
+    foreach ( $limits as $limit ) {
+      if ( $limit[ 'rateLimitType' ] == 'ORDERS' &&
+           $limit[ 'interval' ] == 'SECOND' ) {
+        return 1000 / $limit[ 'limit' ];
+      }
+    }
+    return 1000;
+  }
+
   public function isMarketActive( $market ) {
     return $market[ 'info' ][ 'status' ] == 'TRADING';
   }

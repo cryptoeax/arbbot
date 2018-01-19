@@ -245,13 +245,7 @@ $(function() {
                     },
                     tooltip: {
                         show: true,
-                        content: "%y",
-                        onHover: function(item, element) {
-                          // The tooltip plugin does not provide an API to customize the
-                          // formatting string per data series, so we have to fix up the
-                          // formatting after the fact like this.
-                          $(element[0]).text(parseFloat(item.datapoint[1]).toFixed(8));
-                        }
+                        content: "%s: %y @ %x"
                     },
                     yaxis: {
                         tickFormatter: function(val, axis) {
@@ -544,6 +538,17 @@ $(function() {
                         xaxis: {
                             ticks: ticks,
                         },
+                        yaxis: {
+                            tickFormatter: function (val, axis) {
+                                if (axis.n === 1) {
+                                    return rnd8(val);
+                                } else if (axis.n === 2) {
+                                    return parseFloat(val).toFixed(2);
+                                } else {
+                                    return val;
+                                }
+                            }
+                        },
                         yaxes: [{
                             position: "left",
                             min: min,
@@ -563,22 +568,7 @@ $(function() {
                         },
                         tooltip: {
                             show: true,
-                            content: "%y.8",
-                            onHover: function(item, element) {
-                              // The tooltip plugin does not provide an API to customize the
-                              // formatting string per data series, so we have to fix up the
-                              // formatting after the fact like this.
-                              switch (item.seriesIndex) {
-                              case 1:
-                                // These are percentages, two decimal points of precision is enough.
-                                $(element[0]).text(parseFloat(element[0].innerText).toFixed(2));
-                                break;
-                              case 2:
-                                // These are just integers, no need for decimal zeros.
-                                $(element[0]).text(parseInt(element[0].innerText));
-                                break;
-                              }
-                            }
+                            content: "%s: %y"
                         },
                         series: {
                             bars: {
