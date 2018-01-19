@@ -12,137 +12,40 @@ You can see the bot running on a cheap [linode](https://www.linode.com) here.  C
   * Bleutrade (all BTC markets)
   * Poloniex (all BTC markets)
 
-## Installation on Debian 9.0+ / Ubuntu 16.04+
+## Running the bot using Docker
 
-Install required packages:
+The only supported way to run this bot currently is to use Docker.  Advanced users are welcome to study the docker files to see how the configuration works if they want to setup their own advanced setups, but all such configurations are unsupported and you're on your own if things go wrong!
 
-```
-sudo apt-get install php-cli php-curl php-mysqlnd mysql-server nginx-full php-fpm unzip apache2-utils ntpdate
-sudo ntpdate ntp.ubuntu.com
-```
+### Pre-requisites
 
-Clone the repository on the server.  Note that installation from ZIP archives isn't supported any more.
+Install the latest versions of docker and docker-compose
 
-```
-cd /var/www
-git clone --recursive https://github.com/cryptoeax/arbbot.git
-```
+Clone the repository somewhere using `git clone --recursive`.
 
-cd into the directory:
+### Preparation
+
+Customize your environment settings:
 
 ```
-cd arbbot
+cp .env.example .env
+vi .env               # edit the file to customize the variables, NEVER use the default passwords
+vi config.ini         # edit the database settings to make them match .env
+docker-compose build
 ```
 
-Prepare the MySQL database:
-
-```
-  mysql -u root -p
-  mysql> CREATE DATABASE arbitrage;
-  mysql> GRANT ALL ON arbitrage.* TO arbitrage@localhost IDENTIFIED BY 'YOUR_PASSWORD';
-  mysql> use arbitrage;
-  mysql> source database.sql;
-  mysql> quit
-  ```
-
-Configure the database connection:
-
-```
-cp web/config.inc.php.example web/config.inc.php
-nano web/config.inc.php
-```
-
-
-Configure the bot:
-
-```
-cp config.ini.example config.ini
-nano config.ini
-```
-
-Edit all options to fit your needs and enter your API keys! You can change settings even while the bot is running. The changes will be automatically applied.
-
-## Configuring the Webinterface
-
-First, you need to configure a username and password:
-
-```
-htpasswd -b /var/www/conf/arbitrage.passwd username password
-```
-
-Then you need to edit the web server configuration.
-
-```
-rm /etc/nginx/sites-enabled/default
-nano /etc/nginx/sites-enabled/default
-```
-
-The NGINX configuration file should look like this:
-
-```
-server {
-
-        listen 80;
-        root /var/www/arbbot/web;
-        index index.html;
-        server_name localhost;
-
-        location / {
-
-                auth_basic           "Restricted area";
-                auth_basic_user_file /var/www/conf/arbitrage.passwd;
-
-        }
-
-        location ~ \.php$ {
-
-          include snippets/fastcgi-php.conf;
-          fastcgi_pass unix:/var/run/php/php7.0-fpm.sock;
-
-        }
-
-}
-```
-
-If your web server is exposed to the public Internet, the UI will by default refuse to load unless you enable HTTPS.  You can get a free certificate using Let's Encrypt, see [this tutorial](https://www.nginx.com/blog/free-certificates-lets-encrypt-and-nginx/) on how to do that.  Assuming you have a certificate, you would need to add a `ssl_certificate` and `ssl_certificate_key` directive to the configration file, if the Let's Encrypt client doesn't do that for you (which it should.)  If you are going to access your bot on <a href="http://localhost">http://localhost</a> then you don't need to perform this step.
-
-Now, restart the webserver:
-
-```
-/etc/init.d/nginx restart
-```
-
-You should now be able to access the webinterface with your browser.
-
-## Running the bot
+### Running the bot
 
 Now you are ready to give the bot a test by running it:
 
 ```
-php main.php
+docker-compose up -d
 ```
 
-(Note: It is recommended to run `main.php` with [`hhvm`](https://docs.hhvm.com/hhvm/installation/linux) instead of `php` in order to speed up the bot a bit.)
-
-You should see output like this:
-
-```
-19:13:34: ARBITRATOR V2.0 launching
-
-```
-To actually allow the bot to buy coins automatically, you need to reserve some autobuy funds.  You can do that either by running the following commands against the database manually:
-```
-  mysql -u root -p
-  mysql> use arbitrage;
-  mysql> UPDATE stats SET value = "0.2" WHERE keyy = "autobuy_funds";
-  mysql> quit
-```
+To actually allow the bot to buy coins automatically, you need to reserve some autobuy funds.  You can do that by turning on the admin UI by enabling the `general.admin-ui` setting, the web UI shows you the Admin interface which allows you to change the autobuy funds amount.  It is not recommended to enable this if your web UI isn't secure using password authentication and HTTPS in case it's exposed to the Internet.
 
 This example assigns 0.2 BTC to the "autobuy_funds". The higher the amount, the more coins can be bought and
 the more arbitrage-opportunities can be taken. Be careful to keep at least 0.1 - 0.2 BTC at the exchange to give
 the bot enough room to trade.
-
-Alternatively by enabling the `general.admin-ui` setting, the web UI shows you the Admin interface which allows you to change the autobuy funds amount.  It is not recommended to enable this if your web UI isn't secure using password authentication and HTTPS in case it's exposed to the Internet.
 
 ## How does the bot make profit?
 
