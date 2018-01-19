@@ -9,5 +9,5 @@ CREATE TABLE IF NOT EXISTS `wallets` (
   `coin` char(10) NOT NULL,
   `created` int(11) NOT NULL,
   `amount` varchar(18) NOT NULL,
-  PRIMARY KEY (`ID_exchange`, `coin`),
+  PRIMARY KEY (`ID_exchange`, `coin`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
