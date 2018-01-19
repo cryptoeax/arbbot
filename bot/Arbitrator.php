@@ -358,7 +358,7 @@ class Arbitrator {
           logg( "A sell order hasn't been filled. If this happens regulary you should increase the " . Config::ORDER_CHECK_DELAY . " setting!", true );
         }
 
-        $target->refreshWallets();
+        $target->refreshWallets( true );
 
         $sellTrades = $this->tradeMatcher->handlePostTradeTasks( $this, $target, $tradeable, $currency, 'sell',
                                                                  $sellOrderID, $sellAmount );
@@ -430,9 +430,9 @@ class Arbitrator {
 
       logg( "Checking trade results ($i)..." );
 
-      $source->refreshWallets();
+      $source->refreshWallets( true );
       if ( !$undersellProtection || $i != 1 ) {
-        $target->refreshWallets();
+        $target->refreshWallets( true );
       }
 
       $buyTrades = $this->tradeMatcher->handlePostTradeTasks( $this, $source, $tradeable, $currency, 'buy',

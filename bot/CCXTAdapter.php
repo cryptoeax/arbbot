@@ -365,37 +365,6 @@ abstract class CCXTAdapter extends Exchange {
 
   }
 
-  public function getWalletsConsideringPendingDeposits() {
-
-    $result = [ ];
-    foreach ( $this->wallets as $coin => $balance ) {
-      $result[ $coin ] = $balance;
-    }
-    $info = $this->getDepositHistory();
-    if ( !is_array( $info[ 'history' ] ) ) {
-      return $result;
-    }
-    if ( !is_array( $info[ 'pending' ] ) ) {
-      $info[ 'pending' ] = [ $info[ 'pending' ] ];
-    }
-
-    foreach ( $info[ 'history' ] as $entry ) {
-
-      $status = $entry[ $info[ 'statusKey' ] ];
-      if ( !in_array( $status, $info[ 'pending' ] ) ) {
-        continue;
-      }
-
-      $coin = strtoupper( $entry[ $info[ 'coinKey' ] ] );
-      $amount = $entry[ $info[ 'amountKey' ] ];
-      $result[ $coin ] += $amount;
-
-    }
-
-    return $result;
-
-  }
-
   public function detectStuckTransfers() {
 
     $info = $this->getDepositHistory();
@@ -450,7 +419,11 @@ abstract class CCXTAdapter extends Exchange {
     return $this->exchange->fetch_balance()[ 'free' ];
   }
 
-  public function refreshWallets() {
+  public function refreshWallets( $inBetweenTrades = false ) {
+
+    if ( !$inBetweenTrades ) {
+      $this->preRefreshWallets();
+    }
 
     $wallets = [ ];
 
@@ -460,6 +433,10 @@ abstract class CCXTAdapter extends Exchange {
     }
 
     $this->wallets = $wallets;
+
+    if ( !$inBetweenTrades ) {
+      $this->postRefreshWallets();
+    }
 
   }
 

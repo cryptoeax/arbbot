@@ -208,29 +208,17 @@ abstract class BittrexLikeExchange extends Exchange {
 
   }
 
-  public function getWalletsConsideringPendingDeposits() {
-
-    $result = [ ];
-    foreach ( $this->wallets as $coin => $balance ) {
-      $result[ $coin ] = $balance;
-    }
-
-    $balances = $this->queryBalances();
-    foreach ( $balances as $balance ) {
-      $result[ strtoupper( $balance[ 'Currency' ] ) ] = $balance[ 'Balance' ] + $balance[ 'Pending' ];
-    }
-
-    return $result;
-
-  }
-
   public function dumpWallets() {
 
     logg( $this->prefix() . print_r( $this->queryBalances(), true ) );
 
   }
 
-  public function refreshWallets() {
+  public function refreshWallets( $inBetweenTrades = false ) {
+
+    if ( !$inBetweenTrades ) {
+      $this->preRefreshWallets();
+    }
 
     $wallets = [ ];
 
@@ -256,6 +244,10 @@ abstract class BittrexLikeExchange extends Exchange {
     }
 
     $this->wallets = $wallets;
+
+    if ( !$inBetweenTrades ) {
+      $this->postRefreshWallets();
+    }
 
   }
 

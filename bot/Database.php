@@ -306,19 +306,97 @@ class Database {
   public static function saveWithdrawal( $coin, $amount, $address, $sourceExchangeID, $targetExchangeID ) {
 
     $link = self::connect();
+    $time = time();
     $query = sprintf( "INSERT INTO withdrawal (amount, coin, address, ID_exchange_source, ID_exchange_target, created) VALUES ('%s', '%s', '%s', %d, %d, %d);", //
             formatBTC( $amount ), //
             $coin, //
             $address, //
             $sourceExchangeID, //
             $targetExchangeID, //
-            time() //
+            $time //
+    );
+
+    if ( !mysql_query( $query, $link ) ) {
+      throw new Exception( "database insertion error: " . mysql_error( $link ) );
+    }
+
+    $query = sprintf( "INSERT INTO pending_deposits (amount, coin, ID_withdrawal, ID_exchange, created) VALUES ('%s', '%s', %s, %d, %d);", //
+            formatBTC( $amount ), //
+            $coin, //
+            'LAST_INSERT_ID()',
+            $targetExchangeID, //
+            $time //
     );
 
     if ( !mysql_query( $query, $link ) ) {
       throw new Exception( "database insertion error: " . mysql_error( $link ) );
     }
     mysql_close( $link );
+
+  }
+
+  public static function savePendingDeposit( $coin, $amount, $exchangeID ) {
+
+    $link = self::connect();
+
+    $query = sprintf( "INSERT INTO pending_deposits (amount, coin, ID_exchange, created) VALUES ('%s', '%s', %d, %d);", //
+            formatBTC( $amount ), //
+            $coin, //
+            $exchangeID, //
+            time() //
+    );
+
+    if ( !mysql_query( $query, $link ) ) {
+      throw new Exception( "database insertion error: " . mysql_error( $link ) );
+    }
+
+    $row = mysql_fetch_assoc( $result );
+
+    mysql_close( $link );
+    return floatval( $row[ 'amount' ] );
+
+  }
+
+  public static function getPendingDeposit( $coin, $exchangeID ) {
+
+    $link = self::connect();
+
+    $query = sprintf( "SELECT SUM(amount) AS amount FROM pending_deposits WHERE coin = '%s' AND ID_exchange = %d;", //
+            $coin, //
+            $exchangeID //
+    );
+
+    if ( !mysql_query( $query, $link ) ) {
+      throw new Exception( "database insertion error: " . mysql_error( $link ) );
+    }
+
+    $row = mysql_fetch_assoc( $result );
+
+    mysql_close( $link );
+    return floatval( $row[ 'amount' ] );
+
+  }
+
+  public static function getPendingDeposits( $exchangeID ) {
+
+    $link = self::connect();
+
+    $query = sprintf( "SELECT SUM(amount) AS amount, coin FROM pending_deposits WHERE ID_exchange = %d GROUP BY coin;", //
+            $coin, //
+            $exchangeID //
+    );
+
+    if ( !mysql_query( $query, $link ) ) {
+      throw new Exception( "database insertion error: " . mysql_error( $link ) );
+    }
+
+    $results = [ ];
+    while ( $row = mysql_fetch_assoc( $result ) ) {
+      $results[ $row[ 'coin' ] ] = $row[ 'amount' ];
+    }
+
+    mysql_close( $link );
+    return $results;
 
   }
 

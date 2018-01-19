@@ -423,38 +423,17 @@ class Poloniex extends Exchange {
 
   }
 
-  public function getWalletsConsideringPendingDeposits() {
-
-    $result = [ ];
-    foreach ( $this->wallets as $coin => $balance ) {
-      $result[ $coin ] = $balance;
-    }
-    $history = $this->queryDepositsAndWithdrawals();
-
-    foreach ( $history[ 'deposits' ] as $entry ) {
-
-      $status = strtoupper( $entry[ 'status' ] );
-      if ($status != 'PENDING') {
-        continue;
-      }
-
-      $coin = strtoupper( $entry[ 'currency' ] );
-      $amount = $entry[ 'amount' ];
-      $result[ $coin ] += $amount;
-
-    }
-
-    return $result;
-
-  }
-
   public function dumpWallets() {
 
     logg( $this->prefix() . print_r( $this->queryBalances(), true ) );
 
   }
 
-  public function refreshWallets() {
+  public function refreshWallets( $inBetweenTrades = false ) {
+
+    if ( !$inBetweenTrades ) {
+      $this->preRefreshWallets();
+    }
 
     $wallets = [ ];
 
@@ -463,6 +442,10 @@ class Poloniex extends Exchange {
     }
 
     $this->wallets = $wallets;
+
+    if ( !$inBetweenTrades ) {
+      $this->postRefreshWallets();
+    }
 
   }
 
