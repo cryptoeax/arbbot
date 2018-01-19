@@ -61,6 +61,10 @@ if ( !Database::balancesTableExists() ) {
   Database::createCurrentSimulatedProfitsRateView();
 //}
 
+if ( !Database::pendingDepositsTableExists() ) {
+  Database::createPendingDepositsTable();
+}
+
 if ( !Database::profitsTableExists() ) {
   Database::createProfitsTable();
   Database::importProfits();
