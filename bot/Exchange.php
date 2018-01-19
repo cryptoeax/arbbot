@@ -218,7 +218,7 @@ abstract class Exchange {
 
     if ( count( $this->walletsBackup ) == 0 ) {
       // First run, read our saved wallets from last time!
-      $this->walletsBackup = Database::readWallets();
+      $this->walletsBackup = Database::readWallets( $this->getID() );
     }
 
   }
@@ -227,6 +227,9 @@ abstract class Exchange {
 
     $id = $this->getID();
     foreach ( $this->wallets as $coin => $balance ) {
+      if ( !isset( $this->walletsBackup[ $coin ] ) ) {
+        $this->walletsBackup[ $coin ] = 0;
+      }
       if ( $balance != $this->walletsBackup[ $coin ] ) {
         // Assume that a change in the balance when we aren't trading may be an incoming
         // deposit being credited, look for one!
