@@ -2,12 +2,17 @@ version: '3'
 
 services:
   db:
-    image: mysql:5.7
+    build:
+      context: ./docker/db
+      args:
+      - db=${MYSQL_DATABASE:-arbitrage}
+      - db_username=${MYSQL_USER:-arbitrage}
+      - db_password=${MYSQL_PASSWORD:-MySqlPassword}
     env_file:
       - .env
     volumes:
       - ./docker/db/config/my.cnf:/etc/mysql/conf.d/arbbot.cnf
-      - ./docker/db/seed:/docker-entrypoint-initdb.d
+      - ./docker/db/seed/01-database.sql:/docker-entrypoint-initdb.d/01-database.sql
       - ./docker/db-data:/var/lib/mysql
     networks:
       backend:
