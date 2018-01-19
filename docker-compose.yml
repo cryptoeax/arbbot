@@ -32,7 +32,8 @@ services:
       - .:/home/${USER:-bot}
     networks:
       - backend
-    command: ["/bin/wait-for-db.sh", "profit_loss", "${MYSQL_DATABASE:-arbitrage}", "${MYSQL_ROOT_PASSWORD:-root}", "/usr/bin/hhvm", "main.php"]
+    restart: always
+    command: ["/bin/wait-for-db.sh", "current_simulated_profit_rate", "${MYSQL_DATABASE:-arbitrage}", "${MYSQL_ROOT_PASSWORD:-root}", "/usr/bin/hhvm", "main.php"]
   web:
     depends_on:
       - db
