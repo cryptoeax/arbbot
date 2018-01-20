@@ -6,7 +6,9 @@ RUN apt-get install -y \
     libicu-dev unzip ntpdate libmcrypt-dev zlib1g-dev g++ mysql-client ntp \
     && rm -r /var/lib/apt/lists/*
 
+ADD arbbot.sh /bin/arbbot.sh
 ADD wait-for-db.sh /bin/wait-for-db.sh
+RUN chmod +x /bin/arbbot.sh
 RUN chmod +x /bin/wait-for-db.sh
 ADD ntp.sh /bin/ntp.sh
 RUN /bin/ntp.sh
