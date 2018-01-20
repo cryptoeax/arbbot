@@ -23,6 +23,9 @@ services:
       args:
       - uid=${UID:-1000}
       - username=${USER:-bot}
+      - db=${MYSQL_DATABASE:-arbitrage}
+      - db_username=${MYSQL_USER:-arbitrage}
+      - db_password=${MYSQL_PASSWORD:-MySqlPassword}
     volumes:
       - .:/home/${USER:-bot}
     networks:

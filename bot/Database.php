@@ -1,5 +1,13 @@
 <?php
+
+if ( is_readable( '/etc/arbbot/config.inc.php' ) ) {
+  // Docker configuration
+  require_once '/etc/arbbot/config.inc.php';
+} else {
+  require_once __DIR__ . '/web/config.inc.php';
+}
 require_once __DIR__ . '/../lib/mysql.php';
+
 class Database {
 
   const STATISTICS_MAX_AGE = 432000;
@@ -8,10 +16,7 @@ class Database {
 
   public static function connect() {
 
-    $dbHost = Config::get( Config::DB_HOST, null );
-    $dbName = Config::get( Config::DB_NAME, null );
-    $dbUser = Config::get( Config::DB_USER, null );
-    $dbPass = Config::get( Config::DB_PASS, null );
+    global $dbHost, $dbName, $dbUser, $dbPass;
 
     if ( is_null( $dbHost ) || is_null( $dbName ) || is_null( $dbUser ) || is_null( $dbPass ) ) {
       throw new Exception( 'Database configuration data missing or incomplete' );
@@ -815,11 +820,13 @@ class Database {
 
   private static function tableExistsHelper( $name ) {
 
+    global $dbName;
+
     $link = self::connect();
 
     if ( !mysql_query( sprintf( "SELECT * FROM information_schema.tables WHERE table_schema = '%s' " .
                                 "AND table_name = '%s' LIMIT 1;",
-                                mysql_escape_string( Config::get( Config::DB_NAME, null ) ),
+                                mysql_escape_string( $dbName ),
                                 mysql_escape_string( $name ) ), $link ) ) {
       throw new Exception( "database selection error: " . mysql_error( $link ) );
     }

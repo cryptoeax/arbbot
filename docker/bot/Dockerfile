@@ -16,6 +16,24 @@ COPY php.ini /usr/local/etc/php/php.ini
 ARG uid
 ARG username
 ARG password
+ARG db
+ARG db_username
+ARG db_password
+
+# Autogenerate config.inc.php
+RUN mkdir -p /etc/arbbot \
+     && echo '<?php' > /etc/arbbot/config.inc.php \
+     && echo '' >> /etc/arbbot/config.inc.php \
+     && echo '$dbHost = "db";' >> /etc/arbbot/config.inc.php \
+     && echo -n '$dbName = "'>> /etc/arbbot/config.inc.php \
+     && echo -n ${db} >> /etc/arbbot/config.inc.php \
+     && echo '";' >> /etc/arbbot/config.inc.php \
+     && echo -n '$dbUser = "' >> /etc/arbbot/config.inc.php \
+     && echo -n ${db_username} >> /etc/arbbot/config.inc.php \
+     && echo '";' >> /etc/arbbot/config.inc.php \
+     && echo -n '$dbPass = "' >> /etc/arbbot/config.inc.php \
+     && echo -n ${db_password} >> /etc/arbbot/config.inc.php \
+     && echo '";' >> /etc/arbbot/config.inc.php
 
 RUN (users | grep -q ${username}) || \
     (useradd -s /bin/bash -m -u ${uid} ${username} \

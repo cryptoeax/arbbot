@@ -2,11 +2,6 @@
 
 class Config {
 
-  // DATABASE
-  const DB_USER = 'db.user';
-  const DB_PASS = 'db.pass';
-  const DB_HOST = 'db.host';
-  const DB_NAME = 'db.name';
   //
   // MAIL
   const MAIL_RECIPIENT = 'mail.address';

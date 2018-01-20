@@ -29,21 +29,6 @@ blockedCoins = BTS,NXT,XMR,ETH,ETC,BURST,SWIFT,XRP,STEEM,ARDR,SBD,NAUT
 ; a password protected HTTPS server.
 admin-ui = false
 
-[db]
-; DATABASE SETTINGS
-
-; Your MySQL database user
-user = arbitrage
-
-; Your MySQL database password
-pass = YOUR_PASSWORD
-
-; Your MySQL database host (DONT MODIFY IF USING DOCKER)
-host = db
-
-; Your MySQL database name
-name = arbitrage
-
 [modules]
 ; MODULE ENABLING / DISABLING
 
