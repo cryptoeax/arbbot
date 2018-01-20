@@ -43,7 +43,7 @@ services:
       - http_auth_user=${HTTP_AUTH_USER:-arbb0t}
       - http_auth_password=${HTTP_AUTH_PASSWORD:-arbb0tpass}
     ports:
-      - "80:80"
+      - "${HTTP_PORT:-80}:80"
     volumes:
       - ./:/var/www/html
     networks:
