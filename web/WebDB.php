@@ -1,12 +1,6 @@
 <?php
 
 require_once __DIR__ . '/../lib/mysql.php';
-if ( is_readable( '/etc/arbbot/config.inc.php' ) ) {
-  // Docker configuration
-  require_once '/etc/arbbot/config.inc.php';
-} else {
-  require_once __DIR__ . '/config.inc.php';
-}
 require_once __DIR__ . '/../bot/utils.php';
 require_once __DIR__ . '/../bot/Config.php';
 require_once __DIR__ . '/../bot/Exchange.php';
@@ -25,6 +19,8 @@ class WebDB {
   private static function connect() {
 
     global $dbHost, $dbName, $dbUser, $dbPass;
+
+    readDatabaseEnvVars();
 
     if ( is_null( $dbHost ) || is_null( $dbName ) || is_null( $dbUser ) || is_null( $dbPass ) ) {
       throw new Exception( 'Database configuration data missing or incomplete' );

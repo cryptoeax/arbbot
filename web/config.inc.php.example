@@ -1,6 +1,0 @@
-<?php
-
-$dbHost = "db"; // DON'T MODIFY IF USING DOCKER
-$dbName = "arbitrage";
-$dbUser = "arbitrage";
-$dbPass = "YOUR_PASSWORD";

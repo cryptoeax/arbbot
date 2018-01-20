@@ -23,9 +23,6 @@ services:
       args:
       - uid=${UID:-1000}
       - username=${USER:-bot}
-      - db=${MYSQL_DATABASE:-arbitrage}
-      - db_username=${MYSQL_USER:-arbitrage}
-      - db_password=${MYSQL_PASSWORD:-MySqlPassword}
     volumes:
       - .:/home/${USER:-bot}
       - ./docker/config:/var/arbbot
@@ -56,14 +53,13 @@ services:
   php:
     depends_on:
       - db
+    env_file:
+      - .env
     build:
       context: ./docker/php
       args:
       - uid=${UID:-1000}
       - username=${USER:-root}
-      - db=${MYSQL_DATABASE:-arbitrage}
-      - db_username=${MYSQL_USER:-arbitrage}
-      - db_password=${MYSQL_PASSWORD:-MySqlPassword}
     expose:
       - 9000
     restart: always

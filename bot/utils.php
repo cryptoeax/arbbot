@@ -33,6 +33,15 @@ function endsWith( $haystack, $needle ) {
 
 }
 
+function readDatabaseEnvVars() {
+  global $dbHost, $dbName, $dbUser, $dbPass;
+
+  $dbHost = 'db';
+  $dbName = getenv( "MYSQL_DATABASE" );
+  $dbUser = getenv( "MYSQL_USER" );
+  $dbPass = getenv( "MYSQL_PASSWORD" );
+}
+
 function alert( $type, $message ) {
 
   database::insertAlert( $type, $message );
