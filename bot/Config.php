@@ -2,6 +2,7 @@
 
 class Config {
 
+  const CONFIG_DIR = "/var/arbbot/";
   //
   // MAIL
   const MAIL_RECIPIENT = 'mail.address';
@@ -226,14 +227,9 @@ class Config {
 
   public static function refresh() {
 
-    $config = @parse_ini_file( "config.ini", true );
+    $config = @parse_ini_file( self::CONFIG_DIR . "/config.ini", true );
     if ( !$config ) {
-      // The web UI accesses the Config object from ../bot, so config.ini will
-      // be placed in the parent directory.
-      $config = @parse_ini_file( "../config.ini", true );
-      if ( !$config ) {
-        throw new Exception( "Configuration not found or invalid!" );
-      }
+      throw new Exception( "Configuration not found or invalid!" );
     }
     self::$config = $config;
 
@@ -278,7 +274,7 @@ class Config {
       );
     }
 
-    $file = file_get_contents( __DIR__ . '/../config.ini' );
+    $file = file_get_contents( self::CONFIG_DIR . '/config.ini' );
     $lines = array( );
     if (strstr( $file, "\r\n" )) {
       $lines = explode( "\r\n", $file );
@@ -370,8 +366,8 @@ class Config {
       $inputs[ $item[ 'name' ] ] = $item[ 'value' ];
     }
 
-    $file = file_get_contents( __DIR__ . '/../config.ini' );
-    file_put_contents( __DIR__ . '/../config.ini.' . time(), $file );
+    $file = file_get_contents( self::CONFIG_DIR . '/config.ini' );
+    file_put_contents( self::CONFIG_DIR . '/config.ini.' . time(), $file );
 
     $lines = array( );
     $output = '';
@@ -429,7 +425,7 @@ class Config {
       }
     }
 
-    $bytes = file_put_contents( __DIR__ . '/../config.ini', $output );
+    $bytes = file_put_contents( self::CONFIG_DIR . '/config.ini', $output );
 
     return $bytes !== false;
 

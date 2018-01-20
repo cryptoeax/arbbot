@@ -39,4 +39,6 @@ RUN (users | grep -q ${username}) || \
     && chown -R ${username}:${username} /home/${username} \
     && echo "Using user ${username} with UID ${uid}.")
 
+RUN mkdir -p /var/arbbot && chown -R ${username}:${username} /var/arbbot
+
 CMD ["php-fpm"]

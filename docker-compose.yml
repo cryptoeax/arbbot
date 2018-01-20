@@ -28,6 +28,7 @@ services:
       - db_password=${MYSQL_PASSWORD:-MySqlPassword}
     volumes:
       - .:/home/${USER:-bot}
+      - ./docker/config:/var/arbbot
     networks:
       - backend
     restart: always
@@ -68,6 +69,7 @@ services:
     restart: always
     volumes:
       - ./:/var/www/html
+      - ./docker/config:/var/arbbot
     networks:
       - frontend
       - backend

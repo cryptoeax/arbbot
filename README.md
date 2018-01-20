@@ -29,7 +29,11 @@ Customize your environment settings:
 ```
 cp .env.example .env
 vi .env               # edit the file to customize the variables, NEVER use the default passwords
+mkdir -p docker/config
+cp config.ini.example docker/config/config.ini
+cd docker/config
 vi config.ini         # edit the database settings to make them match .env
+cd ../..
 ```
 
 In case you have been running the bot from the pre-dockerized versions, you probably want to import the data that the bot currently has saved in its database into the database that the new containerized bot launches.  You can do so by planting a special `data.sql` file in the right place, like this:
@@ -62,7 +66,9 @@ the bot enough room to trade.
 When you update the bot, you need to rebuild the docker containers in case they require rebuilding before rerunning the bot, you can do that with `docker-compose build`.
 
 ## Backing up the bot's data
-The bot's mysql server saves its data in `docker/db-data`.  You are encouraged to back up the contents of this directory occasionally.  If you delete the contents of this directory, the next time you run the bot the bot will reinitialize its database from scratch (and will import an initial seed data from `data.sql` if that file exists.)
+The bot's mysql server saves its configuration in `docker/config` and its data in `docker/db-data`.  You are encouraged to back up the contents of these directories occasionally.  If you delete the contents of these directories, the next time you run the bot the bot will reinitialize its database from scratch (and will import an initial seed data from `data.sql` if that file exists.)  Please note that the bot currently requires a config file to start.
+
+When you use the Admin UI to modify the bot's settings, the bot saves backups of the config file before modifying `config.ini`.  These backup copies are also stored in the `docker/config` directory.
 
 ## How does the bot make profit?
 
