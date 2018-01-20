@@ -20,8 +20,6 @@ ARG db_username
 ARG db_password
 
 # Autogenerate config.inc.php
-RUN (test -f /var/www/html/web/config.inc.php && rm -f /var/www/html/web/config.inc.php) || \
-      echo Ignorinng config.inc.php because it does not exist
 RUN mkdir -p /etc/arbbot \
      && echo '<?php' > /etc/arbbot/config.inc.php \
      && echo '' >> /etc/arbbot/config.inc.php \
@@ -36,7 +34,6 @@ RUN mkdir -p /etc/arbbot \
      && echo -n ${db_password} >> /etc/arbbot/config.inc.php \
      && echo '";' >> /etc/arbbot/config.inc.php
 
-# Set UID
 RUN (users | grep -q ${username}) || \
     (useradd -s /bin/bash -m -u ${uid} ${username} \
     && chown -R ${username}:${username} /home/${username} \

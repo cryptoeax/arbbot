@@ -1,10 +1,11 @@
 <?php
 
 require_once __DIR__ . '/../lib/mysql.php';
-if ( is_readable( __DIR__ . '/config.inc.php' ) ) {
-  require_once __DIR__ . '/config.inc.php';
-} else {
+if ( is_readable( '/etc/arbbot/config.inc.php' ) ) {
+  // Docker configuration
   require_once '/etc/arbbot/config.inc.php';
+} else {
+  require_once __DIR__ . '/config.inc.php';
 }
 require_once __DIR__ . '/../bot/utils.php';
 require_once __DIR__ . '/../bot/Config.php';

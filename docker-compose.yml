@@ -2,12 +2,7 @@ version: '3'
 
 services:
   db:
-    build:
-      context: ./docker/db
-      args:
-      - db=${MYSQL_DATABASE:-arbitrage}
-      - db_username=${MYSQL_USER:-arbitrage}
-      - db_password=${MYSQL_PASSWORD:-MySqlPassword}
+    image: mysql:5.7
     env_file:
       - .env
     volumes:

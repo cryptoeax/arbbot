@@ -19,7 +19,6 @@ RUN echo -n ${http_auth_user}:$(openssl passwd -apr1 ${http_auth_password}) > /e
 ARG uid
 ARG username
 
-# Set UID
 RUN (users | grep -q ${username}) || \
     (useradd -s /bin/bash -m -u ${uid} ${username} \
     && chown -R ${username}:${username} /home/${username} \

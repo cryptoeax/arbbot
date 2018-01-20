@@ -4,7 +4,6 @@ RUN apt-get update && apt-get install -y apt-utils
 
 RUN apt-get install -y \
     libicu-dev unzip ntpdate libmcrypt-dev zlib1g-dev g++ mysql-client ntp \
- #   php-curl php-mbstring php-mcrypt php-intl php-mysqli php-zip \
     && rm -r /var/lib/apt/lists/*
 
 ADD wait-for-db.sh /bin/wait-for-db.sh
@@ -18,12 +17,9 @@ ARG uid
 ARG username
 ARG password
 
-# Set UID
 RUN (users | grep -q ${username}) || \
     (useradd -s /bin/bash -m -u ${uid} ${username} \
     && chown -R ${username}:${username} /home/${username} \
     && echo "Using user ${username} with UID ${uid}.")
 
 WORKDIR "/home/${username}"
-#CMD ["/bin/ls", "/bin"]
-#CMD ["/bin/wait-for-db.sh", "profit_loss", ${password}, "hhvm", "main.php"]
