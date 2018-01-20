@@ -126,6 +126,9 @@ class Config {
   const MODULE_TRADE = 'modules.trade';
   const DEFAULT_MODULE_TRADE = true;
   //
+  const MODULE_AUTOBALANCE = 'modules.auto-balance';
+  const DEFAULT_MODULE_AUTOBALANCE = true;
+  //
   const MODULE_LIQUIDATE = 'modules.coin-liquidation';
   const DEFAULT_MODULE_LIQUIDATE = false;
   //
@@ -250,6 +253,7 @@ class Config {
       self::BLOCKED_COINS,
       self::MODULE_TRADE,
       self::MODULE_AUTOBUY,
+      self::MODULE_AUTOBALANCE,
       self::MODULE_LIQUIDATE,
       self::MODULE_TAKE_PROFIT,
       self::MODULE_STUCK_DETECTION,
@@ -336,6 +340,7 @@ class Config {
       self::BLOCKED_COINS,
       self::MODULE_TRADE,
       self::MODULE_AUTOBUY,
+      self::MODULE_AUTOBALANCE,
       self::MODULE_LIQUIDATE,
       self::MODULE_TAKE_PROFIT,
       self::MODULE_STUCK_DETECTION,
