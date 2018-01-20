@@ -23,7 +23,7 @@ class TradeMatcher {
       return array( );
     }
     $ex = &$this->exchanges[ $id ];
-    $hist = $ex->queryTradeHistory( array( ), true );
+    $hist = $ex->queryTradeHistory( array( ) );
     $tradeIDs = array( );
     $map = array( );
     foreach ( $hist as $market => &$data ) {

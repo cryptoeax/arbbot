@@ -1089,18 +1089,6 @@ class Database {
 
   }
 
-  public static function profitLossTableExists() {
-
-    return self::tableExistsHelper( 'profit_loss' );
-
-  }
-
-  public static function createProfitLossTable() {
-
-    return self::createTableHelper( 'profit_loss' );
-
-  }
-
   private static function ensureTradesUpdated( $link ) {
 
     if ( !is_null( self::$trades ) ) {

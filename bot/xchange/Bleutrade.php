@@ -63,11 +63,8 @@ class Bleutrade extends BittrexLikeExchange {
 
   }
 
-  public function queryTradeHistory( $options = array( ), $recentOnly = false ) {
+  public function queryTradeHistory( $options = array( ) ) {
     $results = array( );
-
-    // Since this exchange was added after merging of the pl-rewrite branch, we don't
-    // need the full trade history for the initial import, so we can ignore $recentOnly!
 
     $options = array(
       'market' => 'ALL',
@@ -150,13 +147,6 @@ class Bleutrade extends BittrexLikeExchange {
   public function getName() {
 
     return "BLEUTRADE";
-
-  }
-
-  public function getTradeHistoryCSVName() {
-
-    // See the comment in queryTradeHistory().
-    return null;
 
   }
 
