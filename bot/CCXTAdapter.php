@@ -181,7 +181,7 @@ abstract class CCXTAdapter extends Exchange {
     foreach ($result as $entry) {
       if ($entry[ 'order' ] == $orderNumber) {
         $factor = ($type == 'sell') ? -1 : 1;
-        return floatval( $entry[ 'cost' ] ) + $factor * floatval( $entry[ 'fee' ][ 'cost' ] );
+        return floatval( $entry[ 'cost' ] ) + $factor * floatval( $this->getTradeFee( $entry, $type ) );
       }
     }
     return null;
@@ -217,7 +217,7 @@ abstract class CCXTAdapter extends Exchange {
           'time' => floor( $row[ 'timestamp' ] / 1000 ), // timestamp is in milliseconds
           'rate' => floatval( $row[ 'price' ] ),
           'amount' => floatval( $row[ 'amount' ] ),
-          'fee' => floatval( $row[ 'fee' ][ 'cost' ] ),
+          'fee' => $this->getTradeFee( $row, $type ),
           'total' => floatval( $row[ 'cost' ] ),
         );
       }
@@ -228,6 +228,17 @@ abstract class CCXTAdapter extends Exchange {
     }
 
     return $results;
+  }
+
+  private function getTradeFee( $row, $type ) {
+
+    $fee = floatval( $row[ 'fee' ][ 'cost' ] );
+    if ( $type == 'buy' ) {
+      // On the buy side, the fee is returned in tradeable units, so we need to convert it to currency.
+      $fee *= floatval( $row[ 'price' ] );
+    }
+    return $fee;
+
   }
 
   public function getRecentOrderTrades( &$arbitrator, $tradeable, $currency, $type, $orderID, $tradeAmount ) {
@@ -255,7 +266,7 @@ abstract class CCXTAdapter extends Exchange {
         'time' => floor( $row[ 'timestamp' ] / 1000 ), // timestamp is in milliseconds
         'rate' => floatval( $row[ 'price' ] ),
         'amount' => floatval( $row[ 'amount' ] ),
-        'fee' => floatval( $row[ 'fee' ][ 'cost' ] ),
+        'fee' => $this->getTradeFee( $row, $type ),
         'total' => floatval( $row[ 'cost' ] ),
       );
     }
