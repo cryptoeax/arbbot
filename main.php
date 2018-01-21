@@ -116,7 +116,7 @@ foreach ( $exchanges as $exchange ) {
 
     $name = $exchange->getTradeHistoryCSVName();
     if ( $name ) {
-      $csvPath = __DIR__ . '/' . $name;
+      $csvPath = Config::getConfigDir() . '/' . $name;
       if ( ! is_readable( $csvPath ) ) {
         $prompt = file_get_contents( __DIR__ . '/bot/xchange/' . $exchange->getName() . '-csv-missing.txt' );
         logg( $prompt );
