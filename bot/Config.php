@@ -153,6 +153,12 @@ class Config {
 
   }
 
+  public function getConfigDir() {
+
+    return self::CONFIG_DIR;
+
+  }
+
   public static function isCurrency( $coin ) {
 
     return $coin == 'BTC';
@@ -227,7 +233,7 @@ class Config {
 
   public static function refresh() {
 
-    $config = @parse_ini_file( self::CONFIG_DIR . "/config.ini", true );
+    $config = @parse_ini_file( self::getConfigDir() . "/config.ini", true );
     if ( !$config ) {
       throw new Exception( "Configuration not found or invalid!" );
     }
@@ -274,7 +280,7 @@ class Config {
       );
     }
 
-    $file = file_get_contents( self::CONFIG_DIR . '/config.ini' );
+    $file = file_get_contents( self::getConfigDir() . '/config.ini' );
     $lines = array( );
     if (strstr( $file, "\r\n" )) {
       $lines = explode( "\r\n", $file );
@@ -366,8 +372,8 @@ class Config {
       $inputs[ $item[ 'name' ] ] = $item[ 'value' ];
     }
 
-    $file = file_get_contents( self::CONFIG_DIR . '/config.ini' );
-    file_put_contents( self::CONFIG_DIR . '/config.ini.' . time(), $file );
+    $file = file_get_contents( self::getConfigDir() . '/config.ini' );
+    file_put_contents( self::getConfigDir() . '/config.ini.' . time(), $file );
 
     $lines = array( );
     $output = '';
@@ -425,7 +431,7 @@ class Config {
       }
     }
 
-    $bytes = file_put_contents( self::CONFIG_DIR . '/config.ini', $output );
+    $bytes = file_put_contents( self::getConfigDir() . '/config.ini', $output );
 
     return $bytes !== false;
 
