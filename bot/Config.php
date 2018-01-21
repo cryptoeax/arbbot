@@ -153,7 +153,7 @@ class Config {
 
   }
 
-  public function getConfigDir() {
+  public static function getConfigDir() {
 
     return self::CONFIG_DIR;
 
