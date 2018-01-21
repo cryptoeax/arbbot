@@ -1,0 +1,13 @@
+It seems that there are some new trades on Poloniex that the bot is not aware
+of previously, so it needs to refresh its trades database from Poloniex, but it
+can't find a `poloniex-tradeHistory.csv' file in the installation directory.
+
+This file needs to be placed next to config.ini, and its name is case sensitive.
+Please download this file from Poloniex and place it in the installation
+directory and place Enter when ready.
+
+This file can be downloaded after logging in to your account from the following
+address by clicking on the "Complete Trade History" link.
+
+  * https://poloniex.com/tradeHistory
+

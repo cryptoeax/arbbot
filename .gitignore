@@ -1,5 +1,7 @@
+bittrex-fullOrders.csv
 config.ini
 config.ini.[0-9]*
+poloniex-tradeHistory.csv
 \.idea/
 \.env
 /docker/db-data/

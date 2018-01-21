@@ -114,6 +114,19 @@ foreach ( $exchanges as $exchange ) {
 
     logg( "Noticed new trades on " . $exchange->getName() . " that we haven't seen before, importing them now..." );
 
+    $name = $exchange->getTradeHistoryCSVName();
+    if ( $name ) {
+      $csvPath = __DIR__ . '/' . $name;
+      if ( ! is_readable( $csvPath ) ) {
+        $prompt = file_get_contents( __DIR__ . '/bot/xchange/' . $exchange->getName() . '-csv-missing.txt' );
+        logg( $prompt );
+        readline();
+        if ( !is_readable( $csvPath ) ) {
+          die( "Still can't find the file, refusing to continue\n" );
+        }
+      }
+    }
+
     // Now read the full history
     $hist = $exchange->queryTradeHistory();
 

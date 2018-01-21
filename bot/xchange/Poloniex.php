@@ -140,13 +140,54 @@ class Poloniex extends Exchange {
     return null;
   }
 
-  public function queryTradeHistory( $options = array( ) ) {
+  public function queryTradeHistory( $options = array( ), $recentOnly = false ) {
     $results = array( );
+
+    if (!$recentOnly && $this->fullOrderHistory !== null) {
+      $results = $this->fullOrderHistory;
+    } else if (!$recentOnly && !$this->fullOrderHistory &&
+               file_exists( __DIR__ . '/../../poloniex-tradeHistory.csv' )) {
+      $file = file_get_contents( __DIR__ . '/../../poloniex-tradeHistory.csv' );
+      $lines = explode( "\n", $file );
+      $first = true;
+      foreach ($lines as $line) {
+        if ($first) {
+          // Ignore the first line.
+          $first = false;
+          continue;
+        }
+        $data = str_getcsv( $line );
+        if (count( $data ) != 11) {
+          continue;
+        }
+        $market = $data[ 1 ];
+        $arr = explode( '/', $market );
+        $currency = $arr[ 1 ];
+        $tradeable = $arr[ 0 ];
+        $market = "${currency}_${tradeable}";
+        $feeFactor = ($data[ 3 ] == 'Sell') ? -1 : 1;
+        $results[ $market ][] = array(
+          'rawID' => $data[ 8 ],
+          'id' => $currency . '_' . $tradeable . ':' . $data[ 8 ],
+          'currency' => $currency,
+          'tradeable' => $tradeable,
+          'type' => strtolower( $data[ 3 ] ),
+          'time' => strtotime( $data[ 0 ] ),
+          'rate' => floatval( $data[ 4 ] ),
+          'amount' => floatval( $data[ 5 ] ),
+          'fee' => floatval( $data[ 6 ] ) * ($feeFactor * floatval( $data[ 7 ] )),
+          'total' => floatval( $data[ 6 ] ),
+        );
+      }
+      $this->fullOrderHistory = $results;
+    }
 
     if (!in_array( 'currencyPair', $options )) {
       $options[ 'currencyPair' ] = 'all';
     }
     $history = $this->queryAPI( 'returnTradeHistory', $options );
+
+    $checkArray = !empty( $results );
 
     $idsSeen = array( );
 
@@ -155,16 +196,30 @@ class Poloniex extends Exchange {
       $currency = $arr[ 0 ];
       $tradeable = $arr[ 1 ];
       foreach ($history[ $market ] as $row) {
-        if ( isset( $idsSeen[ $row[ 'orderNumber' ] ] ) ) {
-          // Poloniex sometimes returns duplicate results!
-          continue;
-        }
-        $idsSeen[ $row[ 'orderNumber' ] ] = true;
+	if ( isset( $idsSeen[ $row[ 'orderNumber' ] ] ) ) {
+	  // Poloniex sometimes returns duplicate results!
+	  continue;
+	}
+	$idsSeen[ $row[ 'orderNumber' ] ] = true;
 
         if (!in_array( $market, array_keys( $results ) )) {
           $results[ $market ] = array();
         }
         $feeFactor = ($row[ 'type' ] == 'sell') ? -1 : 1;
+
+        if ($checkArray) {
+          $seen = false;
+          foreach ($results[ $market ] as $item) {
+            if ($item[ 'rawID' ] == $row[ 'orderNumber' ]) {
+              // We have already recorder this ID.
+              $seen = true;
+              break;
+            }
+          }
+          if ($seen) {
+            continue;
+          }
+        }
 
         $results[ $market ][] = array(
           'rawID' => $row[ 'orderNumber' ],
@@ -432,6 +487,12 @@ class Poloniex extends Exchange {
   public function getName() {
 
     return "POLONIEX";
+
+  }
+
+  public function getTradeHistoryCSVName() {
+
+    return "poloniex-tradeHistory.csv";
 
   }
 

@@ -224,7 +224,7 @@ abstract class Exchange {
 
   public abstract function getFilledOrderPrice( $type, $tradeable, $currency, $orderID );
 
-  public abstract function queryTradeHistory( $options = array( ) );
+  public abstract function queryTradeHistory( $options = array( ), $recentOnly = false );
 
   public abstract function cancelAllOrders();
 
@@ -241,6 +241,8 @@ abstract class Exchange {
   public abstract function getID();
 
   public abstract function getName();
+
+  public abstract function getTradeHistoryCSVName();
 
   public abstract function testAccess();
 
