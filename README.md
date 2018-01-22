@@ -189,6 +189,7 @@ Funding this project would allow me to spend time on things like adding support 
 ## Release History
 * 2.0
     * Improved the web-based UI, charts, tooltips to help new users, legends
+    * Added support for Bleutrade.
     * Added a P&L section in the UI to display detailed information about the incurred profits and losses as a result of trades, including daily and per-coin charts with filtering options.
     * Added precise accounting of unrealized profits/losses, taking all trade and transfer fees into account as reported by the exchanges.
     * Added accounting of realized (withdrawn) profits.
