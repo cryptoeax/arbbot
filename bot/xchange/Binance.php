@@ -49,7 +49,7 @@ class Binance extends CCXTAdapter {
       'statusKey' => 'status',
       'coinKey' => 'asset',
       'amountKey' => 'amount',
-      'timeKey' => 'applyTime',
+      'timeKey' => 'insertTime',
       'pending' => 0 /* pending */,
 
     );
