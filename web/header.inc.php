@@ -8,7 +8,9 @@ header( 'Content-type: application/json' );
 
 function isLocal() {
   return $_SERVER[ 'HTTP_HOST' ] === 'localhost' ||
-         $_SERVER[ 'HTTP_HOST' ] === '127.0.0.1';
+         strpos( $_SERVER[ 'HTTP_HOST' ], 'localhost:' ) == 0 ||
+         $_SERVER[ 'HTTP_HOST' ] === '127.0.0.1' ||
+         strpos( $_SERVER[ 'HTTP_HOST' ], '127.0.0.1:' ) == 0;
 }
 
 function isSecure() {
