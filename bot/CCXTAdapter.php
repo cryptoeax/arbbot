@@ -217,7 +217,7 @@ abstract class CCXTAdapter extends Exchange {
           'time' => floor( $row[ 'timestamp' ] / 1000 ), // timestamp is in milliseconds
           'rate' => floatval( $row[ 'price' ] ),
           'amount' => floatval( $row[ 'amount' ] ),
-          'fee' => $this->getTradeFee( $row, $type ),
+          'fee' => $this->getTradeFee( $row, $row[ 'side' ] ),
           'total' => floatval( $row[ 'cost' ] ),
         );
       }
