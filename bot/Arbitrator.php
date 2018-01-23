@@ -192,12 +192,12 @@ class Arbitrator {
   private function testOrderbooks( $o1, $o2 ) {
     if ( is_null( $o1 ) ) {
       logg( sprintf( "Received invalid orderbook received from %s. Skipping...",
-                     $o1->getSource()->getName() );
+                     $o1->getSource()->getName() ) );
       return false;
     }
     if ( is_null( $o2 ) ) {
       logg( sprintf( "Received invalid orderbook received from %s. Skipping...",
-                     $o2->getSource()->getName() );
+                     $o2->getSource()->getName() ) );
       return false;
     }
 
