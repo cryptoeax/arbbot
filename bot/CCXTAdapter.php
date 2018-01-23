@@ -313,10 +313,10 @@ abstract class CCXTAdapter extends Exchange {
 
     $split = explode( ':', $orderID );
     $pair = $split[ 0 ];
+    $id = $split[ 1 ];
     $split = explode( '_', $pair );
     $currency = $split[ 0 ];
     $tradeable = $split[ 1 ];
-    $id = $split[ 1 ];
 
     try {
       $this->exchange->cancel_order( $id, $tradeable . '/' . $currency );
