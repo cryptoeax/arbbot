@@ -195,7 +195,7 @@ class Arbitrator {
       return false;
     }
 
-    return ( $this->checkAndTrade( $o1, $o2 ) ) || $this->checkAndTrade( $o2, $o1 );
+    return $this->checkAndTrade( $o1, $o2 );
 
   }
 
