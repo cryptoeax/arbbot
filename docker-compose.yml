@@ -22,9 +22,9 @@ services:
       context: ./docker/bot
       args:
       - uid=${UID:-1000}
-      - username=${USER:-bot}
+      - username=${USER_NAME:-bot}
     volumes:
-      - .:/home/${USER:-bot}
+      - .:/home/${USER_NAME:-bot}
       - ./docker/config:/var/arbbot
     networks:
       - backend
@@ -40,7 +40,7 @@ services:
       context: ./docker/web
       args:
       - uid=${UID:-1000}
-      - username=${USER:-bot}
+      - username=${USER_NAME:-bot}
       - http_auth_user=${HTTP_AUTH_USER:-arbb0t}
       - http_auth_password=${HTTP_AUTH_PASSWORD:-arbb0tpass}
     ports:
@@ -59,7 +59,7 @@ services:
       context: ./docker/php
       args:
       - uid=${UID:-1000}
-      - username=${USER:-root}
+      - username=${USER_NAME:-bot}
     expose:
       - 9000
     restart: always
