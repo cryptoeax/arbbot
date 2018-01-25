@@ -581,6 +581,29 @@ class Database {
 
   }
 
+  public static function handleAlertsUpgrade() {
+
+    $link = self::connect();
+
+    $result = mysql_query( "SHOW COLUMNS FROM alerts LIKE 'type';", $link );
+    if ( !$result ) {
+      throw new Exception( "database selection error: " . mysql_error( $link ) );
+    }
+
+    $results = array();
+    $row = mysql_fetch_assoc( $result );
+    if ( $row[ 'Type' ] == "enum('stuck-transfer','poloniex-withdrawal-limit')" ) {
+      // Old database format, need to upgrade first.
+      $result = mysql_query( "ALTER TABLE alerts MODIFY `type` ENUM('stuck-transfer','poloniex-withdrawal-limit','duplicate-withdrawal') NOT NULL;", $link );
+      if ( !$result ) {
+        throw new Exception( "database alteration error: " . mysql_error( $link ) );
+      }
+    }
+
+    mysql_close( $link );
+
+  }
+
   public static function handleCoinUpgrade() {
 
     $link = self::connect();
