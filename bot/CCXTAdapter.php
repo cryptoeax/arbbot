@@ -39,6 +39,7 @@ abstract class CCXTAdapter extends Exchange {
   private $minTrades = [ ];
 
   private $lastStuckReportTime = [ ];
+  private $lastDuplicateWithdrawalTime = 0;
 
   function __construct( $id, $name, $ccxtName ) {
     $this->id = $id;
@@ -83,7 +84,10 @@ abstract class CCXTAdapter extends Exchange {
    * statusKey: key name for the status field
    * coinKey: key name for the coin field
    * amountKey: key name for the amount field
+   * addressKey: key name for the address field
+   * txidKey: key name for the txid field
    * pending: the value of status when the withdrawal is pending. can be an array.
+   * completed: the value of status when the withdrawal is completed. can be an array.
    ************************************************************
    */
   public abstract function getWithdrawalHistory();
@@ -421,6 +425,46 @@ abstract class CCXTAdapter extends Exchange {
                "Stuck $key! Please investigate and open support ticket if neccessary!\n\n" .
                print_r( $entry, true ), true );
         $this->lastStuckReportTime[ $key ] = $timestamp;
+      }
+    }
+
+  }
+
+  public function detectDuplicateWithdrawals() {
+
+    $info = $this->getWithdrawalHistory();
+    if ( is_array( $info[ 'history' ] ) ) {
+      if ( !is_array( $info[ 'completed' ] ) ) {
+        $info[ 'completed' ] = [ $info[ 'completed' ] ];
+      }
+      $history = $info[ 'history' ];
+      $prevTxId = '';
+      $prevAmount = '';
+      $prevAddress = '';
+
+      foreach ( $history as $entry ) {
+        $timestamp = floor( $entry[ $info[ 'timeKey' ] ] / 1000 ); // in milliseconds
+        if ( $timestamp < $this->lastDuplicateWithdrawalTime ) {
+          continue;
+        }
+        $txid = $entry[ $info[ 'txidKey' ] ];
+        $amount = $entry[ $info[ 'amountKey' ] ];
+        $address = $entry[ $info[ 'addressKey' ] ];
+        $status = $entry[ $info[ 'statusKey' ] ];
+        $matched = false;
+        if ( $txid == $prevTxId &&
+             $amount == $prevAmount &&
+             $address == $prevAddress &&
+             in_array( $status, $info[ 'completed' ] ) ) {
+          $matched = true;
+        }
+        $prevTxId = $txid;
+        $prevAmount = $amount;
+        $prevAddress = $address;
+
+        if ( $timestamp < time() - 24 * 3600 && $matched ) {
+          alert( 'duplicate-withdrawal', $this->prefix() . "Duplicate withdrawal! Please investigate and open support ticket at " . ucwords( strtolower( $this->getName() ) ) . " if necessary!\r\r" . print_r( $entry, true ), true );
+        }
       }
     }
 

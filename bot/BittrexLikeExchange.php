@@ -208,6 +208,12 @@ abstract class BittrexLikeExchange extends Exchange {
 
   }
 
+  public function detectDuplicateWithdrawals() {
+
+    // TODO: Detect duplicate withdrawals!
+
+  }
+
   public function dumpWallets() {
 
     logg( $this->prefix() . print_r( $this->queryBalances(), true ) );

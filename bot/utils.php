@@ -55,6 +55,10 @@ function compareByTime( $row1, $row2 ) {
   return $row1[ 'time' ] - $row2[ 'time' ];
 }
 
+function compareByTimeStamp( $row1, $row2 ) {
+  return $row1[ 'timestamp' ] - $row2[ 'timestamp' ];
+}
+
 function sumOfAmount( $carry, $item ) {
   return $carry + $item[ 'amount' ];
 }

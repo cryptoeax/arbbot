@@ -285,6 +285,8 @@ abstract class Exchange {
 
   public abstract function detectStuckTransfers();
 
+  public abstract function detectDuplicateWithdrawals();
+
   public abstract function getSmallestOrderSize( $tradeable, $currency, $type );
 
   public abstract function getID();

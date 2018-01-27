@@ -65,7 +65,10 @@ class Binance extends CCXTAdapter {
       'coinKey' => 'asset',
       'amountKey' => 'amount',
       'timeKey' => 'applyTime',
+      'txidKey' => 'txId',
+      'addressKey' => 'address',
       'pending' => [2 /* awaiting approval */, 4 /* processing */],
+      'completed' => 6 /* completed */,
 
     );
 
