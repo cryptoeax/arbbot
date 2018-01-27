@@ -62,6 +62,12 @@ take-profit = false
 ; The trade module will do the arbitrage-trading stuff. Just in case you want to disable it for some reason...
 trade = true
 
+; Alert about stuck transfers between exchanges that haven't finished in the last 24 hours.
+stuck-detection = true
+
+; Alert about duplicate withdrawals detected on an exchange in the last 24 hours.
+duplicate-detection = true
+
 ; Detect coins that have balances at the exchange but the bot won't automatically liquidate
 unused-coins-detection = true
 
@@ -212,6 +218,7 @@ rate-ema-period = 5
 interval-management = 1
 interval-take-profit = 12
 interval-stuck-detection = 12
+interval-duplicate-detection = 12
 interval-unused-coin-detection = 4
 interval-db-cleanup = 24
 

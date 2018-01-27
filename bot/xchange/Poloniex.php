@@ -423,6 +423,45 @@ class Poloniex extends Exchange {
 
   }
 
+  private $lastDuplicateWithdrawalTime = 0;
+
+  public function detectDuplicateWithdrawals() {
+
+    $history = $this->queryDepositsAndWithdrawals();
+    $block = $history[ 'withdrawals' ];
+    usort( $block, 'compareByTimeStamp' );
+    $prevTxId = '';
+    $prevAmount = '';
+    $prevAddress = '';
+    foreach ( $block as $entry ) {
+      $status = strtoupper( $entry[ 'status' ] );
+      $timestamp = $entry[ 'timestamp' ];
+      if ( $timestamp < $this->lastDuplicateWithdrawalTime ||
+           substr( $status, 0, 10 ) != 'COMPLETE: ' ) {
+        continue;
+      }
+      // status is in the following format: "COMPLETE: txid"
+      $txid = substr( $status, 10 );
+      $amount = $entry[ 'amount' ];
+      $address = $entry[ 'address' ];
+      $matched = false;
+      if ( $txid == $prevTxId &&
+           $amount == $prevAmount &&
+           $address == $prevAddress ) {
+        $matched = true;
+      }
+      $prevTxId = $txid;
+      $prevAmount = $amount;
+      $prevAddress = $address;
+
+      if ( $timestamp < time() - 24 * 3600 && $matched ) {
+        alert( 'duplicate-withdrawal', $this->prefix() . "Duplicate withdrawal! Please investigate and open support ticket at Poloniex if necessary!\r\r" . print_r( $entry, true ), true );
+        $this->lastDuplicateWithdrawalTime = $timestamp;
+      }
+    }
+
+  }
+
   public function getWalletsConsideringPendingDeposits() {
 
     $result = [ ];

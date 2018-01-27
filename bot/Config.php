@@ -60,6 +60,9 @@ class Config {
   const INTERVAL_STUCK_DETECTION = 'expert.interval-stuck-detection';
   const DEFAULT_INTERVAL_STUCK_DETECTION = 12;
   //
+  const INTERVAL_DUPLICATE_DETECTION = 'expert.interval-duplicate-detection';
+  const DEFAULT_INTERVAL_DUPLICATE_DETECTION = 12;
+  //
   const INTERVAL_UNUSED_COIN_DETECTION = 'expert.interval-unused-coin-detection';
   const DEFAULT_INTERVAL_UNUSED_COIN_DETECTION = 24;
   //
@@ -140,6 +143,9 @@ class Config {
   //
   const MODULE_STUCK_DETECTION = 'modules.stuck-detection';
   const DEFAULT_MODULE_STUCK_DETECTION = true;
+  //
+  const MODULE_DUPLICATE_DETECTION = 'modules.duplicate-detection';
+  const DEFAULT_MODULE_DUPLICATE_DETECTION = true;
   //
   const MODULE_UNUSED_COINS_DETECTION = 'modules.unused-coins-detection';
   const DEFAULT_MODULE_UNUSED_COINS_DETECTION = true;
@@ -257,6 +263,7 @@ class Config {
       self::MODULE_LIQUIDATE,
       self::MODULE_TAKE_PROFIT,
       self::MODULE_STUCK_DETECTION,
+      self::MODULE_DUPLICATE_DETECTION,
       self::MODULE_UNUSED_COINS_DETECTION,
       self::MAX_BUY,
       self::TAKE_PROFIT_ADDRESS,
@@ -344,6 +351,7 @@ class Config {
       self::MODULE_LIQUIDATE,
       self::MODULE_TAKE_PROFIT,
       self::MODULE_STUCK_DETECTION,
+      self::MODULE_DUPLICATE_DETECTION,
       self::MODULE_UNUSED_COINS_DETECTION,
       self::MAX_BUY,
       self::TAKE_PROFIT_ADDRESS,
