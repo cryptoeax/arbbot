@@ -463,6 +463,7 @@ abstract class CCXTAdapter extends Exchange {
         $info[ 'completed' ] = [ $info[ 'completed' ] ];
       }
       $history = $info[ 'history' ];
+      $prevTimestamp = 0;
       $prevTxId = '';
       $prevAmount = '';
       $prevAddress = '';
@@ -477,12 +478,14 @@ abstract class CCXTAdapter extends Exchange {
         $address = $entry[ $info[ 'addressKey' ] ];
         $status = $entry[ $info[ 'statusKey' ] ];
         $matched = false;
-        if ( $txid == $prevTxId &&
+        if ( $timestamp == $prevTimestamp &&
+             $txid == $prevTxId &&
              $amount == $prevAmount &&
              $address == $prevAddress &&
              in_array( $status, $info[ 'completed' ] ) ) {
           $matched = true;
         }
+        $prevTimestamp = $timestamp;
         $prevTxId = $txid;
         $prevAmount = $amount;
         $prevAddress = $address;
