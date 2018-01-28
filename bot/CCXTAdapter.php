@@ -35,6 +35,7 @@ abstract class CCXTAdapter extends Exchange {
   private $id = 0;
   private $name = '';
 
+  private $coinNames = [ ];
   private $tradeFees = [ ];
   private $minTrades = [ ];
 
@@ -115,6 +116,7 @@ abstract class CCXTAdapter extends Exchange {
 
   public function getTickers( $currency ) {
 
+    $currency = $this->coinNames[ $currency ];
     $markets = $this->exchange->loadMarkets();
 
     $ticker = [ ];
@@ -132,7 +134,7 @@ abstract class CCXTAdapter extends Exchange {
       $split = explode( '/', $row[ 'symbol' ] );
 
       // The API doesn't provide the last price, so we just take an average into our spread. :-(
-      $ticker[ $split[ 0 ] ] = formatBTC( ( $row[ 'info' ][ 'bidPrice' ] + $row[ 'info' ][ 'askPrice' ] ) / 2 );
+      $ticker[ strtoupper( $split[ 0 ] ) ] = formatBTC( ( $row[ 'info' ][ 'bidPrice' ] + $row[ 'info' ][ 'askPrice' ] ) / 2 );
     }
 
     return $ticker;
@@ -141,6 +143,7 @@ abstract class CCXTAdapter extends Exchange {
 
   public function withdraw( $coin, $amount, $address ) {
 
+    $coin = $this->coinNames[ $coin ];
     if ( $amount === 0 ) {
       // Simulate an error which ccxt may not raise for us
       throw new Exception( "API error response: Amount must be greater than zero" );
@@ -152,6 +155,7 @@ abstract class CCXTAdapter extends Exchange {
 
   public function getDepositAddress( $coin ) {
 
+    $coin = $this->coinNames[ $coin ];
     $result = $this->exchange->fetch_deposit_address( $coin );
     if ( !isset( $result[ 'address' ] ) ) {
       logg( $this->prefix() . "Please generate a deposit address for $coin!", true );
@@ -162,20 +166,29 @@ abstract class CCXTAdapter extends Exchange {
   }
 
   public function buy( $tradeable, $currency, $rate, $amount ) {
-    $result = $this->exchange->create_order( $tradeable . '/' . $currency, 'limit', 'buy',
+
+    $tradeableInternal = $this->coinNames[ $tradeable ];
+    $currencyInternal = $this->coinNames[ $currency ];
+    $result = $this->exchange->create_order( $tradeableInternal . '/' . $currencyInternal, 'limit', 'buy',
                                              $amount, $rate );
     return $currency . '_' . $tradeable . ':' . $result[ 'id' ];
 
   }
 
   public function sell( $tradeable, $currency, $rate, $amount ) {
-    $result = $this->exchange->create_order( $tradeable . '/' . $currency, 'limit', 'sell',
+
+    $tradeableInternal = $this->coinNames[ $tradeable ];
+    $currencyInternal = $this->coinNames[ $currency ];
+    $result = $this->exchange->create_order( $tradeableInternal . '/' . $currencyInternal, 'limit', 'sell',
                                              $amount, $rate );
     return $currency . '_' . $tradeable . ':' . $result[ 'id' ];
 
   }
 
   public function getFilledOrderPrice( $type, $tradeable, $currency, $id ) {
+
+    $tradeable = $this->coinNames[ $tradeable ];
+    $currency = $this->coinNames[ $currency ];
     if (!preg_match( '/^[A-Z0-9_]+:(.*)$/', $id, $matches )) {
       throw new Exception( $this->prefix() . "Invalid order id: " . $id);
     }
@@ -203,8 +216,8 @@ abstract class CCXTAdapter extends Exchange {
   
       foreach ( $result as $row ) {
         $arr = explode( '/', $row[ 'symbol'] );
-        $currency = $arr[ 1 ];
-        $tradeable = $arr[ 0 ];
+        $currency = strtoupper( $arr[ 1 ] );
+        $tradeable = strtoupper( $arr[ 0 ] );
         $market = $tradeable . '_' . $currency;
   
         if (!in_array( $market, array_keys( $results ) )) {
@@ -252,8 +265,10 @@ abstract class CCXTAdapter extends Exchange {
     }
     $currency = $matches[ 1 ];
     $tradeable = $matches[ 2 ];
+    $currencyInternal = $this->coinNames[ $currency ];
+    $tradeableInternal = $this->coinNames[ $tradeable ];
     $rawOrderID = $matches[ 3 ];
-    $results = $this->exchange->fetch_my_trades( $tradeable . '/' . $currency );
+    $results = $this->exchange->fetch_my_trades( $tradeableInternal . '/' . $currencyInternal );
 
     $trades = array( );
     $feeFactor = ($type == 'sell') ? -1 : 1;
@@ -281,7 +296,9 @@ abstract class CCXTAdapter extends Exchange {
 
   protected function fetchOrderbook( $tradeable, $currency ) {
 
-    $orderbook = $this->exchange->fetch_order_book( $tradeable . '/' . $currency );
+    $tradeableInternal = $this->coinNames[ $tradeable ];
+    $currencyInternal = $this->coinNames[ $currency ];
+    $orderbook = $this->exchange->fetch_order_book( $tradeableInternal . '/' . $currencyInternal );
     if ( count( $orderbook ) == 0 ) {
       return null;
     }
@@ -321,6 +338,8 @@ abstract class CCXTAdapter extends Exchange {
     $split = explode( '_', $pair );
     $currency = $split[ 0 ];
     $tradeable = $split[ 1 ];
+    $currency = $this->coinNames[ $currency ];
+    $tradeable = $this->coinNames[ $tradeable ];
 
     try {
       $this->exchange->cancel_order( $id, $tradeable . '/' . $currency );
@@ -342,6 +361,8 @@ abstract class CCXTAdapter extends Exchange {
         $split = explode( '/', $order[ 'symbol' ] );
         $tradeable = $split[ 0 ];
         $currency = $split[ 1 ];
+        $tradeable = $this->coinNames[ $tradeable ];
+        $currency = $this->coinNames[ $currency ];
         $this->cancelOrder( $currency . '_' . $tradeable . ':' . $orderID );
       }
     }
@@ -369,6 +390,9 @@ abstract class CCXTAdapter extends Exchange {
       if ( !$market[ 'active' ] || !$this->isMarketActive( $market ) ) {
         continue;
       }
+
+      $this->coinNames[ strtoupper( $tradeable ) ] = $tradeable;
+      $this->coinNames[ strtoupper( $currency ) ] = $currency;
 
       $pair = strtoupper( $tradeable . "_" . $currency );
       $pairs[] = $pair;
