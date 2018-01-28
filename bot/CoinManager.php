@@ -879,6 +879,17 @@ class CoinManager {
 
   }
 
+  public function getSafeDepositFee( $exchange, $tradeable, $amount ) {
+
+    $fee = $exchange->getDepositFee( $tradeable, $amount );
+    if ( is_null( $fee ) ) {
+      $fee = 0;
+    }
+
+    return $fee;
+
+  }
+
   public function getSafeWithdrawFee( $exchange, $tradeable, $amount ) {
 
     $fee = $exchange->getWithdrawFee( $tradeable, $amount );

@@ -836,7 +836,8 @@ class Database {
 
         $oldFee = floatval( $row[ 'tradeable_tx_fee' ] );
         $oldFeeInCurrency = floatval( $row[ 'currency_tx_fee' ] );
-        $newFee = floatval( $cm->getSafeWithdrawFee( $exchangeMap[ $row[ 'ID_exchange_source' ] ], $row[ 'coin' ], $row[ 'tradeable_bought' ] ) );
+        $newFee = floatval( $cm->getSafeWithdrawFee( $exchangeMap[ $row[ 'ID_exchange_source' ] ], $row[ 'coin' ], $row[ 'tradeable_bought' ] ) +
+                            $cm->getSafeDepositFee( $exchangeMap[ $row[ 'ID_exchange_target' ] ], $row[ 'coin' ], $row[ 'tradeable_bought' ] ) );
         $newFeeInCurrency = floatval( $row[ 'rate_sell' ] * $newFee );
         if ( $oldFee != $newFee ) {
           $diff = $newFeeInCurrency - $oldFeeInCurrency;

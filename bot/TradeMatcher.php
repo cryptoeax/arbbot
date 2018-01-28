@@ -75,7 +75,8 @@ class TradeMatcher {
     $currencySold = 0;
     $sellFee = 0;
 
-    $tradeableTransferFee = 0;
+    $tradeableDepositFee = 0;
+    $tradeableWithdrawFee = 0;
 
     foreach ( $buyTrades as $trade ) {
       if ( !is_null( $tradeable ) && $tradeable != $trade[ 'tradeable' ] ) {
@@ -100,7 +101,8 @@ class TradeMatcher {
       $buyFee = -$trade[ 'fee' ];
 
       $boughtAmount = $source->deductFeeFromAmountBuy( $trade[ 'amount' ], $tradeable, $currency );
-      $tradeableTransferFee = $cm->getSafeWithdrawFee( $source, $trade[ 'tradeable' ], $boughtAmount );
+      $tradeableWithdrawFee = $cm->getSafeWithdrawFee( $source, $trade[ 'tradeable' ], $boughtAmount );
+      $tradeableDepositFee = $cm->getSafeDepositFee( $target, $trade[ 'tradeable' ], $boughtAmount );
     }
     foreach ( $sellTrades as $trade ) {
       if ( !is_null( $tradeable ) && $tradeable != $trade[ 'tradeable' ] ) {
@@ -137,7 +139,7 @@ class TradeMatcher {
     $rateBuy = ($tradeableBought > 0) ? ($rateTimesAmountBuy / $tradeableBought) : 0;
     $rateSell = ($tradeableSold > 0) ? ($rateTimesAmountSell / $tradeableSold) : 0;
 
-    $currencyTransferFee = $tradeableTransferFee * $rateSell;
+    $currencyTransferFee = ($tradeableWithdrawFee + $tradeableDepositFee) * $rateSell;
     $currencyRevenue = $currencySold - $currencyBought;
     $currencyProfitLoss = $currencyRevenue - $currencyTransferFee + $sellFee + $buyFee;
 
@@ -145,7 +147,8 @@ class TradeMatcher {
                               $rawTradeIDsBuy, $tradeIDsBuy, $rawTradeIDsSell, $tradeIDsSell,
                               $rateBuy, $rateSell, $tradeableBought, $tradeableSold,
                               $currencyBought, $currencySold, $currencyRevenue, $currencyProfitLoss,
-                              $tradeableTransferFee, $currencyTransferFee, $buyFee, $sellFee );
+                              $tradeableWithdrawFee + $tradeableDepositFee, $currencyTransferFee,
+                              $buyFee, $sellFee );
 
 
     return $currencyProfitLoss;
