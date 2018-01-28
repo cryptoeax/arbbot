@@ -14,7 +14,7 @@ abstract class Exchange {
   protected $confirmationTimes = [ ];
   protected $names = [ ];
   protected $pairs = [ ];
-  protected $tradeablePairs = [ ];
+  protected $withdrawablePairs = [ ];
   protected $tradeables = [ ];
 
   function __construct( $apiKey, $apiSecret ) {
@@ -82,7 +82,7 @@ abstract class Exchange {
       );
     }
 
-    $this->tradeablePairs = $pairs;
+    $this->withdrawablePairs = $pairs;
     $this->tradeables = $tradeables;
 
   }
@@ -93,9 +93,9 @@ abstract class Exchange {
 
   }
 
-  public function getTradeablePairs() {
+  public function getWithdrawablePairs() {
 
-    return $this->tradeablePairs;
+    return $this->withdrawablePairs;
 
   }
 

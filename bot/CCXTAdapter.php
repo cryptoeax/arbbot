@@ -197,7 +197,7 @@ abstract class CCXTAdapter extends Exchange {
     // Since this exchange was added after merging of the pl-rewrite branch, we don't
     // need the full trade history for the initial import, so we can ignore $recentOnly!
 
-    $pairs = $this->getTradeablePairs();
+    $pairs = $this->getWithdrawablePairs();
     foreach ( $pairs as $pair ) {
       $result = $this->exchange->fetch_my_trades( str_replace( '_', '/', $pair ) );
   
@@ -334,7 +334,7 @@ abstract class CCXTAdapter extends Exchange {
 
   public function cancelAllOrders() {
 
-    $pairs = $this->getTradeablePairs();
+    $pairs = $this->getWithdrawablePairs();
     foreach ( $pairs as $pair ) {
       $orders = $this->exchange->fetch_open_orders( str_replace( '_', '/', $pair ) );
       foreach ( $orders as $order ) {
