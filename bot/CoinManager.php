@@ -195,10 +195,12 @@ class CoinManager {
           // Retrieve average exchange rates for this coin:
           $averageRate = Database::getAverageRate( $coin );
 
-          $txFee = abs( $exchange->getWithdrawFee( $coin, 1 ) * $averageRate );
+          $depositFee = abs( $exchange->getDepositFee( $coin, 1 ) * $averageRate );
+          $withdrawFee = abs( $exchange->getWithdrawFee( $coin, 1 ) * $averageRate );
           $confTime = $exchange->getConfirmationTime( $coin );
 
-          if ($txFee < Config::get( Config::MAX_TX_FEE_ALLOWED, Config::DEFAULT_MAX_TX_FEE_ALLOWED ) &&
+          if ($depositFee < Config::get( Config::MAX_TX_FEE_ALLOWED, Config::DEFAULT_MAX_TX_FEE_ALLOWED ) &&
+              $withdrawFee < Config::get( Config::MAX_TX_FEE_ALLOWED, Config::DEFAULT_MAX_TX_FEE_ALLOWED ) &&
               $confTime < Config::get( Config::MAX_MIN_CONFIRMATIONS_ALLOWED, Config::DEFAULT_MAX_MIN_CONFIRMATIONS_ALLOWED ) ) {
             $maxTradeSize = Config::get( Config::MAX_TRADE_SIZE, Config::DEFAULT_MAX_TRADE_SIZE );
             $balanceFactor = Config::get( Config::BALANCE_FACTOR, Config::DEFAULT_BALANCE_FACTOR );
@@ -871,7 +873,8 @@ class CoinManager {
     logg( "Deposit address: $address" );
     if ( $this->doWithdraw( $source, $coin, $amount, trim( $address ) ) ) {
       Database::saveWithdrawal( $coin, $amount, trim( $address ), $source->getID(), $target->getID(),
-                                $source->getWithdrawFee( $coin, $amount ) );
+                                $source->getWithdrawFee( $coin, $amount ) +
+                                $target->getDepositFee( $coin, $amount ) );
     }
 
   }
