@@ -10,10 +10,12 @@ abstract class Exchange {
   protected $apiSecret;
   //
   protected $wallets = [ ];
+  protected $depositFees = [ ];
   protected $withdrawFees = [ ];
   protected $confirmationTimes = [ ];
   protected $names = [ ];
   protected $pairs = [ ];
+  protected $depositablePairs = [ ];
   protected $withdrawablePairs = [ ];
   protected $tradeables = [ ];
 
@@ -77,19 +79,43 @@ abstract class Exchange {
 
       $pairs[] = $pair;
       $tradeables[] = array(
-	'CoinType' => 'BITCOIN',
-	'Currency' => $tradeable,
+        'CoinType' => 'BITCOIN',
+        'Currency' => $tradeable,
       );
     }
 
+    $depositables = array( );
+    foreach ( $this->pairs as $pair ) {
+      $arr = explode( '_', $pair );
+      $tradeable = $arr[ 0 ];
+      $currency = $arr[ 1 ];
+      $averageRate = Database::getAverageRate( $tradeable );
+
+      // If the tradeable is too expensive to deposit, let it go.
+      if ( isset( $this->depositFees[ $tradeable ] ) &&
+           !endsWith( $this->depositFees[ $tradeable ], '%' ) &&
+           $this->depositFees[ $tradeable ] * $averageRate >= $maxTxFee ) {
+        continue;
+      }
+
+      // If a transaction of the tradeable takes too long to confirm on its blockchain, let it go.
+      if ( isset( $this->confirmationTimes[ $tradeable ] ) &&
+           $this->confirmationTimes[ $tradeable ] >= $maxConfTime ) {
+        continue;
+      }
+
+      $depositables[] = $pair;
+    }
+
+    $this->depositablePairs = $depositables;
     $this->withdrawablePairs = $pairs;
     $this->tradeables = $tradeables;
 
   }
 
-  public function getAllPairs() {
+  public function getDepositablePairs() {
 
-    return $this->pairs;
+    return $this->depositablePairs;
 
   }
 
@@ -144,6 +170,22 @@ abstract class Exchange {
     }
 
     $fee = $this->withdrawFees[ $tradeable ];
+
+    if ( endsWith( $fee, '%' ) ) {
+      return $amount * substr( $fee, 0, -1 );
+    }
+    return $fee;
+
+  }
+
+  public function getDepositFee( $tradeable, $amount ) {
+
+    if ( !key_exists( $tradeable, $this->depositFees ) ) {
+      //logg( $this->prefix() . "WARNING: Unknown deposit fee for $tradeable. Calculations may be inaccurate!" );
+      return null;
+    }
+
+    $fee = $this->depositFees[ $tradeable ];
 
     if ( endsWith( $fee, '%' ) ) {
       return $amount * substr( $fee, 0, -1 );
