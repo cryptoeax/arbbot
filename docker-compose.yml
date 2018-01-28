@@ -3,12 +3,12 @@ version: '3'
 services:
   db:
     image: mysql:5.7
+    container_name: db
     env_file:
       - .env
     volumes:
       - ./docker/db/config/my.cnf:/etc/mysql/conf.d/arbbot.cnf
-      - ./docker/db/seed/01-database.sql:/docker-entrypoint-initdb.d/01-database.sql
-      - ./docker/db/seed/data.sql:/docker-entrypoint-initdb.d/data.sql
+      - ./docker/db/seed:/docker-entrypoint-initdb.d
       - ./docker/db-data:/var/lib/mysql
     networks:
       - backend
@@ -16,6 +16,7 @@ services:
   bot:
     depends_on:
       - db
+    container_name: bot
     env_file:
       - .env
     build:
@@ -34,6 +35,7 @@ services:
     depends_on:
       - db
       - php
+    container_name: web
     env_file:
       - .env
     build:
@@ -52,6 +54,7 @@ services:
   php:
     depends_on:
       - db
+    container_name: php
     env_file:
       - .env
     build:
