@@ -179,7 +179,7 @@ abstract class BittrexLikeExchange extends Exchange {
 
     $this->pairs = $pairs;
     $this->names = $names;
-    $this->transferFees = $txFees;
+    $this->withdrawFees = $txFees;
     $this->confirmationTimes = $conf;
 
     $this->calculateTradeablePairs();
@@ -198,7 +198,7 @@ abstract class BittrexLikeExchange extends Exchange {
     }
 
     unset( $this->names[ $tradeable ] );
-    unset( $this->transferFees[ $tradeable ] );
+    unset( $this->withdrawFees[ $tradeable ] );
     unset( $this->confirmationTimes[ $tradeable ] );
   }
 
@@ -231,7 +231,7 @@ abstract class BittrexLikeExchange extends Exchange {
     // Create artifical wallet balances for all traded coins:
     $currencies = $this->getTradeables();
     if (!count( $currencies )) {
-      // If this is the first call to refreshWallets(), $this->transferFees isn't
+      // If this is the first call to refreshWallets(), $this->withdrawFees isn't
       // initialized yet.
       $currencies = $this->queryCurrencies();
     }

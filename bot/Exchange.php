@@ -10,7 +10,7 @@ abstract class Exchange {
   protected $apiSecret;
   //
   protected $wallets = [ ];
-  protected $transferFees = [ ];
+  protected $withdrawFees = [ ];
   protected $confirmationTimes = [ ];
   protected $names = [ ];
   protected $pairs = [ ];
@@ -63,9 +63,9 @@ abstract class Exchange {
       $averageRate = Database::getAverageRate( $tradeable );
 
       // If the tradeable is too expensive to transfer, let it go.
-      if ( isset( $this->transferFees[ $tradeable ] ) &&
-           !endsWith( $this->transferFees[ $tradeable ], '%' ) &&
-           $this->transferFees[ $tradeable ] * $averageRate >= $maxTxFee ) {
+      if ( isset( $this->withdrawFees[ $tradeable ] ) &&
+           !endsWith( $this->withdrawFees[ $tradeable ], '%' ) &&
+           $this->withdrawFees[ $tradeable ] * $averageRate >= $maxTxFee ) {
         continue;
       }
 
@@ -136,14 +136,14 @@ abstract class Exchange {
 
   }
 
-  public function getTransferFee( $tradeable, $amount ) {
+  public function getWithdrawFee( $tradeable, $amount ) {
 
-    if ( !key_exists( $tradeable, $this->transferFees ) ) {
+    if ( !key_exists( $tradeable, $this->withdrawFees ) ) {
       //logg( $this->prefix() . "WARNING: Unknown transfer fee for $tradeable. Calculations may be inaccurate!" );
       return null;
     }
 
-    $fee = $this->transferFees[ $tradeable ];
+    $fee = $this->withdrawFees[ $tradeable ];
 
     if ( endsWith( $fee, '%' ) ) {
       return $amount * substr( $fee, 0, -1 );

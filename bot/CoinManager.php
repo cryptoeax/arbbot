@@ -195,7 +195,7 @@ class CoinManager {
           // Retrieve average exchange rates for this coin:
           $averageRate = Database::getAverageRate( $coin );
 
-          $txFee = abs( $exchange->getTransferFee( $coin, 1 ) * $averageRate );
+          $txFee = abs( $exchange->getWithdrawFee( $coin, 1 ) * $averageRate );
           $confTime = $exchange->getConfirmationTime( $coin );
 
           if ($txFee < Config::get( Config::MAX_TX_FEE_ALLOWED, Config::DEFAULT_MAX_TX_FEE_ALLOWED ) &&
@@ -553,7 +553,7 @@ class CoinManager {
       $txFee = $this->getSafeTxFee( $highestExchange, 'BTC', $averageBTC );
       Database::recordProfit( $remainingProfit - $txFee, 'BTC', $profitAddress, time() );
       Database::saveWithdrawal( 'BTC', $remainingProfit, $profitAddress, $highestExchange->getID(), 0,
-                                $highestExchange->getTransferFee( 'BTC', $remainingProfit ) );
+                                $highestExchange->getWithdrawFee( 'BTC', $remainingProfit ) );
 
       // -------------------------------------------------------------------------
       $restockFunds = $this->stats[ self::STAT_AUTOBUY_FUNDS ];
@@ -849,7 +849,7 @@ class CoinManager {
       // Perhaps the withdrawal was unsuccessful because of insufficient balance.
       // This can happen if the account only has $amount balance, in which case
       // we need to subtract the withdrawal fee.
-      $amount -= $source->getTransferFee( $coin, $amount );
+      $amount -= $source->getWithdrawFee( $coin, $amount );
       return $source->withdraw( $coin, $amount, $address );
     }
 
@@ -871,14 +871,14 @@ class CoinManager {
     logg( "Deposit address: $address" );
     if ( $this->doWithdraw( $source, $coin, $amount, trim( $address ) ) ) {
       Database::saveWithdrawal( $coin, $amount, trim( $address ), $source->getID(), $target->getID(),
-                                $source->getTransferFee( $coin, $amount ) );
+                                $source->getWithdrawFee( $coin, $amount ) );
     }
 
   }
 
   public function getSafeTxFee( $exchange, $tradeable, $amount ) {
 
-    $fee = $exchange->getTransferFee( $tradeable, $amount );
+    $fee = $exchange->getWithdrawFee( $tradeable, $amount );
     if ( !is_null( $fee ) ) {
       return $fee;
     }
@@ -892,7 +892,7 @@ class CoinManager {
         continue;
       }
 
-      $txFee = $x->getTransferFee( $tradeable, $amount );
+      $txFee = $x->getWithdrawFee( $tradeable, $amount );
       if ( !is_null( $txFee ) ) {
         $txFees[] = $txFee;
       }

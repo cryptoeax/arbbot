@@ -393,7 +393,7 @@ class Poloniex extends Exchange {
     $this->tradeFee = floatval( $feeInfo[ 'takerFee' ] );
 
     $this->pairs = $pairs;
-    $this->transferFees = $fees;
+    $this->withdrawFees = $fees;
     $this->confirmationTimes = $conf;
     $this->depositAddresses = $depositAddresses;
 
