@@ -50,6 +50,9 @@ name = arbitrage
 ; The coin autobuy module will automatically buy the most profitable altcoins, if you assign it 'autobuy_funds' in the database
 coin-autobuy = true
 
+; The autobalance module will automatically balance the wallets across exchanges depending on the current needs and pending deposits.
+auto-balance = true
+
 ; The coin liquidation module will automatically sell coins that aren't profitable any more
 coin-liquidation = false
 

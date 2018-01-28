@@ -675,6 +675,11 @@ class CoinManager {
 
     logg( "balanceAltcoins()" );
 
+    if ( !Config::get( Config::MODULE_AUTOBALANCE, Config::DEFAULT_MODULE_AUTOBALANCE ) ) {
+      logg( "Module disabled: Skipping balancing!" );
+      return;
+    }
+
     $allcoins = [ ];
     foreach ( $this->exchanges as $exchange ) {
       $wallets = $exchange->getWalletsConsideringPendingDeposits();

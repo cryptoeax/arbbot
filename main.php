@@ -37,6 +37,8 @@ logg( "Loading config..." );
 
 Database::handleAddressUpgrade();
 
+Database::handleAlertsUpgrade();
+
 Database::handleCoinUpgrade();
 
 Database::handleTrackUpgrade();

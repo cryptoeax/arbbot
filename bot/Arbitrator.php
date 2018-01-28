@@ -88,7 +88,8 @@ class Arbitrator {
 
     foreach ( $this->exchangePairs as $exchangePair ) {
 
-      if ( $this->checkOpportunitiesAt( $exchangePair[ 0 ], $exchangePair[ 1 ] ) ) {
+      if ( $this->checkOpportunitiesAt( $exchangePair[ 0 ], $exchangePair[ 1 ] ) ||
+           $this->checkOpportunitiesAt( $exchangePair[ 1 ], $exchangePair[ 0 ] ) ) {
         // Trade happened, restart...
         $this->tradeHappened = true;
         return;
@@ -112,8 +113,7 @@ class Arbitrator {
 
     foreach ( $slicedPairs as $pair ) {
 
-      if ( $this->checkPairAt( $pair, $x1, $x2 ) ||
-           $this->checkPairAt( $pair, $x2, $x1 ) ) {
+      if ( $this->checkPairAt( $pair, $x1, $x2 ) ) {
         return true;
       }
     }
@@ -190,12 +190,16 @@ class Arbitrator {
   }
 
   private function testOrderbooks( $o1, $o2 ) {
-    if ( is_null( $o1 ) || is_null( $o2 ) ) {
-      logg( "Received invalid orderbook. Skipping..." );
+    if ( is_null( $o1 ) ) {
+      logg( "Received invalid orderbook from source exchange. Skipping..." );
+      return false;
+    }
+    if ( is_null( $o2 ) ) {
+      logg( "Received invalid orderbook from target exchange. Skipping..." );
       return false;
     }
 
-    return ( $this->checkAndTrade( $o1, $o2 ) ) || $this->checkAndTrade( $o2, $o1 );
+    return $this->checkAndTrade( $o1, $o2 );
 
   }
 
