@@ -64,6 +64,12 @@ if ( !Database::balancesTableExists() ) {
 //}
 
 if ( !Database::pendingDepositsTableExists() ) {
+  print "Before proceeding, please make sure that there is no pending deposits in\n" .
+        "any of the active exchanges that the bot has access to, otherwise the bot's\n" .
+        "database will get corrupted during this upgrade process\n";
+  print "Press ENTER after checking all of your exchange accounts and making sure all\n" .
+        "pending deposits have been settled.\n";
+  readline();
   Database::createPendingDepositsTable();
 }
 
