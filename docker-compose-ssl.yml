@@ -3,21 +3,34 @@ version: '3'
 # Based on https://github.com/gilyes/docker-nginx-letsencrypt-sample/blob/master/docker-compose.yml
 
 services:
+  web:
+    expose:
+      - 80
+    environment:
+      - VIRTUAL_HOST=${VIRTUAL_HOST:-arbbot.example.com}
   nginx:
+    container_name: nginx
+    depends_on:
+      - nginx-gen
+      - letsencrypt-nginx-proxy-companion
     restart: always
     image: nginx
+    env_file:
+      - .env
     ports:
-      - "80:80"
-      - "443:443"
+      - "${IP:-0.0.0.0}:${HTTP_PORT:-80}:80"
+      - "${IP:-0.0.0.0}:${HTTPS_PORT:-443}:443"
     volumes:
       - "confs:/etc/nginx/conf.d:ro"
       - "hosts:/etc/nginx/vhost.d:ro"
       - "htmls:/usr/share/nginx/html:ro"
       - "./docker/certs:/etc/nginx/certs:ro"
   nginx-gen:
+    container_name: nginx-gen
+    depends_on:
+      - letsencrypt-nginx-proxy-companion
     env_file:
-      - .env.ssl
-    restart: always
+      - .env
     image: jwilder/docker-gen
     volumes:
       - "confs:/etc/nginx/conf.d:rw"
@@ -25,17 +38,20 @@ services:
       - "htmls:/usr/share/nginx/html:ro"
       - "/var/run/docker.sock:/tmp/docker.sock:ro"
       - "./docker/certs:/etc/nginx/certs:ro"
-      - "./docker/nginx-gen:/etc/docker-gen/templates/nginx.tmpl:ro"
+      - "./docker/nginx-gen/nginx.tmpl:/etc/docker-gen/templates/nginx.tmpl:ro"
+    networks:
+      - webproxy
     entrypoint: /usr/local/bin/docker-gen -notify-sighup nginx -watch -wait 5s:30s /etc/docker-gen/templates/nginx.tmpl /etc/nginx/conf.d/default.conf
   letsencrypt-nginx-proxy-companion:
+    container_name: letsencrypt-nginx-proxy-companion
     env_file:
-      - .env.ssl
+      - .env
     restart: always
     image: jrcs/letsencrypt-nginx-proxy-companion
     volumes:
       - "confs:/etc/nginx/conf.d:ro"
-      - "hosts:/etc/nginx/vhost.d:ro"
-      - "htmls:/usr/share/nginx/html:ro"
+      - "hosts:/etc/nginx/vhost.d:rw"
+      - "htmls:/usr/share/nginx/html:rw"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - "./docker/certs:/etc/nginx/certs:rw"
     environment:
