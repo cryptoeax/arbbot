@@ -430,6 +430,7 @@ class Poloniex extends Exchange {
     $history = $this->queryDepositsAndWithdrawals();
     $block = $history[ 'withdrawals' ];
     usort( $block, 'compareByTimeStamp' );
+    $prevTimestamp = 0;
     $prevTxId = '';
     $prevAmount = '';
     $prevAddress = '';
@@ -445,11 +446,13 @@ class Poloniex extends Exchange {
       $amount = $entry[ 'amount' ];
       $address = $entry[ 'address' ];
       $matched = false;
-      if ( $txid == $prevTxId &&
+      if ( $timestamp == $prevTimestamp &&
+           $txid == $prevTxId &&
            $amount == $prevAmount &&
            $address == $prevAddress ) {
         $matched = true;
       }
+      $prevTimestamp = $timestamp;
       $prevTxId = $txid;
       $prevAmount = $amount;
       $prevAddress = $address;
