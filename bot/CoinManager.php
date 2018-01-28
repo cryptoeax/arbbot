@@ -304,7 +304,7 @@ class CoinManager {
     $nearZeroThreshold = Config::get( Config::NEAR_ZERO_BTC_VALUE, Config::DEFAULT_NEAR_ZERO_BTC_VALUE );
     foreach ( $exchanges as $exchange ) {
       // Allow max 1% of coin amount to be transfer fee:
-      $minXFER = max( $minXFER, $this->getSafeTxFee( $exchange, $coin, $averageCoins ) / $safetyFactor );
+      $minXFER = max( $minXFER, $this->getSafeWithdrawFee( $exchange, $coin, $averageCoins ) / $safetyFactor );
 
       $wallets = $exchange->getWallets();
       if ( $wallets[ $coin ] == 0 ) {
@@ -541,7 +541,7 @@ class CoinManager {
                                         Config::DEFAULT_BTC_XFER_SAFETY_FACTOR );
     foreach ( $this->exchanges as $exchange ) {
       // Allow max 1%/safetyFactor of coin amount to be transfer fee:
-      $minXFER = max( $minXFER, $this->getSafeTxFee( $exchange, 'BTC', $averageBTC ) / $safetyFactor );
+      $minXFER = max( $minXFER, $this->getSafeWithdrawFee( $exchange, 'BTC', $averageBTC ) / $safetyFactor );
     }
 
     $remainingProfit = formatBTC( $profit - $restockCash );
@@ -552,7 +552,7 @@ class CoinManager {
 
     logg( "Withdrawing profit: $remainingProfit BTC to $profitAddress", true );
     if ( $highestExchange->withdraw( 'BTC', $remainingProfit, $profitAddress ) ) {
-      $txFee = $this->getSafeTxFee( $highestExchange, 'BTC', $averageBTC );
+      $txFee = $this->getSafeWithdrawFee( $highestExchange, 'BTC', $averageBTC );
       Database::recordProfit( $remainingProfit - $txFee, 'BTC', $profitAddress, time() );
       Database::saveWithdrawal( 'BTC', $remainingProfit, $profitAddress, $highestExchange->getID(), 0,
                                 $highestExchange->getWithdrawFee( 'BTC', $remainingProfit ) );
@@ -879,7 +879,7 @@ class CoinManager {
 
   }
 
-  public function getSafeTxFee( $exchange, $tradeable, $amount ) {
+  public function getSafeWithdrawFee( $exchange, $tradeable, $amount ) {
 
     $fee = $exchange->getWithdrawFee( $tradeable, $amount );
     if ( !is_null( $fee ) ) {

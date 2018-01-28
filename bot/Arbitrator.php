@@ -278,7 +278,7 @@ class Arbitrator {
     $buyPrice = $source->addFeeToPrice( $tradeAmount * $bestBuyRate, $tradeable, $currency );
     $boughtAmount = $source->deductFeeFromAmountBuy( $tradeAmount, $tradeable, $currency );
 
-    $txFee = $this->coinManager->getSafeTxFee( $source, $tradeable, $boughtAmount );
+    $txFee = $this->coinManager->getSafeWithdrawFee( $source, $tradeable, $boughtAmount );
     $sellAmount = formatBTC( $boughtAmount - $txFee );
     $sellPrice = $target->deductFeeFromAmountSell( $sellAmount * $bestSellRate, $tradeable, $currency );
     $profit = $sellPrice - $buyPrice;
@@ -521,7 +521,7 @@ class Arbitrator {
       return 0;
     }
 
-    $txFee = $this->coinManager->getSafeTxFee( $sourceX, $tradeable, $receivedAmount );
+    $txFee = $this->coinManager->getSafeWithdrawFee( $sourceX, $tradeable, $receivedAmount );
 
     $arrivedAmount = $receivedAmount - $txFee;
 

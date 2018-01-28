@@ -100,7 +100,7 @@ class TradeMatcher {
       $buyFee = -$trade[ 'fee' ];
 
       $boughtAmount = $source->deductFeeFromAmountBuy( $trade[ 'amount' ], $tradeable, $currency );
-      $tradeableTransferFee = $cm->getSafeTxFee( $source, $trade[ 'tradeable' ], $boughtAmount );
+      $tradeableTransferFee = $cm->getSafeWithdrawFee( $source, $trade[ 'tradeable' ], $boughtAmount );
     }
     foreach ( $sellTrades as $trade ) {
       if ( !is_null( $tradeable ) && $tradeable != $trade[ 'tradeable' ] ) {
