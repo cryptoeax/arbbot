@@ -144,7 +144,7 @@ abstract class CCXTAdapter extends Exchange {
   public function withdraw( $coin, $amount, $address ) {
 
     $coin = $this->coinNames[ $coin ];
-    if ( $amount === 0 ) {
+    if ( floatval( $amount ) === 0 ) {
       // Simulate an error which ccxt may not raise for us
       throw new Exception( "API error response: Amount must be greater than zero" );
     }
