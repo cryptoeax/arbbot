@@ -331,6 +331,10 @@ abstract class Exchange {
 
   public abstract function getSmallestOrderSize( $tradeable, $currency, $type );
 
+  public abstract function getPrecision( $tradeable, $currency );
+
+  public abstract function getLimits( $tradeable, $currency );
+
   public abstract function getID();
 
   public abstract function getName();

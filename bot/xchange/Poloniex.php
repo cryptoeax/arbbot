@@ -401,6 +401,29 @@ class Poloniex extends Exchange {
 
   }
 
+  public function getPrecision( $tradeable, $currency ) {
+
+    // Hardcode the precision
+    return array( 'amount' => 8, 'price' => 8 );
+
+  }
+
+  public function getLimits( $tradeable, $currency ) {
+
+    // Hardcode the limits
+    return array(
+      'amount' => array (
+          'min' => 0.00000001,
+          'max' => 1000000000,
+      ),
+      'price' => array (
+          'min' => 0.00000001,
+          'max' => 1000000000,
+      )
+    );
+
+  }
+
   private $lastStuckReportTime = [ ];
 
   public function detectStuckTransfers() {

@@ -37,7 +37,8 @@ abstract class CCXTAdapter extends Exchange {
 
   private $coinNames = [ ];
   private $tradeFees = [ ];
-  private $minTrades = [ ];
+  private $precisions = [ ];
+  private $limits = [ ];
 
   private $lastStuckReportTime = [ ];
   private $lastDuplicateWithdrawalTime = 0;
@@ -372,7 +373,8 @@ abstract class CCXTAdapter extends Exchange {
   public function refreshExchangeData() {
 
     $pairs = [ ];
-    $minTrade = [ ];
+    $precisions = [ ];
+    $limits = [ ];
     $tradeFees = [ ];
     $conf = [ ];
     $markets = $this->exchange->loadMarkets();
@@ -396,7 +398,8 @@ abstract class CCXTAdapter extends Exchange {
 
       $pair = strtoupper( $tradeable . "_" . $currency );
       $pairs[] = $pair;
-      $minTrade[ $pair ] = $market[ 'limits' ][ 'cost' ][ 'min' ];
+      $precisions[ $pair ] = $market[ 'precision' ];
+      $limits[ $pair ] = $market[ 'limits' ];
       // We can't be sure whether we'll be the maker or the taker in each trade, so we'll assume the worst.
       $tradeFees[ $pair ] = max( $market[ 'maker' ], $market[ 'taker' ] );
       $conf[ $tradeable ] = 0; // unknown!
@@ -405,11 +408,26 @@ abstract class CCXTAdapter extends Exchange {
     $this->pairs = $pairs;
     $this->confirmationTimes = $conf;
     $this->tradeFees = $tradeFees;
-    $this->minTrades = $minTrade;
+    $this->precisions = $precisions;
+    $this->limits = $limits;
     $this->withdrawFees = $this->exchange->fees[ 'funding' ][ 'withdraw' ];
     $this->depositFees = $this->exchange->fees[ 'funding' ][ 'deposit' ];
 
     $this->calculateTradeablePairs();
+
+  }
+
+  public function getPrecision( $tradeable, $currency ) {
+
+    $pair = $tradeable . '_' . $currency;
+    return $this->precisions[ $pair ];
+
+  }
+
+  public function getLimits( $tradeable, $currency ) {
+
+    $pair = $tradeable . '_' . $currency;
+    return $this->limits[ $pair ];
 
   }
 
@@ -538,7 +556,7 @@ abstract class CCXTAdapter extends Exchange {
   public function getSmallestOrderSize( $tradeable, $currency, $type ) {
 
     $pair = $tradeable . "_" . $currency;
-    return $this->minTrades[ $pair ];
+    return $this->limits[ $pair ][ 'cost' ][ 'min' ];
 
   }
 

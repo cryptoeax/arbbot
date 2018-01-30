@@ -172,6 +172,7 @@ class Bittrex extends BittrexLikeExchange {
 
   public function getSmallestOrderSize( $tradeable, $currency, $type ) {
 
+    // TODO: Use MinTradeSize (see refreshExchangeData)
     return '0.00100000';
 
   }

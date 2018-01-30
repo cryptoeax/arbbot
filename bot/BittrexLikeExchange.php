@@ -10,6 +10,7 @@ abstract class BittrexLikeExchange extends Exchange {
   private $orderIDField = '';
   private $orderIDParam = '';
   private $orderbookBothPhrase = '';
+  private $minTradeSize = [ ];
 
   protected abstract function getPublicURL();
   protected abstract function getPrivateURL();
@@ -141,6 +142,7 @@ abstract class BittrexLikeExchange extends Exchange {
     // This is a list of tradeables that have a market. Used to filter the
     // tx-fee list, which is later used to seed the wallets
     $tradeables = [ ];
+    $this->minTradeSize = [ ];
     foreach ( $markets as $market ) {
 
       $tradeable = $market[ 'MarketCurrency' ];
@@ -157,7 +159,9 @@ abstract class BittrexLikeExchange extends Exchange {
       }
 
       $tradeables[] = $tradeable;
-      $pairs[] = $tradeable . '_' . $currency;
+      $pair = $tradeable . '_' . $currency;
+      $pairs[] = $pair;
+      $this->minTradeSize[ $pair ] = $market[ 'MinTradeSize' ];
     }
 
     $names = [ ];
@@ -183,6 +187,30 @@ abstract class BittrexLikeExchange extends Exchange {
     $this->confirmationTimes = $conf;
 
     $this->calculateTradeablePairs();
+
+  }
+
+  public function getPrecision( $tradeable, $currency ) {
+
+    // Hardcode the precision
+    return array( 'amount' => 8, 'price' => 8 );
+
+  }
+
+  public function getLimits( $tradeable, $currency ) {
+
+    // Hardcode most of the limits
+    $pair = $tradeable . '_' . $currency;
+    return array(
+      'amount' => array (
+          'min' => $this->minTradeSize[ $pair ],
+          'max' => 1000000000,
+      ),
+      'price' => array (
+          'min' => 0.00000001,
+          'max' => 1000000000,
+      )
+    );
 
   }
 
