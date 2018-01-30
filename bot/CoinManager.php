@@ -874,7 +874,7 @@ class CoinManager {
       if ( !is_null( $limits[ 'amount' ][ 'max' ] ) &&
            floatval( $limits[ 'amount' ][ 'max' ] ) < $amount ) {
         logg( sprintf( "Withdrawal amount %s above maximum trade amount %s",
-                       $amount, $limits[ 'amount' ][ 'min' ] ) );
+                       $amount, $limits[ 'amount' ][ 'max' ] ) );
         return;
       }
     }
@@ -889,7 +889,7 @@ class CoinManager {
     }
 
 
-    logg( "Deposit address: $address" );
+    logg( "Depositaddress: $address" );
     if ( $this->doWithdraw( $source, $coin, $amount, trim( $address ) ) ) {
       Database::saveWithdrawal( $coin, $amount, trim( $address ), $source->getID(), $target->getID(),
                                 $source->getWithdrawFee( $coin, $amount ) +
