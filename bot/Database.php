@@ -1061,7 +1061,7 @@ class Database {
 
   public static function createPendingDepositsTable() {
 
-    return self::createTableHelper( 'pending_depisits' );
+    return self::createTableHelper( 'pending_deposits' );
 
   }
 
