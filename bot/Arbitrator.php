@@ -355,14 +355,15 @@ class Arbitrator {
       return false;
     }
 
-    if ( $reducedSellRate * $sellAmount < $target->getSmallestOrderSize( $tradeable, $currency, 'sell' ) ) {
-      $reducedSellRate = formatBTC( $target->getSmallestOrderSize( $tradeable, $currency, 'sell' ) / $sellAmount + 0.00000001 );
-    }
-
     $increasedBuyRate = $this->roundPriceToPrecision( $bestBuyRate * Config::get( Config::BUY_RATE_FACTOR, Config::DEFAULT_BUY_RATE_FACTOR ),
                                                       $sourcePrecision );
     $reducedSellRate = $this->roundPriceToPrecision( $bestSellRate * Config::get( Config::SELL_RATE_FACTOR, Config::DEFAULT_SELL_RATE_FACTOR ),
                                                      $targetPrecision );
+
+    if ( $reducedSellRate * $sellAmount < $target->getSmallestOrderSize( $tradeable, $currency, 'sell' ) ) {
+      $reducedSellRate = $this->roundPriceToPrecision( $target->getSmallestOrderSize( $tradeable, $currency, 'sell' ) / $sellAmount + 0.00000001,
+                                                       $targetPrecision );
+    }
 
     if ( !is_null( $sourceLimits[ 'price' ][ 'min' ] ) &&
          floatval( $sourceLimits[ 'price' ][ 'min' ] ) > $increasedBuyRate ) {
