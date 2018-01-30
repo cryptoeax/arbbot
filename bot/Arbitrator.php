@@ -396,8 +396,12 @@ class Arbitrator {
     }
 
     $orderInfo .= "= TRADE ============================================\n";
-    $orderInfo .= " SELL ORDER : $sellAmount $tradeable @ $reducedSellRate $currency\n";
-    $orderInfo .= "  BUY ORDER : $tradeAmount $tradeable @ $increasedBuyRate $currency\n";
+    $orderInfo .= sprintf( " SELL ORDER : %s %s @ %s %s\n",
+                           formatBTC( $sellAmount ), $tradeable,
+                           formatBTC( $reducedSellRate ), $currency );
+    $orderInfo .= sprintf( "  BUY ORDER : %s %s @ %s %s\n",
+                           formatBTC( $tradeAmount ), $tradeable,
+                           formatBTC( $increasedBuyRate ), $currency );
     $orderInfo .= "\n";
     logg( $orderInfo );
 
