@@ -8,6 +8,7 @@ You can see the bot running on a cheap [linode](https://www.linode.com) here.  C
 
 ## Supported Exchanges
 
+  * Binance (all BTC markets)
   * Bittrex (all BTC markets)
   * Bleutrade (all BTC markets)
   * Poloniex (all BTC markets)
@@ -187,6 +188,10 @@ If you are running this bot and are making profits from it, please consider cont
 Funding this project would allow me to spend time on things like adding support for new exchanges.
 
 ## Release History
+* 3.0
+    * Added support for Binance.
+    * Added support for the [CCXT library](https://github.com/ccxt/ccxt) for exchange support.
+    * Made some performance improvements to the bot.
 * 2.0
     * Improved the web-based UI, charts, tooltips to help new users, legends
     * Added support for Bleutrade.
