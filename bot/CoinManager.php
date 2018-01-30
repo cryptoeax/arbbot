@@ -861,6 +861,24 @@ class CoinManager {
 
   public function withdraw( $source, $target, $coin, $amount ) {
 
+    if ( !Config::isCurrency( $coin ) ) {
+      $limits = $source->getLimits( $coin, 'BTC' );
+
+      if ( !is_null( $limits[ 'amount' ][ 'min' ] ) &&
+           floatval( $limits[ 'amount' ][ 'min' ] ) > $amount ) {
+        logg( sprintf( "Withdrawal amount %s below minimum trade amount %s",
+                       $amount, $limits[ 'amount' ][ 'min' ] ) );
+        return;
+      }
+
+      if ( !is_null( $limits[ 'amount' ][ 'max' ] ) &&
+           floatval( $limits[ 'amount' ][ 'max' ] ) < $amount ) {
+        logg( sprintf( "Withdrawal amount %s above maximum trade amount %s",
+                       $amount, $limits[ 'amount' ][ 'min' ] ) );
+        return;
+      }
+    }
+
     $amount = formatBTC( $amount );
     logg( "Transfering $amount $coin " . $source->getName() . " => " . $target->getName() );
     $address = $target->getDepositAddress( $coin );
