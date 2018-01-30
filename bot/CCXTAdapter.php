@@ -150,7 +150,7 @@ abstract class CCXTAdapter extends Exchange {
       throw new Exception( "API error response: Amount must be greater than zero" );
     }
 
-    return $this->checkAPIReturnValue( $this->exchange->withdraw( $coin, $amount, $address ) );
+    return $this->checkAPIReturnValue( $this->exchange->withdraw( $coin, formatBTC( $amount ), $address ) );
 
   }
 

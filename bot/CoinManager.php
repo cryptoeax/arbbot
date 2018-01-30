@@ -861,6 +861,7 @@ class CoinManager {
 
   public function withdraw( $source, $target, $coin, $amount ) {
 
+    $amount = formatBTC( $amount );
     logg( "Transfering $amount $coin " . $source->getName() . " => " . $target->getName() );
     $address = $target->getDepositAddress( $coin );
     if ( is_null( $address ) || strlen( trim( $address ) ) == 0 ) {
