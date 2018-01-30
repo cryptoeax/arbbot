@@ -260,6 +260,9 @@ class Arbitrator {
     $sourceLimits = $source->getLimits( $tradeable, $currency );
     $targetLimits = $target->getLimits( $tradeable, $currency );
 
+    $sourcePrecision = $source->getPrecision( $tradeable, $currency );
+    $targetPrecision = $target->getPrecision( $tradeable, $currency );
+
     $sourceTradeableBefore = $source->getWallets()[ $tradeable ];
     $targetTradeableBefore = $target->getWallets()[ $tradeable ];
 
@@ -276,7 +279,7 @@ class Arbitrator {
 
     $maxSourceAmount = min( min( $maxTradeSize, $sourceCurrencyBefore ) / $bestBuyRate, $bestBuyAmount );
     $maxTargetAmount = min( $targetTradeableBefore, $bestSellAmount );
-    $tradeAmount = formatBTC( min( $maxSourceAmount, $maxTargetAmount ) );
+    $tradeAmount = $this->roundAmountToPrecision( min( $maxSourceAmount, $maxTargetAmount ), $sourcePrecision );
 
     $buyPrice = $source->addFeeToPrice( $tradeAmount * $bestBuyRate, $tradeable, $currency );
     $boughtAmount = $source->deductFeeFromAmountBuy( $tradeAmount, $tradeable, $currency );
@@ -284,7 +287,7 @@ class Arbitrator {
     $withdrawFee = $this->coinManager->getSafeWithdrawFee( $source, $tradeable, $boughtAmount );
     $depositFee = $this->coinManager->getSafeDepositFee( $target, $tradeable, $boughtAmount );
     $txFee = $depositFee + $withdrawFee;
-    $sellAmount = formatBTC( $boughtAmount - $txFee );
+    $sellAmount = $this->roundAmountToPrecision( $boughtAmount - $txFee, $targetPrecision );
     $sellPrice = $target->deductFeeFromAmountSell( $sellAmount * $bestSellRate, $tradeable, $currency );
     $profit = $sellPrice - $buyPrice;
 
@@ -352,12 +355,14 @@ class Arbitrator {
       return false;
     }
 
-    $increasedBuyRate = formatBTC( $bestBuyRate * Config::get( Config::BUY_RATE_FACTOR, Config::DEFAULT_BUY_RATE_FACTOR ) );
-    $reducedSellRate = formatBTC( $bestSellRate * Config::get( Config::SELL_RATE_FACTOR, Config::DEFAULT_SELL_RATE_FACTOR ) );
-
     if ( $reducedSellRate * $sellAmount < $target->getSmallestOrderSize( $tradeable, $currency, 'sell' ) ) {
       $reducedSellRate = formatBTC( $target->getSmallestOrderSize( $tradeable, $currency, 'sell' ) / $sellAmount + 0.00000001 );
     }
+
+    $increasedBuyRate = $this->roundPriceToPrecision( $bestBuyRate * Config::get( Config::BUY_RATE_FACTOR, Config::DEFAULT_BUY_RATE_FACTOR ),
+                                                      $sourcePrecision );
+    $reducedSellRate = $this->roundPriceToPrecision( $bestSellRate * Config::get( Config::SELL_RATE_FACTOR, Config::DEFAULT_SELL_RATE_FACTOR ),
+                                                     $targetPrecision );
 
     if ( !is_null( $sourceLimits[ 'price' ][ 'min' ] ) &&
          floatval( $sourceLimits[ 'price' ][ 'min' ] ) > $increasedBuyRate ) {
@@ -578,6 +583,9 @@ class Arbitrator {
     $sourceLimits = $sourceX->getLimits( $tradeable, $currency );
     $targetLimits = $targetX->getLimits( $tradeable, $currency );
 
+    $sourcePrecision = $sourceX->getPrecision( $tradeable, $currency );
+    $targetPrecision = $targetX->getPrecision( $tradeable, $currency );
+
     $sourceAsk = $source->getBestAsk();
     $targetBid = $target->getBestBid();
 
@@ -588,7 +596,10 @@ class Arbitrator {
       return 0;
     }
 
-    $price = $sourceX->addFeeToPrice( $amount * $sourceAsk->getPrice(), $tradeable, $currency );
+    $amount = $this->roundAmountToPrecision( $amount, $sourcePrecision );
+    $askPrice = $this->roundPriceToPrecision( $sourceAsk->getPrice(), $sourcePrecision );
+
+    $price = $sourceX->addFeeToPrice( $amount * $askPrice, $tradeable, $currency );
     $receivedAmount = $sourceX->deductFeeFromAmountBuy( $amount, $tradeable, $currency );
     if ( $price < $sourceX->getSmallestOrderSize( $tradeable, $currency, 'buy' ) ) {
       return 0;
@@ -598,7 +609,8 @@ class Arbitrator {
     $depositFee = $this->coinManager->getSafeDepositFee( $targetX, $tradeable, $receivedAmount );
     $txFee = $depositFee + $withdrawFee;
 
-    $arrivedAmount = $receivedAmount - $txFee;
+    $arrivedAmount = $this->roundAmountToPrecision( $receivedAmount - $txFee, $targetPrecision );
+    $bidPrice = $this->roundPriceToPrecision( $targetBid->getPrice(), $targetPrecision );
 
     if ( ( !is_null( $targetLimits[ 'amount' ][ 'min' ] ) &&
            floatval( $targetLimits[ 'amount' ][ 'min' ] ) > $arrivedAmount ) ||
@@ -607,13 +619,25 @@ class Arbitrator {
       return 0;
     }
 
-    $receivedPrice = $targetX->deductFeeFromAmountSell( $arrivedAmount * $targetBid->getPrice(),
+    $receivedPrice = $targetX->deductFeeFromAmountSell( $arrivedAmount * $bidPrice,
                                                         $tradeable, $currency );
     if ( $receivedPrice < $targetX->getSmallestOrderSize( $tradeable, $currency, 'sell' ) ) {
       return 0;
     }
 
     return formatBTC( $receivedPrice - $price );
+
+  }
+
+  private function roundAmountToPrecision( $amount, $precision ) {
+
+    return floatval( sprintf( '%.' . $precision[ 'amount' ] . 'f', $amount ) );
+
+  }
+
+  private function roundPriceToPrecision( $price, $precision ) {
+
+    return floatval( sprintf( '%.' . $precision[ 'price' ] . 'f', $price ) );
 
   }
 
