@@ -674,6 +674,9 @@ class CoinManager {
 
           $arbitrator->getTradeMatcher()->handlePostTradeTasks( $arbitrator, $exchange, $coin, 'BTC', 'buy',
                                                                 $orderID, $buyAmount );
+
+          // Make sure the wallets are updated for pending deposit calculations.
+          $exchange->refreshWallets( true );
           return;
         }
       }
@@ -826,6 +829,9 @@ class CoinManager {
 
           $arbitrator->getTradeMatcher()->handlePostTradeTasks( $arbitrator, $exchange, $coin, 'BTC', 'sell',
                                                                 $orderID, $sellAmount );
+
+          // Make sure the wallets are updated for pending deposit calculations.
+          $exchange->refreshWallets( true );
         }
       }
     }
