@@ -167,15 +167,3 @@ foreach ( $exchanges as $exchange ) {
 
 $arbitrator = new Arbitrator( $gEventLoop, $exchanges, $tradeMatcher );
 $arbitrator->run();
-
-function sendmail( $title, $message ) {
-  //
-  $mailRecipient = Config::get( Config::MAIL_RECIPIENT, null );
-
-  if ( is_null( $mailRecipient ) ) {
-    $mailRecipient = 'mail@example.com';
-  }
-  mail( $mailRecipient, "[ARB] " . $title, $message );
-
-
-}
