@@ -303,7 +303,7 @@ abstract class Exchange {
 
   public abstract function getTickers( $currency );
 
-  public abstract function withdraw( $coin, $amount, $address );
+  public abstract function withdraw( $coin, $amount, $address, $tag = null );
 
   public abstract function getDepositAddress( $coin );
 

@@ -142,7 +142,7 @@ abstract class CCXTAdapter extends Exchange {
 
   }
 
-  public function withdraw( $coin, $amount, $address ) {
+  public function withdraw( $coin, $amount, $address, $tag = null ) {
 
     $coin = $this->coinNames[ $coin ];
     if ( floatval( $amount ) === 0 ) {
@@ -150,7 +150,7 @@ abstract class CCXTAdapter extends Exchange {
       throw new Exception( "API error response: Amount must be greater than zero" );
     }
 
-    return $this->checkAPIReturnValue( $this->exchange->withdraw( $coin, formatBTC( $amount ), $address ) );
+    return $this->checkAPIReturnValue( $this->exchange->withdraw( $coin, formatBTC( $amount ), $address, $tag ) );
 
   }
 
@@ -161,6 +161,9 @@ abstract class CCXTAdapter extends Exchange {
     if ( !isset( $result[ 'address' ] ) ) {
       logg( $this->prefix() . "Please generate a deposit address for $coin!", true );
       return null;
+    }
+    if ( !is_null( $result[ 'tag' ] ) ) {
+      return array( $result[ 'address' ], $result[ 'tag' ] );
     }
     return $result[ 'address' ];
 

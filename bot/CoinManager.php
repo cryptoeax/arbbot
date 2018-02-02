@@ -848,10 +848,10 @@ class CoinManager {
 
   }
 
-  private function doWithdraw( $source, $coin, $amount, $address ) {
+  private function doWithdraw( $source, $coin, $amount, $address, $tag ) {
 
     try {
-      return $source->withdraw( $coin, $amount, $address );
+      return $source->withdraw( $coin, $amount, $address, $tag );
     }
     catch ( Exception $ex ) {
       // Perhaps the withdrawal was unsuccessful because of insufficient balance.
@@ -888,6 +888,11 @@ class CoinManager {
     $amount = formatBTC( $amount );
     logg( "Transfering $amount $coin " . $source->getName() . " => " . $target->getName() );
     $address = $target->getDepositAddress( $coin );
+    $tag = null;
+    if ( is_array( $address ) ) {
+      $tag = $address[ 1 ];
+      $address = $address[ 0 ];
+    }
     if ( is_null( $address ) || strlen( trim( $address ) ) == 0 ) {
       logg( "Invalid deposit address for " . $target->getName() . ", received: ". $address );
 
@@ -895,8 +900,8 @@ class CoinManager {
     }
 
 
-    logg( "Depositaddress: $address" );
-    if ( $this->doWithdraw( $source, $coin, $amount, trim( $address ) ) ) {
+    logg( "Deposit Address: $address, Memo: " . ( is_null( $tag ) ? "null" : $tag ) );
+    if ( $this->doWithdraw( $source, $coin, $amount, trim( $address ), $tag ) ) {
       Database::saveWithdrawal( $coin, $amount, trim( $address ), $source->getID(), $target->getID(),
                                 $source->getWithdrawFee( $coin, $amount ) +
                                 $target->getDepositFee( $coin, $amount ) );

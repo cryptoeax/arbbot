@@ -58,7 +58,7 @@ class Poloniex extends Exchange {
 
   }
 
-  public function withdraw( $coin, $amount, $address ) {
+  public function withdraw( $coin, $amount, $address, $tag = null ) {
 
     try {
       $this->queryWithdraw( $coin, $amount, $address );
