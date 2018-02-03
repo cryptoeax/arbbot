@@ -170,6 +170,25 @@ class Bittrex extends BittrexLikeExchange {
 
   }
 
+  public function withdrawSupportsTag() {
+
+    return true;
+
+  }
+
+  protected function queryWithdraw( $coin, $amount, $address, $tag ) {
+    $options = [
+      'currency' => $coin,
+      'quantity' => formatBTC( $amount ),
+      'address' => $address
+    ];
+    if ( !is_null( $tag ) ) {
+      $options[ 'paymentid' ] = $tag;
+    }
+    return $this->queryAPI( 'account/withdraw', $options );
+
+  }
+
   public function getSmallestOrderSize( $tradeable, $currency, $type ) {
 
     // TODO: Use MinTradeSize (see refreshExchangeData)

@@ -301,6 +301,12 @@ abstract class Exchange {
 
   }
 
+  public function withdrawSupportsTag() {
+
+    return true;
+
+  }
+
   public abstract function getTickers( $currency );
 
   public abstract function withdraw( $coin, $amount, $address, $tag = null );

@@ -858,7 +858,7 @@ class CoinManager {
       // This can happen if the account only has $amount balance, in which case
       // we need to subtract the withdrawal fee.
       $amount -= $source->getWithdrawFee( $coin, $amount );
-      return $source->withdraw( $coin, $amount, $address );
+      return $source->withdraw( $coin, $amount, $address, $tag );
     }
 
     return false;

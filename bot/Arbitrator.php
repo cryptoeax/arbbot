@@ -214,6 +214,15 @@ class Arbitrator {
       return false;
     }
 
+    $depositAddress = $targetOrderbook->getSource()->getDepositAddress( $tradeable );
+    if ( is_array( $depositAddress ) &&
+         !$sourceOrderbook->getSource()->withdrawSupportsTag() ) {
+      // If our deposit address includes a tag but our source exchange doesn't supports
+      // withdrawing with a tag, don't attempt to trade since we won't be able to perform
+      // a successful withdrawal.
+      return false;
+    }
+
     $sourceAsk = $sourceOrderbook->getBestAsk();
     $targetBid = $targetOrderbook->getBestBid();
 

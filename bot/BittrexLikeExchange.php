@@ -46,7 +46,7 @@ abstract class BittrexLikeExchange extends Exchange {
   public function withdraw( $coin, $amount, $address, $tag = null ) {
 
     try {
-      $this->queryWithdraw( $coin, $amount, $address );
+      $this->queryWithdraw( $coin, $amount, $address, $tag );
       return true;
     }
     catch ( Exception $ex ) {
@@ -391,7 +391,13 @@ abstract class BittrexLikeExchange extends Exchange {
 
   }
 
-  private function queryWithdraw( $coin, $amount, $address ) {
+  public function withdrawSupportsTag() {
+
+    return false;
+
+  }
+
+  protected function queryWithdraw( $coin, $amount, $address, $tag ) {
     return $this->queryAPI( 'account/withdraw', //
                     [
                 'currency' => $coin,
