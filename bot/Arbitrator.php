@@ -528,6 +528,10 @@ class Arbitrator {
                                                                  $sellOrderID, $sellAmount );
       }
 
+      if ( !is_null( $buyOrderID ) ) {
+        $boughtAmount = min( $boughtAmount, array_reduce( $buyTrades, 'sumOfAmount', 0 ) );
+      }
+
       $totalCost = is_null( $buyOrderID ) ? 0 :
                      $source->getFilledOrderPrice( 'buy', $tradeable, $currency, $buyOrderID );
       $totalRevenue = is_null( $sellOrderID ) ? 0 :
