@@ -47,7 +47,7 @@ class Binance extends CCXTAdapter {
   }
 
   public function isMarketActive( $market ) {
-    return $market[ 'info' ][ 'status' ] == 'TRADING';
+    return $market[ 'active' ] || $market[ 'info' ][ 'status' ] == 'TRADING';
   }
 
   public function checkAPIReturnValue( $result ) {

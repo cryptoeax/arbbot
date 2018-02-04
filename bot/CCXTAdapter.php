@@ -396,7 +396,7 @@ abstract class CCXTAdapter extends Exchange {
         continue;
       }
 
-      if ( !$market[ 'active' ] || !$this->isMarketActive( $market ) ) {
+      if ( !$this->isMarketActive( $market ) ) {
         continue;
       }
 
