@@ -171,6 +171,7 @@ $(function() {
             return ""; // Not a coin. Has no icon.
         }
         symbol = symbol.trim();
+        var title = symbol;
         // Canonicalize symbol
         if (symbol == "SC") {
           symbol = "SIA";
@@ -180,7 +181,7 @@ $(function() {
           symbol = "STR";
         }
  
-        return "<i class=\"cc " + symbol + "\" title=\"" + symbol + "\"/> ";
+        return "<i class=\"cc " + symbol + "\" title=\"" + title + "\"/> ";
     }
 
     function updateGraph() {
