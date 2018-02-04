@@ -874,14 +874,14 @@ class CoinManager {
            floatval( $limits[ 'amount' ][ 'min' ] ) > $amount ) {
         logg( sprintf( "Withdrawal amount %s below minimum trade amount %s",
                        $amount, $limits[ 'amount' ][ 'min' ] ) );
-        return;
+        return false;
       }
 
       if ( !is_null( $limits[ 'amount' ][ 'max' ] ) &&
            floatval( $limits[ 'amount' ][ 'max' ] ) < $amount ) {
         logg( sprintf( "Withdrawal amount %s above maximum trade amount %s",
                        $amount, $limits[ 'amount' ][ 'max' ] ) );
-        return;
+        return false;
       }
     }
 
@@ -896,7 +896,7 @@ class CoinManager {
     if ( is_null( $address ) || strlen( trim( $address ) ) == 0 ) {
       logg( "Invalid deposit address for " . $target->getName() . ", received: ". $address );
 
-      return;
+      return false;
     }
 
 
@@ -905,7 +905,11 @@ class CoinManager {
       Database::saveWithdrawal( $coin, $amount, trim( $address ), $source->getID(), $target->getID(),
                                 $source->getWithdrawFee( $coin, $amount ) +
                                 $target->getDepositFee( $coin, $amount ) );
+
+      return true;
     }
+
+    return false;
 
   }
 
