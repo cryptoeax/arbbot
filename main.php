@@ -58,9 +58,9 @@ if ( !Database::balancesTableExists() ) {
   Database::importBalances();
 }
 
-//if ( !Database::currentSimulatedProfitsRateViewExists() ) {
+if ( !Database::currentSimulatedProfitsRateViewExists() ) {
   Database::createCurrentSimulatedProfitsRateView();
-//}
+}
 
 if ( !Database::pendingDepositsTableExists() ) {
   print "Before proceeding, please make sure that there is no pending deposits in\n" .

@@ -176,6 +176,8 @@ $(function() {
           symbol = "SIA";
         } else if (symbol == "BLK") {
           symbol = "BC";
+        } else if (symbol == "XLM") {
+          symbol = "STR";
         }
  
         return "<i class=\"cc " + symbol + "\" title=\"" + symbol + "\"/> ";
