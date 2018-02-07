@@ -265,7 +265,7 @@ abstract class Exchange {
 
   }
 
-  protected function postRefreshWallets() {
+  protected function postRefreshWallets( $tradesMade ) {
 
     $id = $this->getID();
     foreach ( $this->wallets as $coin => $balance ) {
@@ -276,6 +276,15 @@ abstract class Exchange {
         // Assume that a change in the balance when we aren't trading may be an incoming
         // deposit being credited, look for one!
         $change = $balance - $this->walletsBackup[ $coin ];
+        if ( isset( $tradesMade[ $id ][ $coin ] ) ) {
+          // If we have made a trade at this exchange of this coin, make sure to discount
+          // the change if it's less than the trade amount.
+          if ( abs( $change ) < abs( $tradesMade[ $id ][ $coin ] ) ) {
+            $change = 0;
+          } else {
+            $change += -$tradesMade[ $id ][ $coin ];
+          }
+        }
         $pendingDeposit = Database::getPendingDeposit( $coin, $id );
         if ( $pendingDeposit > 0 && $change != 0 ) {
           Database::savePendingDeposit( $coin, -$change, $id );
@@ -329,7 +338,7 @@ abstract class Exchange {
 
   public abstract function dumpWallets();
 
-  public abstract function refreshWallets( $betweenTrades = false );
+  public abstract function refreshWallets( $tradesMade = array() );
 
   public abstract function detectStuckTransfers();
 

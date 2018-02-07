@@ -530,11 +530,10 @@ abstract class CCXTAdapter extends Exchange {
     return $this->exchange->fetch_balance()[ 'free' ];
   }
 
-  public function refreshWallets( $inBetweenTrades = false ) {
 
-    if ( !$inBetweenTrades ) {
-      $this->preRefreshWallets();
-    }
+  public function refreshWallets( $tradesMade = array() ) {
+
+    $this->preRefreshWallets();
 
     $wallets = [ ];
 
@@ -545,9 +544,7 @@ abstract class CCXTAdapter extends Exchange {
 
     $this->wallets = $wallets;
 
-    if ( !$inBetweenTrades ) {
-      $this->postRefreshWallets();
-    }
+    $this->postRefreshWallets( $tradesMade );
 
   }
 
