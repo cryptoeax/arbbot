@@ -648,7 +648,12 @@ class CoinManager {
           $this->stats[ self::STAT_AUTOBUY_FUNDS ] = formatBTC( $autobuyFunds - $buyPrice );
 
           // Make sure the wallets are updated for pending deposit calculations.
-          $exchange->refreshWallets( true );
+          $tradesMade = array(
+            $exchange->getID() => array(
+              $tradeable => $buyAmount,
+            )
+          );
+          $exchange->refreshWallets( $tradesMade );
 
           $arbitrator->getTradeMatcher()->handlePostTradeTasks( $arbitrator, $exchange, $coin, 'BTC', 'buy',
                                                                 $orderID, $buyAmount );
@@ -798,7 +803,12 @@ class CoinManager {
           Database::saveManagement( $coin, $sellAmount * -1, $rate, $exchange->getID() );
 
           // Make sure the wallets are updated for pending deposit calculations.
-          $exchange->refreshWallets( true );
+          $tradesMade = array(
+            $exchange->getID() => array(
+              $tradeable => -$sellAmount,
+            )
+          );
+          $exchange->refreshWallets( $tradesMade );
 
           $arbitrator->getTradeMatcher()->handlePostTradeTasks( $arbitrator, $exchange, $coin, 'BTC', 'sell',
                                                                 $orderID, $sellAmount );

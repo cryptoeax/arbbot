@@ -429,11 +429,9 @@ class Poloniex extends Exchange {
 
   }
 
-  public function refreshWallets( $inBetweenTrades = false ) {
+  public function refreshWallets( $tradesMade = array() ) {
 
-    if ( !$inBetweenTrades ) {
-      $this->preRefreshWallets();
-    }
+    $this->preRefreshWallets();
 
     $wallets = [ ];
 
@@ -443,9 +441,7 @@ class Poloniex extends Exchange {
 
     $this->wallets = $wallets;
 
-    if ( !$inBetweenTrades ) {
-      $this->postRefreshWallets();
-    }
+    $this->postRefreshWallets( $tradesMade );
 
   }
 

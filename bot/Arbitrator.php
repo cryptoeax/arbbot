@@ -340,12 +340,16 @@ class Arbitrator {
 
     $undersellProtection = Config::get( Config::UNDERSELL_PROTECTION, Config::DEFAULT_UNDERSELL_PROTECTION );
 
+    $tradesMade = array( );
     $sellOrderID = $target->sell( $tradeable, $currency, $reducedSellRate, $sellAmount );
     $buyOrderID = null;
     if ( is_null( $sellOrderID ) ) {
       logg( "Sell order failed, we will not attempt a buy order to avoid incurring a loss." );
     } else {
       logg( "Placed sell order (" . $target->getName() . " ID: $sellOrderID)" );
+      $tradesMade[ $target->getID() ] = array(
+        $tradeable => -$sellAmount,
+      );
 
       $tradesSum = 0;
       $averageSellRate = 0;
@@ -358,7 +362,7 @@ class Arbitrator {
           logg( "A sell order hasn't been filled. If this happens regulary you should increase the " . Config::ORDER_CHECK_DELAY . " setting!", true );
         }
 
-        $target->refreshWallets( true );
+        $target->refreshWallets( $tradesMade );
 
         $sellTrades = $this->tradeMatcher->handlePostTradeTasks( $this, $target, $tradeable, $currency, 'sell',
                                                                  $sellOrderID, $sellAmount );
@@ -417,6 +421,10 @@ class Arbitrator {
         if ( !is_null( $buyOrderID ) &&
              $source->cancelOrder( $buyOrderID ) ) {
           logg( "A buy order hasn't been filled. If this happens regulary you should increase the " . Config::ORDER_CHECK_DELAY . " setting!", true );
+        } else {
+          $tradesMade[ $source->getID() ] = array(
+            $tradeable => $tradeAmount,
+          );
         }
       }
     }
@@ -430,9 +438,9 @@ class Arbitrator {
 
       logg( "Checking trade results ($i)..." );
 
-      $source->refreshWallets( true );
+      $source->refreshWallets( $tradesMade );
       if ( !$undersellProtection || $i != 1 ) {
-        $target->refreshWallets( true );
+        $target->refreshWallets( $tradesMade );
       }
 
       $buyTrades = $this->tradeMatcher->handlePostTradeTasks( $this, $source, $tradeable, $currency, 'buy',

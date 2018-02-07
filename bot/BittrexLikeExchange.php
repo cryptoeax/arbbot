@@ -214,11 +214,9 @@ abstract class BittrexLikeExchange extends Exchange {
 
   }
 
-  public function refreshWallets( $inBetweenTrades = false ) {
+  public function refreshWallets( $tradesMade = array() ) {
 
-    if ( !$inBetweenTrades ) {
-      $this->preRefreshWallets();
-    }
+    $this->preRefreshWallets();
 
     $wallets = [ ];
 
@@ -245,9 +243,7 @@ abstract class BittrexLikeExchange extends Exchange {
 
     $this->wallets = $wallets;
 
-    if ( !$inBetweenTrades ) {
-      $this->postRefreshWallets();
-    }
+    $this->postRefreshWallets( $tradesMade );
 
   }
 
