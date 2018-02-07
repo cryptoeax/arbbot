@@ -162,7 +162,8 @@ abstract class CCXTAdapter extends Exchange {
       logg( $this->prefix() . "Please generate a deposit address for $coin!", true );
       return null;
     }
-    if ( !is_null( $result[ 'tag' ] ) ) {
+    if ( !is_null( $result[ 'tag' ] ) &&
+         strlen( $result[ 'tag' ] ) > 0 ) {
       return array( $result[ 'address' ], $result[ 'tag' ] );
     }
     return $result[ 'address' ];
