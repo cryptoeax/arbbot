@@ -289,6 +289,9 @@ abstract class BittrexLikeExchange extends Exchange {
           sleep( 30 );
           continue;
         }
+        if ( strpos( $ex->getMessage(), '_OFFLINE' ) !== false ) {
+          $this->onMarketOffline( $coin );
+        }
         throw $ex;
       }
     }
