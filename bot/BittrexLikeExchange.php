@@ -297,10 +297,7 @@ abstract class BittrexLikeExchange extends Exchange {
         return isset( $data[ 'Address' ] ) ? $data[ 'Address' ] : null;
       }
       catch ( Exception $ex ) {
-        $info = json_decode($ex->getTrace()[ 0 ][ 'args' ][ 0 ]);
-        if (is_object( $info ) &&
-            $info->success === false &&
-            $info->message === 'ADDRESS_GENERATING') {
+        if ( strpos( $ex->getMessage(), 'ADDRESS_GENERATING' ) !== false ) {
           // Wait while the address is being generated.
           sleep( 30 );
           continue;
