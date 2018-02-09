@@ -557,6 +557,9 @@ abstract class CCXTAdapter extends Exchange {
   public function getSmallestOrderSize( $tradeable, $currency, $type ) {
 
     $pair = $tradeable . "_" . $currency;
+    if ( !isset( $this->limits[ $pair ][ 'cost' ][ 'min' ] ) ) {
+      return 0;
+    }
     return $this->limits[ $pair ][ 'cost' ][ 'min' ];
 
   }
