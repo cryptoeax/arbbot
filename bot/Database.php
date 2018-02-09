@@ -941,6 +941,27 @@ class Database {
     return self::createTableHelper( 'balances' );
 
   }
+
+  public static function createBalancesIndexIfNeeded() {
+
+    $link = self::connect();
+
+    $result = mysql_query( "SHOW INDEX FROM balances WHERE Key_name = 'coin_ID_exchange';", $link );
+    if ( !$result ) {
+      throw new Exception( "database selection error: " . mysql_error( $link ) );
+    }
+
+    $row = mysql_fetch_assoc( $result );
+    if ( !$row ) {
+      $result = mysql_query( "ALTER TABLE `balances` ADD INDEX `coin_ID_exchange` (`coin`, `ID_exchange`);", $link );
+      if ( !$result ) {
+        throw new Exception( "index creation error: " . mysql_error( $link ) );
+      }
+    }
+
+    mysql_close( $link );
+
+  }
   
   public static function getSmoothedResultsForGraph( $result ) {
   
