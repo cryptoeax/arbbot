@@ -11,6 +11,19 @@ class BinanceExchange extends \ccxt\binance {
   public function nonce() {
     return generateNonce( BINANCE_ID );
   }
+
+  public function describe() {
+
+    $info = parent::describe();
+    if ( !is_array( @$info[ 'api' ][ 'web' ][ 'post' ] ) ) {
+      $info[ 'api' ][ 'web' ][ 'post' ] = array( );
+    }
+    // Define a private Binance API
+    $info[ 'api' ][ 'web' ][ 'post' ][] = 'assetWithdraw/getAsset.html';
+
+    return $info;
+
+  }
 };
 
 class Binance extends CCXTAdapter {
@@ -74,6 +87,16 @@ class Binance extends CCXTAdapter {
       'completed' => 6 /* completed */,
 
     );
+
+  }
+
+  public function getWithdrawLimits( $tradeable, $currency ) {
+
+    $limits = $this->getLimits( $tradeable, $currency );
+    $tradeableInternal = $this->coinNames[ $tradeable ];
+    $minWithdraw = $this->exchange->webPostAssetWithdrawGetAssetHtml( array( 'asset' => $tradeableInternal ) );
+    $limits[ 'amount' ][ 'min' ] = $minWithdraw[ 'minProductWithdraw' ];
+    return $limits;
 
   }
 

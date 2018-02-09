@@ -878,7 +878,7 @@ class CoinManager {
   public function withdraw( $source, $target, $coin, $amount ) {
 
     if ( !Config::isCurrency( $coin ) ) {
-      $limits = $source->getLimits( $coin, 'BTC' );
+      $limits = $source->getWithdrawLimits( $coin, 'BTC' );
 
       if ( !is_null( $limits[ 'amount' ][ 'min' ] ) &&
            floatval( $limits[ 'amount' ][ 'min' ] ) > $amount ) {

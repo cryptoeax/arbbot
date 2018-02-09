@@ -35,7 +35,7 @@ abstract class CCXTAdapter extends Exchange {
   private $id = 0;
   private $name = '';
 
-  private $coinNames = [ ];
+  protected $coinNames = [ ];
   private $tradeFees = [ ];
   private $precisions = [ ];
   private $limits = [ ];

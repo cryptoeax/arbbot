@@ -358,6 +358,13 @@ abstract class Exchange {
 
   public abstract function testAccess();
 
+  public function getWithdrawLimits( $tradeable, $currency ) {
+
+    // By default, use the trade limits.
+    return $this->getLimits( $tradeable, $currency );
+
+  }
+
   protected abstract function fetchOrderbook( $tradeable, $currency );
 
   protected function prefix() {
