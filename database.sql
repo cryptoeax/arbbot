@@ -30,7 +30,8 @@ CREATE TABLE IF NOT EXISTS `balances` (
   `ID_exchange` int(11) NOT NULL,
   PRIMARY KEY (`ID`),
   KEY `coin` (`coin`),
-  KEY `ID_exchange` (`ID_exchange`)
+  KEY `ID_exchange` (`ID_exchange`),
+  INDEX `coin_ID_exchange` (`coin`, `ID_exchange`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------

@@ -825,7 +825,7 @@ $(function() {
 
                 htmlData += "--------- " + getIcon("BTC") + "<span title=\"Currency\">BTC</span> ----------\n";
 
-                var btcData = wallets['BTC'];
+                var btcData = ('BTC' in wallets) ? wallets['BTC'] : {};
                 var total = 0;
                 var totalChange = 0;
 

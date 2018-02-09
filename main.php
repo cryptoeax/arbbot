@@ -58,6 +58,8 @@ if ( !Database::balancesTableExists() ) {
   Database::importBalances();
 }
 
+Database::createBalancesIndexIfNeeded();
+
 if ( !Database::currentSimulatedProfitsRateViewExists() ) {
   Database::createCurrentSimulatedProfitsRateView();
 }
