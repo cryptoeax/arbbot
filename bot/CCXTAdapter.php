@@ -43,7 +43,7 @@ abstract class CCXTAdapter extends Exchange {
   private $lastStuckReportTime = [ ];
   private $lastDuplicateWithdrawalTime = 0;
 
-  function __construct( $id, $name, $ccxtName ) {
+  function __construct( $id, $name, $ccxtName, $extraOptions = array( ) ) {
     $this->id = $id;
     $this->name = $name;
 
@@ -52,9 +52,9 @@ abstract class CCXTAdapter extends Exchange {
     $secret = Config::get( sprintf( "%s.secret", $lower ) );
     parent::__construct( $key, $secret );
 
-    $this->exchange = new $ccxtName( array(
+    $this->exchange = new $ccxtName( array_merge( array(
       'enableRateLimit' => true,
-    ) );
+    ), $extraOptions ) );
     $this->exchange->apiKey = $key;
     $this->exchange->secret = $secret;
     $this->exchange->rateLimit = $this->getRateLimit();

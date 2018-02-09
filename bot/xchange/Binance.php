@@ -16,7 +16,10 @@ class BinanceExchange extends \ccxt\binance {
 class Binance extends CCXTAdapter {
 
   public function __construct() {
-    parent::__construct( BINANCE_ID, 'Binance', 'BinanceExchange' );
+    $extraOptions = array(
+      'recvWindow' => 15 * 1000, // Increase recvWindow to 15 seconds.
+    );
+    parent::__construct( BINANCE_ID, 'Binance', 'BinanceExchange', $extraOptions );
   }
 
   public function getRateLimit() {
