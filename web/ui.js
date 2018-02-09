@@ -267,6 +267,13 @@ $(function() {
                         max: endDate.getTime()
                     }
                 });
+
+                $("#placeholder *").bind('DOMMouseWheel', function() {
+                  return false;
+                });
+                $("#placeholder *").bind('mousewheel', function() {
+                  return false;
+                });
             }
         });
     }

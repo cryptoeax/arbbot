@@ -282,3 +282,7 @@ p {
     font-family: monospace;
     content: "    ";
 }
+
+.flot-text {
+    pointer-events: none;
+}
