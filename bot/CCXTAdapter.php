@@ -388,6 +388,9 @@ abstract class CCXTAdapter extends Exchange {
       $tradeable = $market[ 'base' ];
       $currency = $market[ 'quote' ];
 
+      $this->coinNames[ strtoupper( $tradeable ) ] = $tradeable;
+      $this->coinNames[ strtoupper( $currency ) ] = $currency;
+
       if ( !Config::isCurrency( $currency ) ||
            Config::isBlocked( $tradeable ) ) {
         continue;
@@ -396,9 +399,6 @@ abstract class CCXTAdapter extends Exchange {
       if ( !$market[ 'active' ] || !$this->isMarketActive( $market ) ) {
         continue;
       }
-
-      $this->coinNames[ strtoupper( $tradeable ) ] = $tradeable;
-      $this->coinNames[ strtoupper( $currency ) ] = $currency;
 
       $pair = strtoupper( $tradeable . "_" . $currency );
       $pairs[] = $pair;
