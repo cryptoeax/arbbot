@@ -1,15 +1,5 @@
 <?php
 
-class CoinEntry {
-
-  public $amount;
-  public $coin;
-  public $exchange;
-  public $profit;
-  public $time;
-
-}
-
 class CoinManager {
 
   //
