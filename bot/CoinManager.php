@@ -650,7 +650,7 @@ class CoinManager {
           // Make sure the wallets are updated for pending deposit calculations.
           $tradesMade = array(
             $exchange->getID() => array(
-              $tradeable => $buyAmount,
+              $coin => $buyAmount,
             )
           );
           $exchange->refreshWallets( $tradesMade );
