@@ -18,6 +18,7 @@ class CoinManager {
   const STAT_NEXT_MANAGEMENT = "next_management";
   const STAT_NEXT_TAKE_PROFIT = "next_take_profit";
   const STAT_NEXT_STUCK_DETECTION = "next_stuck_detection";
+  const STAT_NEXT_DUPLICATE_DETECTION = "next_duplicate_detection";
   const STAT_NEXT_UNUSED_COIN_DETECTION = "next_unused_coin_detection";
   const STAT_NEXT_DB_CLEANUP = "next_db_cleanup";
   const STAT_NEXT_CURRENCY_AGGRESSIVE_BALANCE_ALLOWED = "next_currency_aggressive_balance_allowed";
@@ -69,6 +70,12 @@ class CoinManager {
         $stats[ self::STAT_NEXT_STUCK_DETECTION ] = time() + Config::get( Config::INTERVAL_STUCK_DETECTION, Config::DEFAULT_INTERVAL_STUCK_DETECTION ) * 3600;
         //
       }
+      else if ( $stats[ self::STAT_NEXT_DUPLICATE_DETECTION ] <= time() ) {
+        //
+        self::duplicateDetection();
+        $stats[ self::STAT_NEXT_DUPLICATE_DETECTION ] = time() + Config::get( Config::INTERVAL_DUPLICATE_DETECTION, Config::DEFAULT_INTERVAL_DUPLICATE_DETECTION ) * 3600;
+        //
+      }
       else if ( $stats[ self::STAT_NEXT_UNUSED_COIN_DETECTION ] <= time() ) {
         //
         self::unusedCoinsDetection();
@@ -109,6 +116,9 @@ class CoinManager {
     }
     if ( !key_exists( self::STAT_NEXT_STUCK_DETECTION, $stats ) ) {
       $stats[ self::STAT_NEXT_STUCK_DETECTION ] = time() + 24 * 3600;
+    }
+    if ( !key_exists( self::STAT_NEXT_DUPLICATE_DETECTION, $stats ) ) {
+      $stats[ self::STAT_NEXT_DUPLICATE_DETECTION ] = time() + 24 * 3600;
     }
     if ( !key_exists( self::STAT_NEXT_UNUSED_COIN_DETECTION, $stats ) ) {
       $stats[ self::STAT_NEXT_UNUSED_COIN_DETECTION ] = time() + 24 * 3600;
@@ -414,6 +424,19 @@ class CoinManager {
 
   }
 
+  private function duplicateDetection() {
+
+    if ( !Config::get( Config::MODULE_DUPLICATE_DETECTION, Config::DEFAULT_MODULE_DUPLICATE_DETECTION ) ) {
+      return;
+    }
+
+    logg( "duplicateDetection()" );
+    foreach ( $this->exchanges as $exchange ) {
+      $exchange->detectDuplicateWithdrawals();
+    }
+
+  }
+
   private $unusedCoins = [ ];
 
   private function unusedCoinsDetection() {
@@ -683,6 +706,11 @@ class CoinManager {
   private function balanceAltcoins() {
 
     logg( "balanceAltcoins()" );
+
+    if ( !Config::get( Config::MODULE_AUTOBALANCE, Config::DEFAULT_MODULE_AUTOBALANCE ) ) {
+      logg( "Module disabled: Skipping balancing!" );
+      return;
+    }
 
     $allcoins = [ ];
     foreach ( $this->exchanges as $exchange ) {
