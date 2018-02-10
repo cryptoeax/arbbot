@@ -331,15 +331,7 @@ class Arbitrator {
       return false;
     }
 
-    if ( !is_null( $sourceLimits[ 'amount' ][ 'min' ] ) &&
-         floatval( $sourceLimits[ 'amount' ][ 'min' ] ) > $tradeAmount ) {
-      logg( $orderInfo . "NOT ENTERING TRADE: BUY AMOUNT IS BELOW EXCHANGE MINIMUM THRESHOLD\n" );
-      return false;
-    }
-
-    if ( !is_null( $sourceLimits[ 'amount' ][ 'max' ] ) &&
-         floatval( $sourceLimits[ 'amount' ][ 'max' ] ) < $tradeAmount ) {
-      logg( $orderInfo . "NOT ENTERING TRADE: BUY AMOUNT IS ABOVE EXCHANGE MAXIMUM THRESHOLD\n" );
+    if ( !$this->checkTradeAmount( $tradeAmount, $sourceLimits, $orderInfo ) ) {
       return false;
     }
 
@@ -374,18 +366,6 @@ class Arbitrator {
                                                        $targetPrecision );
     }
 
-    if ( !is_null( $sourceLimits[ 'price' ][ 'min' ] ) &&
-         floatval( $sourceLimits[ 'price' ][ 'min' ] ) > $increasedBuyRate ) {
-      logg( $orderInfo . "NOT ENTERING TRADE: BUY PRICE IS BELOW EXCHANGE MINIMUM THRESHOLD\n" );
-      return false;
-    }
-
-    if ( !is_null( $sourceLimits[ 'price' ][ 'max' ] ) &&
-         floatval( $sourceLimits[ 'price' ][ 'max' ] ) < $increasedBuyRate ) {
-      logg( $orderInfo . "NOT ENTERING TRADE: BUY PRICE IS ABOVE EXCHANGE MAXIMUM THRESHOLD\n" );
-      return false;
-    }
-
     if ( !is_null( $targetLimits[ 'price' ][ 'min' ] ) &&
          floatval( $targetLimits[ 'price' ][ 'min' ] ) > $reducedSellRate ) {
       logg( $orderInfo . "NOT ENTERING TRADE: SELL PRICE IS BELOW EXCHANGE MINIMUM THRESHOLD\n" );
@@ -398,9 +378,7 @@ class Arbitrator {
       return false;
     }
 
-    if ( $reducedSellRate <= $increasedBuyRate ) {
-      logg( $orderInfo . sprintf( "NOT ENTERING TRADE: REDUCED SELL RATE %s IS BELOW INCREASED BUY RATE %s",
-                                  formatBTC( $reducedSellRate ), formatBTC( $increasedBuyRate ) ) );
+    if ( !$this->checkIncreasedBuyRate( $increasedBuyRate, $reducedSellRate, $sourceLimits, $orderInfo ) ) {
       return false;
     }
 
@@ -464,6 +442,10 @@ class Arbitrator {
             $tradeAmount = min( $tradesSum + $txFee,
                                 $sourceLimits[ 'amount' ][ 'min' ] );
           }
+
+          if ( !$this->checkTradeAmount( $tradeAmount, $sourceLimits, $orderInfo ) ) {
+            return false;
+          }
         }
         // Ignore non-negative price adjustments, since if we manage to sell at a higher price than we
         // expected, we can still attempt to buy at the price that we intended to buy at while making
@@ -479,6 +461,11 @@ class Arbitrator {
             } else {
               $increasedBuyRate = min( $increasedBuyRate + $priceAdjustment,
                                        $sourceLimits[ 'price' ][ 'min' ] );
+            }
+
+            if ( !$this->checkIncreasedBuyRate( $increasedBuyRate, $reducedSellRate,
+                                                $sourceLimits, $orderInfo ) ) {
+              return false;
             }
           }
         }
@@ -594,6 +581,48 @@ class Arbitrator {
       $this->coinManager->withdraw( $source, $target, $tradeable, $boughtAmount );
       break;
     }
+    return true;
+
+  }
+
+  private function checkTradeAmount( $tradeAmount, $sourceLimits, $orderInfo ) {
+
+    if ( !is_null( $sourceLimits[ 'amount' ][ 'min' ] ) &&
+         floatval( $sourceLimits[ 'amount' ][ 'min' ] ) > $tradeAmount ) {
+      logg( $orderInfo . "NOT ENTERING TRADE: BUY AMOUNT IS BELOW EXCHANGE MINIMUM THRESHOLD\n" );
+      return false;
+    }
+
+    if ( !is_null( $sourceLimits[ 'amount' ][ 'max' ] ) &&
+         floatval( $sourceLimits[ 'amount' ][ 'max' ] ) < $tradeAmount ) {
+      logg( $orderInfo . "NOT ENTERING TRADE: BUY AMOUNT IS ABOVE EXCHANGE MAXIMUM THRESHOLD\n" );
+      return false;
+    }
+
+    return true;
+
+  }
+
+  private function checkIncreasedBuyRate( $increasedBuyRate, $reducedSellRate, $sourceLimits, $orderInfo ) {
+
+    if ( !is_null( $sourceLimits[ 'price' ][ 'min' ] ) &&
+         floatval( $sourceLimits[ 'price' ][ 'min' ] ) > $increasedBuyRate ) {
+      logg( $orderInfo . "NOT ENTERING TRADE: BUY PRICE IS BELOW EXCHANGE MINIMUM THRESHOLD\n" );
+      return false;
+    }
+
+    if ( !is_null( $sourceLimits[ 'price' ][ 'max' ] ) &&
+         floatval( $sourceLimits[ 'price' ][ 'max' ] ) < $increasedBuyRate ) {
+      logg( $orderInfo . "NOT ENTERING TRADE: BUY PRICE IS ABOVE EXCHANGE MAXIMUM THRESHOLD\n" );
+      return false;
+    }
+
+    if ( $reducedSellRate <= $increasedBuyRate ) {
+      logg( $orderInfo . sprintf( "NOT ENTERING TRADE: REDUCED SELL RATE %s IS BELOW INCREASED BUY RATE %s",
+                                  formatBTC( $reducedSellRate ), formatBTC( $increasedBuyRate ) ) );
+      return false;
+    }
+
     return true;
 
   }
