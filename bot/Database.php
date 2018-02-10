@@ -1178,7 +1178,7 @@ class Database {
 
     $stats = self::getStats();
 
-    if ( intval( @$stats[ 'pending_deposits_fixup' ] ) <= 1 ) {
+    if ( intval( @$stats[ 'pending_deposits_fixup' ] ) < 1 ) {
 
       self::showPendingDepositTableWarning();
 
