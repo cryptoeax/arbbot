@@ -1112,7 +1112,41 @@ class Database {
 
   public static function createPendingDepositsTable() {
 
+    self::showPendingDepositTableWarning();
+
     return self::createTableHelper( 'pending_deposits' );
+
+  }
+
+  private static function showPendingDepositTableWarning() {
+
+    print "Before proceeding, please make sure that there is no pending deposits in\n" .
+          "any of the active exchanges that the bot has access to, otherwise the bot's\n" .
+          "database will get corrupted during this upgrade process\n";
+    print "Press ENTER after checking all of your exchange accounts and making sure all\n" .
+          "pending deposits have been settled.\n";
+    readline();
+
+  }
+
+  public static function ensurePendingDepositsUpgraded() {
+
+    $stats = self::getStats();
+
+    if ( intval( @$stats[ 'pending_deposits_fixup' ] ) <= 1 ) {
+
+      self::showPendingDepositTableWarning();
+
+      $link = self::connect();
+
+      $result = mysql_query( "DELETE FROM pending_deposits", $link );
+      if ( !$result ) {
+        throw new Exception( "database deletion error: " . mysql_error( $link ) );
+      }
+
+      $stats[ 'pending_deposits_fixup' ] = 1;
+      self::saveStats( $stats );
+    }
 
   }
 
