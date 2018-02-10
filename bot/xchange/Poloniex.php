@@ -423,80 +423,15 @@ class Poloniex extends Exchange {
 
   }
 
-  private $lastDuplicateWithdrawalTime = 0;
-
-  public function detectDuplicateWithdrawals() {
-
-    $history = $this->queryDepositsAndWithdrawals();
-    $block = $history[ 'withdrawals' ];
-    usort( $block, 'compareByTimeStamp' );
-    $prevTimestamp = 0;
-    $prevTxId = '';
-    $prevAmount = '';
-    $prevAddress = '';
-    foreach ( $block as $entry ) {
-      $status = strtoupper( $entry[ 'status' ] );
-      $timestamp = $entry[ 'timestamp' ];
-      if ( $timestamp < $this->lastDuplicateWithdrawalTime ||
-           substr( $status, 0, 10 ) != 'COMPLETE: ' ) {
-        continue;
-      }
-      // status is in the following format: "COMPLETE: txid"
-      $txid = substr( $status, 10 );
-      $amount = $entry[ 'amount' ];
-      $address = $entry[ 'address' ];
-      $matched = false;
-      if ( $timestamp == $prevTimestamp &&
-           $txid == $prevTxId &&
-           $amount == $prevAmount &&
-           $address == $prevAddress ) {
-        $matched = true;
-      }
-      $prevTimestamp = $timestamp;
-      $prevTxId = $txid;
-      $prevAmount = $amount;
-      $prevAddress = $address;
-
-      if ( $timestamp < time() - 24 * 3600 && $matched ) {
-        alert( 'duplicate-withdrawal', $this->prefix() . "Duplicate withdrawal! Please investigate and open support ticket at Poloniex if necessary!\r\r" . print_r( $entry, true ), true );
-        $this->lastDuplicateWithdrawalTime = $timestamp;
-      }
-    }
-
-  }
-
-  public function getWalletsConsideringPendingDeposits() {
-
-    $result = [ ];
-    foreach ( $this->wallets as $coin => $balance ) {
-      $result[ $coin ] = $balance;
-    }
-    $history = $this->queryDepositsAndWithdrawals();
-
-    foreach ( $history[ 'deposits' ] as $entry ) {
-
-      $status = strtoupper( $entry[ 'status' ] );
-      if ($status != 'PENDING') {
-        continue;
-      }
-
-      $coin = strtoupper( $entry[ 'currency' ] );
-      $amount = $entry[ 'amount' ];
-      $result[ $coin ] += $amount;
-
-    }
-
-    return $result;
-
-  }
-
   public function dumpWallets() {
 
     logg( $this->prefix() . print_r( $this->queryBalances(), true ) );
 
   }
 
-  public function refreshWallets() {
+  public function refreshWallets( $tradesMade = array() ) {
+
+    $this->preRefreshWallets();
 
     $wallets = [ ];
 
@@ -505,6 +440,8 @@ class Poloniex extends Exchange {
     }
 
     $this->wallets = $wallets;
+
+    $this->postRefreshWallets( $tradesMade );
 
   }
 

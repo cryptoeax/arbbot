@@ -208,35 +208,15 @@ abstract class BittrexLikeExchange extends Exchange {
 
   }
 
-  public function detectDuplicateWithdrawals() {
-
-    // TODO: Detect duplicate withdrawals!
-
-  }
-
-  public function getWalletsConsideringPendingDeposits() {
-
-    $result = [ ];
-    foreach ( $this->wallets as $coin => $balance ) {
-      $result[ $coin ] = $balance;
-    }
-
-    $balances = $this->queryBalances();
-    foreach ( $balances as $balance ) {
-      $result[ strtoupper( $balance[ 'Currency' ] ) ] = floatval( $balance[ 'Balance' ] );
-    }
-
-    return $result;
-
-  }
-
   public function dumpWallets() {
 
     logg( $this->prefix() . print_r( $this->queryBalances(), true ) );
 
   }
 
-  public function refreshWallets() {
+  public function refreshWallets( $tradesMade = array() ) {
+
+    $this->preRefreshWallets();
 
     $wallets = [ ];
 
@@ -262,6 +242,8 @@ abstract class BittrexLikeExchange extends Exchange {
     }
 
     $this->wallets = $wallets;
+
+    $this->postRefreshWallets( $tradesMade );
 
   }
 

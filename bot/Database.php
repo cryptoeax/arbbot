@@ -303,22 +303,96 @@ class Database {
 
   }
 
-  public static function saveWithdrawal( $coin, $amount, $address, $sourceExchangeID, $targetExchangeID ) {
+  public static function saveWithdrawal( $coin, $amount, $address, $sourceExchangeID, $targetExchangeID, $txFee ) {
 
     $link = self::connect();
+    $time = time();
     $query = sprintf( "INSERT INTO withdrawal (amount, coin, address, ID_exchange_source, ID_exchange_target, created) VALUES ('%s', '%s', '%s', %d, %d, %d);", //
             formatBTC( $amount ), //
             $coin, //
             $address, //
             $sourceExchangeID, //
             $targetExchangeID, //
-            time() //
+            $time //
+    );
+
+    if ( !mysql_query( $query, $link ) ) {
+      throw new Exception( "database insertion error: " . mysql_error( $link ) );
+    }
+
+    $query = sprintf( "INSERT INTO pending_deposits (amount, coin, ID_withdrawal, ID_exchange, created) VALUES ('%s', '%s', %s, %d, %d);", //
+            formatBTC( $amount - $txFee ), //
+            $coin, //
+            'LAST_INSERT_ID()',
+            $targetExchangeID, //
+            $time //
     );
 
     if ( !mysql_query( $query, $link ) ) {
       throw new Exception( "database insertion error: " . mysql_error( $link ) );
     }
     mysql_close( $link );
+
+  }
+
+  public static function savePendingDeposit( $coin, $amount, $exchangeID ) {
+
+    $link = self::connect();
+
+    $query = sprintf( "INSERT INTO pending_deposits (amount, coin, ID_exchange, created) VALUES ('%s', '%s', %d, %d);", //
+            formatBTC( $amount ), //
+            $coin, //
+            $exchangeID, //
+            time() //
+    );
+
+    if ( !mysql_query( $query, $link ) ) {
+      throw new Exception( "database insertion error: " . mysql_error( $link ) );
+    }
+
+    mysql_close( $link );
+
+  }
+
+  public static function getPendingDeposit( $coin, $exchangeID ) {
+
+    $link = self::connect();
+
+    $query = sprintf( "SELECT SUM(amount) AS amount FROM pending_deposits WHERE coin = '%s' AND ID_exchange = %d;", //
+            $coin, //
+            $exchangeID //
+    );
+
+    if ( !($result = mysql_query( $query, $link )) ) {
+      throw new Exception( "database insertion error: " . mysql_error( $link ) );
+    }
+
+    $row = mysql_fetch_assoc( $result );
+
+    mysql_close( $link );
+    return floatval( $row[ 'amount' ] );
+
+  }
+
+  public static function getPendingDeposits( $exchangeID ) {
+
+    $link = self::connect();
+
+    $query = sprintf( "SELECT SUM(amount) AS amount, coin FROM pending_deposits WHERE ID_exchange = %d GROUP BY coin;", //
+            $exchangeID //
+    );
+
+    if ( !($result = mysql_query( $query, $link )) ) {
+      throw new Exception( "database insertion error: " . mysql_error( $link ) );
+    }
+
+    $results = [ ];
+    while ( $row = mysql_fetch_assoc( $result ) ) {
+      $results[ $row[ 'coin' ] ] = $row[ 'amount' ];
+    }
+
+    mysql_close( $link );
+    return $results;
 
   }
 
@@ -1082,7 +1156,41 @@ class Database {
 
   public static function createPendingDepositsTable() {
 
+    self::showPendingDepositTableWarning();
+
     return self::createTableHelper( 'pending_deposits' );
+
+  }
+
+  private static function showPendingDepositTableWarning() {
+
+    print "Before proceeding, please make sure that there is no pending deposits in\n" .
+          "any of the active exchanges that the bot has access to, otherwise the bot's\n" .
+          "database will get corrupted during this upgrade process\n";
+    print "Press ENTER after checking all of your exchange accounts and making sure all\n" .
+          "pending deposits have been settled.\n";
+    readline();
+
+  }
+
+  public static function ensurePendingDepositsUpgraded() {
+
+    $stats = self::getStats();
+
+    if ( intval( @$stats[ 'pending_deposits_fixup' ] ) <= 1 ) {
+
+      self::showPendingDepositTableWarning();
+
+      $link = self::connect();
+
+      $result = mysql_query( "DELETE FROM pending_deposits", $link );
+      if ( !$result ) {
+        throw new Exception( "database deletion error: " . mysql_error( $link ) );
+      }
+
+      $stats[ 'pending_deposits_fixup' ] = 1;
+      self::saveStats( $stats );
+    }
 
   }
 
@@ -1150,6 +1258,76 @@ class Database {
   public static function createProfitLossTable() {
 
     return self::createTableHelper( 'profit_loss' );
+
+  }
+
+  public static function walletsTableExists() {
+
+    return self::tableExistsHelper( 'wallets' );
+
+  }
+
+  public static function createWalletsTable() {
+
+    return self::createTableHelper( 'wallets' );
+
+  }
+
+  public static function readWallets( $id ) {
+
+    $link = self::connect();
+
+    if ( !($result = mysql_query( sprintf( "SELECT * FROM wallets WHERE ID_exchange = %d;",
+                                            $id
+                                  ),
+                                  $link
+                     ) ) ) {
+      throw new Exception( "database selection error: " . mysql_error( $link ) );
+    }
+
+    $wallets = [ ];
+    while ( $row = mysql_fetch_assoc( $result ) ) {
+      $wallets[ $row[ 'coin' ] ] = floatval( $row[ 'amount' ] );
+    }
+
+    return $wallets;
+
+  }
+
+  public static function saveWallets( $id, $wallets ) {
+
+    $link = self::connect();
+    $time = time();
+
+    if ( !mysql_query( "START TRANSACTION", $link ) ) {
+      throw new Exception( "database insertion error: " . mysql_error( $link ) );
+    }
+
+    try {
+      if ( !mysql_query( sprintf( "DELETE FROM wallets WHERE ID_exchange = %d;", $id ), $link ) ) {
+        throw new Exception( "database insertion error: " . mysql_error( $link ) );
+      }
+  
+      foreach ( $wallets as $coin => $balance ) {
+        if ( !mysql_query( sprintf( "INSERT INTO wallets (created, coin, amount, ID_exchange) " .
+                                                          "VALUES (%d, '%s', '%s', %d);",
+                                    $time, mysql_escape_string( $coin ),
+                                    formatBTC( $balance ), $id ),
+                            $link ) ) {
+          throw new Exception( "database insertion error: " . mysql_error( $link ) );
+        }
+      }
+    }
+    catch ( Exception $ex ) {
+      mysql_query( "ROLLBACK", $link );
+      throw $ex;
+    }
+
+    if ( !mysql_query( "COMMIT", $link ) ) {
+      throw new Exception( "database insertion error: " . mysql_error( $link ) );
+    }
+
+    mysql_close( $link );
 
   }
 

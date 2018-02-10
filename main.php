@@ -69,9 +69,19 @@ if ( !Database::pendingDepositsTableExists() ) {
   Database::createPendingDepositsTable();
 }
 
+if ( !Database::pendingDepositsTableExists() ) {
+  Database::createPendingDepositsTable();
+} else {
+  Database::ensurePendingDepositsUpgraded();
+}
+
 if ( !Database::profitsTableExists() ) {
   Database::createProfitsTable();
   Database::importProfits();
+}
+
+if ( !Database::walletsTableExists() ) {
+  Database::createWalletsTable();
 }
 
 if ( !Database::profitLossTableExists() ) {
