@@ -351,7 +351,6 @@ class Database {
     }
 
     mysql_close( $link );
-    return $results;
 
   }
 
