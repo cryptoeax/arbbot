@@ -872,14 +872,16 @@ class CoinManager {
 
       if ( !is_null( $limits[ 'amount' ][ 'min' ] ) &&
            floatval( $limits[ 'amount' ][ 'min' ] ) > $amount ) {
-        logg( sprintf( "Withdrawal amount %s below minimum trade amount %s",
+        logg( sprintf( "[%s] Withdrawal amount %s below minimum trade amount %s",
+                       strtoupper( $source->getName() ),
                        $amount, $limits[ 'amount' ][ 'min' ] ) );
         return false;
       }
 
       if ( !is_null( $limits[ 'amount' ][ 'max' ] ) &&
            floatval( $limits[ 'amount' ][ 'max' ] ) < $amount ) {
-        logg( sprintf( "Withdrawal amount %s above maximum trade amount %s",
+        logg( sprintf( "[%s] Withdrawal amount %s above maximum trade amount %s",
+                       strtoupper( $source->getName() ),
                        $amount, $limits[ 'amount' ][ 'max' ] ) );
         return false;
       }
